@@ -1,0 +1,38 @@
+{
+	"_comment": "this is the template for the configuration of the Pokedex. After filling out the data, rename this file to config.json",
+	
+	"version": "X",
+
+	"discord": {
+		"token": {
+			"debug": "",
+			"production": ""
+		}
+	},
+
+	"twitch": {
+		"token": {
+			"debug": "",
+			"production": ""
+		},
+		
+		"username": {
+			"debug": "",
+			"production": ""
+		}
+	},
+		
+	"carbonitex": {
+		"token": { 
+			"debug": "",
+			"production": ""
+		}
+	},
+	
+	"sql": {
+		"username": "",
+		"database": "",
+		"password": "",
+		"uri": ""
+	}
+}
