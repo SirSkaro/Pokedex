@@ -65,11 +65,11 @@ public class Pokedex
 		twitchLogin(twitchToken, twitchUsername, ip);
 		
 		/**
-    	 * DISCORD SETUP
-    	 */
-    	//Log into Discord and establish a listener
-    	System.out.println("[Pokedex main] Logging into Discord");
-    	Optional<String> discordToken = configurator.getAuthToken("discord");
+		 * DISCORD SETUP
+		 */
+		//Log into Discord and establish a listener
+		System.out.println("[Pokedex main] Logging into Discord");
+		Optional<String> discordToken = configurator.getAuthToken("discord");
 		Optional<IDiscordClient> discordClient = discordLogin(discordToken, ip);
 		
 		/**
