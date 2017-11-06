@@ -230,7 +230,8 @@ public class DiscordEventHandler
             } 
             catch (Exception e)
             {
-                System.err.println("[DiscordEventHandler] Text could not be sent with error: "+ e.getClass().getSimpleName());
+                System.err.println("[DiscordEventHandler] Text (queued) could not be sent with error: "+ e.getClass().getSimpleName());
+                throw e;	//Sends the message to the request buffer
             }
         });
     }
