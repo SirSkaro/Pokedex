@@ -39,4 +39,9 @@ public class Input
 			return args.get(index);
 		return null;
 	}
+	
+	@Override
+	public String toString() {
+		return "Input: [Function=" + function + ", valid=" + valid + ",errorCode=" + errorCode + "args=" + args.toString() + "]";
+	}
 }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseService;
 import skaro.pokedex.database_resources.SimpleMove;
 import skaro.pokedex.database_resources.SimplePokemon;
 import skaro.pokedex.input_processor.Argument;
@@ -76,8 +76,8 @@ public class LearnCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 		
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		SimplePokemon poke = dbi.extractSimplePokeFromDB(input.getArg(0).getDB());
+		DatabaseService dbi = DatabaseService.getInstance();
+		SimplePokemon poke = dbi.getSimplePokemon(input.getArg(0).getDB());
 		
 		//If data is null, then an error occurred
 		if(poke.getSpecies() == null)
@@ -97,7 +97,7 @@ public class LearnCommand implements ICommand
 			if(moveArg.isValid())
 			{
 				dbMove = moveArg.getDB()+"-m";
-				sMove = dbi.extractSimpleMoveFromDB(dbMove);
+				sMove = dbi.getSimpleMove(dbMove);
 				reply.addToReply("\t"+sMove.getName()+" | "
 						+(dbi.inMoveSet(dbMove, input.getArg(0).getDB()) ? "able" : "not able"));
 			}
@@ -118,8 +118,8 @@ public class LearnCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 		
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		SimplePokemon poke = dbi.extractSimplePokeFromDB(input.getArg(0).getDB());
+		DatabaseService dbi = DatabaseService.getInstance();
+		SimplePokemon poke = dbi.getSimplePokemon(input.getArg(0).getDB());
 		
 		//If data is null, then an error occurred
 		if(poke.getSpecies() == null)
@@ -139,7 +139,7 @@ public class LearnCommand implements ICommand
 			if(moveArg.isValid())
 			{
 				dbMove = moveArg.getDB()+"-m";
-				sMove = dbi.extractSimpleMoveFromDB(dbMove);
+				sMove = dbi.getSimpleMove(dbMove);
 				reply.addToReply(sMove.getName()+":"
 						+(dbi.inMoveSet(dbMove, input.getArg(0).getDB()) ? "able" : "not able"));
 			}

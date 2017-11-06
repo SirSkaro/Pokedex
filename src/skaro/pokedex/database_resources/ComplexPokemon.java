@@ -36,7 +36,7 @@ public class ComplexPokemon
 		String temp;
 		try 
 		{
-			DatabaseInterface dbi = DatabaseInterface.getInstance();
+			DatabaseService dbi = DatabaseService.getInstance();
 			
 			//Standard Pokemon data
 			basicData.next();
@@ -55,7 +55,7 @@ public class ComplexPokemon
 			//Ability data
 			abilities = new ArrayList<SimpleAbility>();
 			while(abilityData.next())
-				abilities.add(dbi.extractSimpleAbilFromDB(abilityData.getString(1)));
+				abilities.add(dbi.getSimpleAbility(abilityData.getString(1)));
 			
 			//Gender data
 			maleRatio = new Rational(maleData);
@@ -74,7 +74,7 @@ public class ComplexPokemon
 				evolutions = new ArrayList<String>();
 				do 
 				{
-					postEvo = dbi.extractSimplePokeFromDB(evoData.getString(2).intern());
+					postEvo = dbi.getSimplePokemon(evoData.getString(2).intern());
 					evolutions.add(postEvo.getSpecies());
 				}while(evoData.next());
 			}

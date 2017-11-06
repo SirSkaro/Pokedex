@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseService;
 import skaro.pokedex.database_resources.SimplePokemon;
 import skaro.pokedex.input_processor.Input;
 
@@ -71,8 +71,8 @@ public class StatsCommand implements ICommand
 			return reply;
 		
 		//Extract data from data base
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		SimplePokemon poke = dbi.extractSimplePokeFromDB(input.getArg(0).getDB());
+		DatabaseService dbi = DatabaseService.getInstance();
+		SimplePokemon poke = dbi.getSimplePokemon(input.getArg(0).getDB());
 		
 		//If data is null, then an error occurred
 		if(poke.getSpecies() == null)
@@ -105,8 +105,8 @@ public class StatsCommand implements ICommand
 			return reply;
 		
 		//Extract data from data base
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		SimplePokemon poke = dbi.extractSimplePokeFromDB(input.getArg(0).getDB());
+		DatabaseService dbi = DatabaseService.getInstance();
+		SimplePokemon poke = dbi.getSimplePokemon(input.getArg(0).getDB());
 		
 		//If data is null, then an error occurred
 		if(poke.getSpecies() == null)

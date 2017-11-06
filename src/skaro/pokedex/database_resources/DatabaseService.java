@@ -18,13 +18,13 @@ import skaro.pokedex.data_processor.ICommand.ArgumentCategory;
  *
  */
 
-public class DatabaseInterface 
+public class DatabaseService implements PokemonDataAccessor
 {
-	private static DatabaseInterface instance;
+	private static DatabaseService instance;
 	private static Connection con;
 	private static ArrayList<String> metas, types, regions, versions;
 	
-	private DatabaseInterface()
+	private DatabaseService()
 	{
 		try
 		{  
@@ -74,13 +74,13 @@ public class DatabaseInterface
 		versions.add("omegaruby"); versions.add("alphasapphire"); versions.add("sun"); versions.add("moon");
 	}
 	
-	public static DatabaseInterface getInstance()
+	public static DatabaseService getInstance()
 	{
 		if(instance == null)
 		{
 			try 
 			{
-				instance = new DatabaseInterface();
+				instance = new DatabaseService();
 			} 
 			catch (Exception e) 
 			{
@@ -269,7 +269,7 @@ public class DatabaseInterface
 	 * @param arg - The name of the Pokemon in data base format
 	 * @return  - a ComplexPokemon object representing that Pokemon
 	 */
-	public ComplexPokemon extractComplexPokeFromDB(String arg)
+	public ComplexPokemon getComplexPokemon(String arg)
 	{
 		ResultSet basicData = dbQuery("SELECT * FROM Pokemon WHERE pid = '"+arg+"';");
 		ResultSet abilityData = dbQuery("SELECT aid FROM AbilPool WHERE pid = '"+arg+"' ORDER BY anum;");
@@ -287,7 +287,7 @@ public class DatabaseInterface
 	 * @param arg - The name of the Pokemon in data base format
 	 * @return  - a ComplexPokemon object representing that Pokemon
 	 */
-	public ComplexPokemon extractRandomComplexPokeFromDB()
+	public ComplexPokemon getRandomComplexPokemon()
 	{
 		String pid = null;
 		
@@ -320,7 +320,7 @@ public class DatabaseInterface
 	 * @param arg - The name of the Pokemon in data base format
 	 * @return  - a SimplePokemon object representing that Pokemon
 	 */
-	public SimplePokemon extractSimplePokeFromDB(String arg)
+	public SimplePokemon getSimplePokemon(String arg)
 	{
 		ResultSet basicData = dbQuery("SELECT * FROM Pokemon WHERE pid = '"+arg+"';");
 		return new SimplePokemon(basicData);
@@ -331,7 +331,7 @@ public class DatabaseInterface
 	 * @param arg - The name of the Ability in data base format
 	 * @return  - an SimpleAbility object representing that Ability
 	 */
-	public SimpleAbility extractSimpleAbilFromDB(String arg)
+	public SimpleAbility getSimpleAbility(String arg)
 	{
 		ResultSet basicData = dbQuery("SELECT * FROM Ability WHERE aid = '"+arg+"';");
 		return new SimpleAbility(basicData);
@@ -342,7 +342,7 @@ public class DatabaseInterface
 	 * @param arg - The name of the Ability in data base format
 	 * @return  - an ComplexAbility object representing that Ability
 	 */
-	public ComplexAbility extractComplexAbilFromDB(String arg)
+	public ComplexAbility getComplexAbility(String arg)
 	{
 		ResultSet basicData = dbQuery("SELECT * FROM Ability WHERE aid = '"+arg+"';");
 		return new ComplexAbility(basicData);
@@ -353,7 +353,7 @@ public class DatabaseInterface
 	 * @param arg - The name of the Item in data base format
 	 * @return  - an ComplexItem object representing that Item
 	 */
-	public ComplexItem extractComplexItemFromDB(String arg)
+	public ComplexItem getComplexItem(String arg)
 	{
 		ResultSet basicData = dbQuery("SELECT * FROM Item WHERE iid = '"+arg+"';");
 		return new ComplexItem(basicData);
@@ -364,7 +364,7 @@ public class DatabaseInterface
 	 * @param arg - The name of the Move in data base format
 	 * @return  - an ComplexMove object representing that Move
 	 */
-	public ComplexMove extractComplexMoveFromDB(String arg)
+	public ComplexMove getComplexMove(String arg)
 	{
 		ResultSet basicData = dbQuery("SELECT * FROM Move WHERE mid = '"+arg+"';");
 		ResultSet flagData = dbQuery("SELECT flag FROM MoveFlags WHERE mid = '"+arg+"';");
@@ -376,7 +376,7 @@ public class DatabaseInterface
 	 * @param arg - The name of the Move in data base format
 	 * @return  - an SimpleMove object representing that Move
 	 */
-	public SimpleMove extractSimpleMoveFromDB(String arg)
+	public SimpleMove getSimpleMove(String arg)
 	{
 		ResultSet basicData = dbQuery("SELECT * FROM Move WHERE mid = '"+arg+"';");
 		return new SimpleMove(basicData);
@@ -408,7 +408,7 @@ public class DatabaseInterface
 	 * @param version - The name of the version in data base format
 	 * @return  - an PokedexEntry object representing this Pokemon's Pokedex entry for the specified version
 	 */
-	public PokedexEntry extractDexEntryFromDB(String poke, String version)
+	public PokedexEntry getDexEntry(String poke, String version)
 	{
 		ResultSet dexData = dbQuery("SELECT * FROM DexEntry WHERE pid = '"+poke+"' AND vid = '"+version+"';");
 		ResultSet pokeData = dbQuery("SELECT specie FROM Pokemon WHERE pid = '"+poke+"';");
@@ -422,7 +422,8 @@ public class DatabaseInterface
 	 * @param gen - the generation the meta game was relevant in
 	 * @return  - an SetGroup object representing this Pokemon's possible sets
 	 */
-	public SetGroup extractSetsFromDB(String poke, String tier, int gen)
+	@Override
+	public SetGroup getSetsForPokemon(String poke, String tier, int gen)
 	{
 		ResultSet setData = dbQuery("SELECT * FROM Trick WHERE pid = '"+poke+"'"
 				+ " AND tier_id = '"+tier+"'"
@@ -438,7 +439,7 @@ public class DatabaseInterface
 	 * @param version - The desired version in data base format
 	 * @return  - an Location object representing this Pokemon's possible sets
 	 */
-	public LocationGroup extractLocationFromDB(String poke, String version)
+	public LocationGroup getLocation(String poke, String version)
 	{
 		ResultSet locData = dbQuery("SELECT * FROM Location WHERE pid = '"+poke+"'"
 				+ " AND vid = '"+version+"';");
@@ -517,4 +518,12 @@ public class DatabaseInterface
 			System.err.println(trace);
 		//System.exit(1);
 	}
+
+	@Override
+	public SimplePokemon getRandomSimplePokemon() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
 }

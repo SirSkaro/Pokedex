@@ -6,7 +6,7 @@ import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.database_resources.ComplexAbility;
 import skaro.pokedex.database_resources.ComplexPokemon;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseService;
 import skaro.pokedex.database_resources.SimpleAbility;
 import skaro.pokedex.input_processor.Input;
 
@@ -72,12 +72,12 @@ public class AbilityCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 		
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseService dbi = DatabaseService.getInstance();
 		
 		//Extract data from data base
 		if(input.getArg(0).getCategory() == ArgumentCategory.ABILITY)
 		{
-			ComplexAbility abil = dbi.extractComplexAbilFromDB(input.getArg(0).getDB()+"-a");
+			ComplexAbility abil = dbi.getComplexAbility(input.getArg(0).getDB()+"-a");
 	
 			//If data is null, then an error occured
 			if(abil.getName() == null)
@@ -94,7 +94,7 @@ public class AbilityCommand implements ICommand
 		}
 		else if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
 		{
-			ComplexPokemon poke = dbi.extractComplexPokeFromDB(input.getArg(0).getDB());
+			ComplexPokemon poke = dbi.getComplexPokemon(input.getArg(0).getDB());
 			
 			//If data is null, then an error occured
 			if(poke.getSpecies() == null)
@@ -141,12 +141,12 @@ public class AbilityCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 				
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseService dbi = DatabaseService.getInstance();
 		
 		//Extract data from data base
 		if(input.getArg(0).getCategory() == ArgumentCategory.ABILITY)
 		{
-			ComplexAbility abil = dbi.extractComplexAbilFromDB(input.getArg(0).getDB()+"-a");
+			ComplexAbility abil = dbi.getComplexAbility(input.getArg(0).getDB()+"-a");
 	
 			//If data is null, then an error occured
 			if(abil.getName() == null)
@@ -162,7 +162,7 @@ public class AbilityCommand implements ICommand
 		}
 		else if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
 		{
-			ComplexPokemon poke = dbi.extractComplexPokeFromDB(input.getArg(0).getDB());
+			ComplexPokemon poke = dbi.getComplexPokemon(input.getArg(0).getDB());
 			
 			//If data is null, then an error occured
 			if(poke.getSpecies() == null)

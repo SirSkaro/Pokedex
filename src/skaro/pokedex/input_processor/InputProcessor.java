@@ -7,18 +7,22 @@ import java.util.regex.Pattern;
 
 import skaro.pokedex.core.CommandLibrary;
 import skaro.pokedex.data_processor.ICommand.ArgumentCategory;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseService;
 
 public class InputProcessor 
 {
 	private SpellChecker sc;
 	private ArgumentMap argMap;
-	private DatabaseInterface dbi;
+	private DatabaseService dbi;
 	
 	public InputProcessor(CommandLibrary lib)
 	{
-		dbi = DatabaseInterface.getInstance();
-		argMap = new ArgumentMap(lib);
+		this(lib, DatabaseService.getInstance());
+	}
+	
+	/* testing-private -> */ protected InputProcessor(CommandLibrary lib, DatabaseService dbi) {
+		this.dbi = dbi;
+		this.argMap = new ArgumentMap(lib);
 		
 		try
 		{

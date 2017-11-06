@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.database_resources.ComplexPokemon;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseService;
 import skaro.pokedex.input_processor.Input;
 
 public class RandpokeCommand implements ICommand
@@ -50,8 +50,8 @@ public class RandpokeCommand implements ICommand
 	public Response discordReply(Input input) 
 	{
 		//Set up utility variables
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		ComplexPokemon poke = dbi.extractRandomComplexPokeFromDB();
+		DatabaseService dbi = DatabaseService.getInstance();
+		ComplexPokemon poke = dbi.getRandomComplexPokemon();
 		Response reply = new Response();
 		
 		//If data is null, then an error occured
@@ -93,8 +93,8 @@ public class RandpokeCommand implements ICommand
 	public Response twitchReply(Input input) 
 	{
 		//Set up utility variables
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		ComplexPokemon poke = dbi.extractRandomComplexPokeFromDB();
+		DatabaseService dbi = DatabaseService.getInstance();
+		ComplexPokemon poke = dbi.getRandomComplexPokemon();
 		Response reply = new Response();
 		
 		//If data is null, then an error occured

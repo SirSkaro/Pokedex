@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.database_resources.ComplexItem;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseService;
 import skaro.pokedex.input_processor.Input;
 
 public class ItemCommand implements ICommand 
@@ -71,8 +71,8 @@ public class ItemCommand implements ICommand
 			return reply;
 		
 		//Extract data from data base
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		ComplexItem item = dbi.extractComplexItemFromDB(input.getArg(0).getDB()+"-i");
+		DatabaseService dbi = DatabaseService.getInstance();
+		ComplexItem item = dbi.getComplexItem(input.getArg(0).getDB()+"-i");
 		
 		//If data is null, then an error occurred
 		if(item.getName() == null)
@@ -107,8 +107,8 @@ public class ItemCommand implements ICommand
 			return reply;
 		
 		//Extract data from data base
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		ComplexItem item = dbi.extractComplexItemFromDB(input.getArg(0).getDB()+"-i");
+		DatabaseService dbi = DatabaseService.getInstance();
+		ComplexItem item = dbi.getComplexItem(input.getArg(0).getDB()+"-i");
 		
 		//If data is null, then an error occurred
 		if(item.getName() == null)

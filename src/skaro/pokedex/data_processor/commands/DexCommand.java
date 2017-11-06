@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TTSConverter;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseService;
 import skaro.pokedex.database_resources.PokedexEntry;
 import skaro.pokedex.input_processor.Input;
 
@@ -75,8 +75,8 @@ public class DexCommand implements ICommand
 			return reply;
 		
 		//Utility variables
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		PokedexEntry entry = dbi.extractDexEntryFromDB(input.getArg(0).getDB(), input.getArg(1).getDB());
+		DatabaseService dbi = DatabaseService.getInstance();
+		PokedexEntry entry = dbi.getDexEntry(input.getArg(0).getDB(), input.getArg(1).getDB());
 		
 		if(entry.getSpecies() == null)
 		{
@@ -111,8 +111,8 @@ public class DexCommand implements ICommand
 			return reply;
 		
 		//Utility variables
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		PokedexEntry entry = dbi.extractDexEntryFromDB(input.getArg(0).getDB(), input.getArg(1).getDB());
+		DatabaseService dbi = DatabaseService.getInstance();
+		PokedexEntry entry = dbi.getDexEntry(input.getArg(0).getDB(), input.getArg(1).getDB());
 		
 		if(entry.getSpecies() == null)
 		{

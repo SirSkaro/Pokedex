@@ -121,6 +121,10 @@ public class DiscordEventHandler
     	//Initial utility variable
 		IMessage input;
 	
+		/* 
+		 * REFACTOR: both MessageReceived and MessageUpdate events extend MessageEvent, which has a getMessage() function. 
+		 * Get new message does the same thing as getMessage. I don't think the instanceof checks are necessary. - Michael 
+		*/
 		//check the type of event
 		if(event instanceof MessageReceivedEvent)
 			input = ((MessageReceivedEvent) event).getMessage();

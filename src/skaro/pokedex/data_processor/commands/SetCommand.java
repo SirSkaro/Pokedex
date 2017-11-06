@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseService;
 import skaro.pokedex.database_resources.Set;
 import skaro.pokedex.database_resources.SetGroup;
 import skaro.pokedex.input_processor.Input;
@@ -76,8 +76,8 @@ public class SetCommand implements ICommand
 			return reply;
 		
 		//Utility variables
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		SetGroup sets = dbi.extractSetsFromDB(input.getArg(0).getDB(),
+		DatabaseService dbi = DatabaseService.getInstance();
+		SetGroup sets = dbi.getSetsForPokemon(input.getArg(0).getDB(),
 					input.getArg(1).getDB(), Integer.parseInt(input.getArg(2).getDB()));
         
 		//If "species" field is null, then some error occured

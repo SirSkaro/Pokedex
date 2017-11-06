@@ -6,7 +6,7 @@ import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseService;
 import skaro.pokedex.database_resources.SimpleMove;
 import skaro.pokedex.input_processor.Input;
 
@@ -74,7 +74,7 @@ public class CoverageCommand implements ICommand
 		
 		//If argument is a move, get the typing
 		SimpleMove move;
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseService dbi = DatabaseService.getInstance();
 		TypeTracker tt = new TypeTracker();
 		TypeInteractionWrapper wrapper;
 		
@@ -82,7 +82,7 @@ public class CoverageCommand implements ICommand
 		{
 			if(input.getArg(i).getCategory() == ArgumentCategory.MOVE)
 			{
-				move = dbi.extractSimpleMoveFromDB(input.getArg(i).getDB()+"-m");
+				move = dbi.getSimpleMove(input.getArg(i).getDB()+"-m");
 				
 				//If data is null, then an error occurred
 				if(move.getName() == null)
@@ -121,7 +121,7 @@ public class CoverageCommand implements ICommand
 		
 		//If argument is a move, get the typing
 		SimpleMove move;
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseService dbi = DatabaseService.getInstance();
 		TypeTracker tt = new TypeTracker();
 		TypeInteractionWrapper wrapper;
 		
@@ -129,7 +129,7 @@ public class CoverageCommand implements ICommand
 		{
 			if(input.getArg(i).getCategory() == ArgumentCategory.MOVE)
 			{
-				move = dbi.extractSimpleMoveFromDB(input.getArg(i).getDB()+"-m");
+				move = dbi.getSimpleMove(input.getArg(i).getDB()+"-m");
 				
 				//If data is null, then an error occurred
 				if(move.getName() == null)

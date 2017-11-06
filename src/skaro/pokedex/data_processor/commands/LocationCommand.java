@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseService;
 import skaro.pokedex.database_resources.Location;
 import skaro.pokedex.database_resources.LocationGroup;
 import skaro.pokedex.input_processor.Input;
@@ -74,8 +74,8 @@ public class LocationCommand implements ICommand
 			return reply;
 		
 		//Utility variables
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		LocationGroup locations = dbi.extractLocationFromDB(input.getArg(0).getDB(), input.getArg(1).getDB());
+		DatabaseService dbi = DatabaseService.getInstance();
+		LocationGroup locations = dbi.getLocation(input.getArg(0).getDB(), input.getArg(1).getDB());
 		
 		if(locations.getLocations().isEmpty())
 		{

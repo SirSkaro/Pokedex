@@ -6,7 +6,7 @@ import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseService;
 import skaro.pokedex.database_resources.SimplePokemon;
 import skaro.pokedex.input_processor.Input;
 
@@ -76,12 +76,12 @@ public class WeakCommand implements ICommand
 		TypeInteractionWrapper wrapper;
 		String formattedList, temp1, temp2;
 		TypeTracker tt = new TypeTracker();
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseService dbi = DatabaseService.getInstance();
 		
 		//Build reply according to the argument case
 		if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON) //argument is a Pokemon
 		{
-			SimplePokemon poke = dbi.extractSimplePokeFromDB(input.getArg(0).getDB());
+			SimplePokemon poke = dbi.getSimplePokemon(input.getArg(0).getDB());
 			
 			//If data is null, then an error occurred
 			if(poke.getSpecies() == null)
@@ -154,12 +154,12 @@ public class WeakCommand implements ICommand
 		TypeInteractionWrapper wrapper;
 		String formattedList, temp1, temp2;
 		TypeTracker tt = new TypeTracker();
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseService dbi = DatabaseService.getInstance();
 		
 		//Build reply according to the argument case
 		if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON) //argument is a Pokemon
 		{
-			SimplePokemon poke = dbi.extractSimplePokeFromDB(input.getArg(0).getDB());
+			SimplePokemon poke = dbi.getSimplePokemon(input.getArg(0).getDB());
 			
 			//If data is null, then an error occurred
 			if(poke.getSpecies() == null)

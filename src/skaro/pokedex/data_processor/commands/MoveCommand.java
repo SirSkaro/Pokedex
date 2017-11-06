@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.database_resources.ComplexMove;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseService;
 import skaro.pokedex.input_processor.Input;
 
 public class MoveCommand implements ICommand 
@@ -71,8 +71,8 @@ public class MoveCommand implements ICommand
 			return reply;
 		
 		//Extract data from data base
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		ComplexMove move = dbi.extractComplexMoveFromDB(input.getArg(0).getDB()+"-m");
+		DatabaseService dbi = DatabaseService.getInstance();
+		ComplexMove move = dbi.getComplexMove(input.getArg(0).getDB()+"-m");
 		
 		//If data is null, then an error occurred
 		if(move.getName() == null)
@@ -120,8 +120,8 @@ public class MoveCommand implements ICommand
 			return reply;
 		
 		//Extract data from data base
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		ComplexMove move = dbi.extractComplexMoveFromDB(input.getArg(0).getDB()+"-m");
+		DatabaseService dbi = DatabaseService.getInstance();
+		ComplexMove move = dbi.getComplexMove(input.getArg(0).getDB()+"-m");
 		
 		//If data is null, then an error occurred
 		if(move.getName() == null)
