@@ -32,4 +32,7 @@ public interface PokemonDataAccessor {
 	public SetGroup getSetsForPokemon(String pokemonId, String tierId, int genId);
 	
 	public LocationGroup getLocation(String pokemon, String version);
+	
+	//TODO: take this out of here
+	public String formatForDatabase(String s);
 }

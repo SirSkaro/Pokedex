@@ -233,22 +233,22 @@ public class DatabaseService implements PokemonDataAccessor
 	
 	public boolean isVersion(String s)
 	{
-		return (versions.contains(dbFormat(s)));
+		return (versions.contains(formatForDatabase(s)));
 	}
 	
 	public boolean isMeta(String s)
 	{	
-		return (metas.contains(dbFormat(s)));
+		return (metas.contains(formatForDatabase(s)));
 	}
 	
 	public boolean isType(String s)
 	{
-		return (types.contains(dbFormat(s)));
+		return (types.contains(formatForDatabase(s)));
 	}
 	
 	public boolean isRegion(String s)
 	{
-		return (regions.contains(dbFormat(s)));
+		return (regions.contains(formatForDatabase(s)));
 	}
 	
 	public boolean isGen(String s)
@@ -454,7 +454,7 @@ public class DatabaseService implements PokemonDataAccessor
 	 * @param s - pokemon name
 	 * @return formatted String
 	 */
-	public String dbFormat(String s)
+	public String formatForDatabase(String s)
 	{
 		if(s == null)
 			return "";

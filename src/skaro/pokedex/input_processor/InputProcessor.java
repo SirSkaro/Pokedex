@@ -8,19 +8,20 @@ import java.util.regex.Pattern;
 import skaro.pokedex.core.CommandLibrary;
 import skaro.pokedex.data_processor.ICommand.ArgumentCategory;
 import skaro.pokedex.database_resources.DatabaseService;
+import skaro.pokedex.database_resources.PokemonDataAccessor;
 
 public class InputProcessor 
 {
 	private SpellChecker sc;
 	private ArgumentMap argMap;
-	private DatabaseService dbi;
+	private PokemonDataAccessor dbi;
 	
 	public InputProcessor(CommandLibrary lib)
 	{
 		this(lib, DatabaseService.getInstance());
 	}
 	
-	/* testing-private -> */ protected InputProcessor(CommandLibrary lib, DatabaseService dbi) {
+	/* testing-private -> */ protected InputProcessor(CommandLibrary lib, PokemonDataAccessor dbi) {
 		this.dbi = dbi;
 		this.argMap = new ArgumentMap(lib);
 		
@@ -188,7 +189,7 @@ public class InputProcessor
 	public Argument setUpArg(ArgumentCategory ac, String resource)
 	{	
 		//Create new argument
-		Argument result = new Argument(resource.intern(), dbi.dbFormat(resource).intern(), ac);
+		Argument result = new Argument(resource.intern(), dbi.formatForDatabase(resource).intern(), ac);
 		
 		//Check if resource is recognized. If it is not recognized, attempt to spell check it.
 		//If it is still not recognized, then return the argument as invalid (default)
@@ -201,7 +202,7 @@ public class InputProcessor
 			if(correction != null && correction.equalsIgnoreCase(resource))
 				return result;
 			
-			result.setDB(dbi.dbFormat(correction).intern());
+			result.setDB(dbi.formatForDatabase(correction).intern());
 			
 			//If argument is still not recognized, return invalid argument
 			if(!dbi.resourceExists(ac, result.getDB()))
