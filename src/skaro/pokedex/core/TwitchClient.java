@@ -8,6 +8,9 @@ import org.jibble.pircbot.IrcException;
 import org.jibble.pircbot.NickAlreadyInUseException;
 
 import skaro.pokedex.data_processor.TwitchCommandMap;
+import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.TwitchChannel;
+import skaro.pokedex.database_resources.TwitchChannelGroup;
 import skaro.pokedex.input_processor.InputProcessor;
 
 public class TwitchClient 
@@ -22,12 +25,11 @@ public class TwitchClient
 		token = tok;
 		userName = uName;
 		
-		//Hardcode channels until more people are interested in adding the bot to their channel
-		//TODO Then create a table in the database and pull and insert names automatically from there
-		registerListener("#sirskaro");
-		registerListener("#pokeaim");
-		registerListener("#chimpakt");
-		registerListener("#definetlynotjohncena");
+		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		TwitchChannelGroup allChannels = dbi.extractAllTwitchChannelsFromDB();
+		
+		for(TwitchChannel tc : allChannels.getChannels())
+			registerListener("#"+tc.getChannelName());
 	}
 	
 	/**

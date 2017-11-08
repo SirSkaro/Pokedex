@@ -448,6 +448,17 @@ public class DatabaseInterface
 	}
 	
 	/**
+	 * Extracts all channel data for Twitch channels that the bot's Twitch account is invited to
+	 * @return  - a TwitchChannelGroup object that contain all relevant data to all Twitch channels
+	 */
+	public TwitchChannelGroup extractAllTwitchChannelsFromDB()
+	{
+		ResultSet allChannelsData = dbQuery("SELECT * FROM TwitchChannel;");
+		
+		return new TwitchChannelGroup(allChannelsData);
+	}
+	
+	/**
 	 * Takes in a name and returns it in the formatting used
 	 * in the data base. No spaces or symbols.
 	 * @param s - pokemon name
