@@ -1,5 +1,6 @@
 package skaro.pokedex.data_processor;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,34 +10,31 @@ import java.util.Set;
 public class TypeTracker {
 	
 	private static double[][] effectiveness = new double[/*attacker*/][/*defender*/]{
-		  //  			   0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17
-		  /*0Normal*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
-		  /*1Fighting*/ { 2.0, 1.0, 0.5, 0.5, 1.0, 2.0, 0.5, 0.0, 2.0, 1.0, 1.0, 1.0, 1.0, 0.5, 2.0, 1.0, 2.0, 0.5 },
-		  /*2Flying*/  	{ 1.0, 2.0, 1.0, 1.0, 1.0, 0.5, 2.0, 1.0, 0.5, 1.0, 1.0, 2.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0 },
-		  /*3Poison*/  	{ 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 1.0, 0.5, 0.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0 },
-		  /*4Ground*/  	{ 1.0, 1.0, 0.0, 2.0, 1.0, 2.0, 0.5, 1.0, 2.0, 2.0, 1.0, 0.5, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
-		  /*5Rock*/  	{ 1.0, 0.5, 2.0, 1.0, 0.5, 1.0, 2.0, 1.0, 0.5, 2.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0 },
-		  /*6Bug*/  	{ 1.0, 0.5, 0.5, 0.5, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 1.0, 2.0, 1.0, 2.0, 1.0, 1.0, 2.0, 0.5 },
-		  /*7Ghost*/  	{ 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 0.5, 1.0 },
-		  /*8Steel*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 0.5, 0.5, 0.5, 1.0, 0.5, 1.0, 2.0, 1.0, 1.0, 2.0 },
-		  /*9Fire*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 2.0, 1.0, 2.0, 0.5, 0.5, 2.0, 1.0, 1.0, 2.0, 0.5, 1.0, 1.0 },
-		  /*10Water*/  	{ 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 1.0, 2.0, 0.5, 0.5, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0 },
-		  /*11Grass*/  	{ 1.0, 1.0, 0.5, 0.5, 2.0, 2.0, 0.5, 1.0, 0.5, 0.5, 2.0, 0.5, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0 },
-		  /*12Electric*/{ 1.0, 1.0, 2.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 0.5, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0 },
-		  /*13Psychic*/ { 1.0, 2.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 0.0, 1.0 },
-		  /*14Ice*/     { 1.0, 1.0, 2.0, 1.0, 2.0, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 2.0, 1.0, 1.0, 0.5, 2.0, 1.0, 1.0 },
-		  /*15Dragon*/  { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 0.0 },
-		  /*16Dark*/ 	{ 1.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 0.5, 0.5 },
-		  /*17Fairy*/  	{ 1.0, 2.0, 1.0, 0.5, 1.0, 1.0, 1.0, 1.0, 0.5, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 1.0 }
+		  //  			   0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17	 18
+		  /*0Normal*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
+		  /*1Fighting*/ { 2.0, 1.0, 0.5, 0.5, 1.0, 2.0, 0.5, 0.0, 2.0, 1.0, 1.0, 1.0, 1.0, 0.5, 2.0, 1.0, 2.0, 0.5, 1.0 },
+		  /*2Flying*/  	{ 1.0, 2.0, 1.0, 1.0, 1.0, 0.5, 2.0, 1.0, 0.5, 1.0, 1.0, 2.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
+		  /*3Poison*/  	{ 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 1.0, 0.5, 0.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0 },
+		  /*4Ground*/  	{ 1.0, 1.0, 0.0, 2.0, 1.0, 2.0, 0.5, 1.0, 2.0, 2.0, 1.0, 0.5, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
+		  /*5Rock*/  	{ 1.0, 0.5, 2.0, 1.0, 0.5, 1.0, 2.0, 1.0, 0.5, 2.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0 },
+		  /*6Bug*/  	{ 1.0, 0.5, 0.5, 0.5, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 1.0, 2.0, 1.0, 2.0, 1.0, 1.0, 2.0, 0.5, 1.0 },
+		  /*7Ghost*/  	{ 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 0.5, 1.0, 1.0 },
+		  /*8Steel*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 0.5, 0.5, 0.5, 1.0, 0.5, 1.0, 2.0, 1.0, 1.0, 2.0, 1.0 },
+		  /*9Fire*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 2.0, 1.0, 2.0, 0.5, 0.5, 2.0, 1.0, 1.0, 2.0, 0.5, 1.0, 1.0, 1.0 },
+		  /*10Water*/  	{ 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 1.0, 2.0, 0.5, 0.5, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0 },
+		  /*11Grass*/  	{ 1.0, 1.0, 0.5, 0.5, 2.0, 2.0, 0.5, 1.0, 0.5, 0.5, 2.0, 0.5, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0 },
+		  /*12Electric*/{ 1.0, 1.0, 2.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 0.5, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0 },
+		  /*13Psychic*/ { 1.0, 2.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 0.0, 1.0, 1.0 },
+		  /*14Ice*/     { 1.0, 1.0, 2.0, 1.0, 2.0, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 2.0, 1.0, 1.0, 0.5, 2.0, 1.0, 1.0, 1.0 },
+		  /*15Dragon*/  { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 0.0, 1.0 },
+		  /*16Dark*/ 	{ 1.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 0.5, 0.5, 1.0 },
+		  /*17Fairy*/  	{ 1.0, 2.0, 1.0, 0.5, 1.0, 1.0, 1.0, 1.0, 0.5, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 1.0, 1.0 },
+		  /*18Bird*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
 		    			};
-		
+		    			
+	private static Map<String, Color> typeColor = new HashMap<>();
 	private static Map<String,Integer> typeMapString = new HashMap<>();
 	private static Map<Integer,String> typeMapInt = new HashMap<>();
-	
-	public TypeTracker()
-	{
-		initializeMaps();
-	}
 	
 	/**
 	 * A function to check defensive type interactions
@@ -44,7 +42,7 @@ public class TypeTracker {
 	 * @param type2: two of two types to check defensively. Can be null
 	 * @return An object that wraps all the type interactions
 	 */
-	public TypeInteractionWrapper onDefense(String type1, String type2)
+	public static TypeInteractionWrapper onDefense(String type1, String type2)
 	{
 		if(type1 == null)
 			return null;
@@ -95,7 +93,7 @@ public class TypeTracker {
 	 * @param typeX: a typing to check for type interaction
 	 * @return The interaction between these four types and all other types
 	 */
-	public TypeInteractionWrapper coverage(String type1, String type2, String type3, String type4)
+	public static TypeInteractionWrapper coverage(String type1, String type2, String type3, String type4)
 	{
 		TypeInteractionWrapper result = new TypeInteractionWrapper();
 		String[] types = {type1, type2, type3, type4};
@@ -157,7 +155,7 @@ public class TypeTracker {
 		return result;
 	}
 	
-	public boolean isType(String input)
+	public static boolean isType(String input)
 	{
 		input = input.toLowerCase();
 		if(typeMapString.get(input) != null)
@@ -165,7 +163,7 @@ public class TypeTracker {
 		return false;
 	}
 	
-	public ArrayList<String> def2xEffective(String type)
+	public static ArrayList<String> def2xEffective(String type)
 	{
 		ArrayList<String> result = new ArrayList<String>();
 		
@@ -176,7 +174,7 @@ public class TypeTracker {
 		return result;
 	}
 	
-	public ArrayList<String> atk2xResist(String type)
+	public static ArrayList<String> atk2xResist(String type)
 	{
 		ArrayList<String> result = new ArrayList<String>();
 		
@@ -188,7 +186,7 @@ public class TypeTracker {
 	}
 	
 	
-	public ArrayList<String> defImmune(String type)
+	public static ArrayList<String> defImmune(String type)
 	{
 		ArrayList<String> result = new ArrayList<String>();
 		
@@ -199,7 +197,7 @@ public class TypeTracker {
 		return result;
 	}
 	
-	public ArrayList<String> atkImmune(String type)
+	public static ArrayList<String> atkImmune(String type)
 	{
 		ArrayList<String> result = new ArrayList<String>();
 		
@@ -210,7 +208,7 @@ public class TypeTracker {
 		return result;
 	}
 	
-	public ArrayList<String> def2xResist(String type)
+	public static ArrayList<String> def2xResist(String type)
 	{
 		ArrayList<String> result = new ArrayList<String>();
 		
@@ -221,7 +219,7 @@ public class TypeTracker {
 		return result;
 	}
 	
-	public ArrayList<String> atk2xEffective(String type)
+	public static ArrayList<String> atk2xEffective(String type)
 	{
 		ArrayList<String> result = new ArrayList<String>();
 		
@@ -232,7 +230,7 @@ public class TypeTracker {
 		return result;
 	}
 	
-	public ArrayList<String> atkNeutral(String type)
+	public static ArrayList<String> atkNeutral(String type)
 	{
 		ArrayList<String> result = new ArrayList<String>();
 		
@@ -243,7 +241,7 @@ public class TypeTracker {
 		return result;
 	}
 	
-	public ArrayList<String> defNeutral(String type)
+	public static ArrayList<String> defNeutral(String type)
 	{
 		ArrayList<String> result = new ArrayList<String>();
 		
@@ -254,7 +252,7 @@ public class TypeTracker {
 		return result;
 	}
 	
-	public ArrayList<String> intersection(ArrayList<String> list1, ArrayList<String> list2) 
+	public static ArrayList<String> intersection(ArrayList<String> list1, ArrayList<String> list2) 
 	{
 		ArrayList<String> list = new ArrayList<String>();
 
@@ -269,46 +267,72 @@ public class TypeTracker {
         return list;
     }
 	
-	
-	private void initializeMaps()
+	public static Color getColor(String type)
 	{
-		typeMapString.put("normal", 0);
-		typeMapString.put("fighting", 1);
-		typeMapString.put("flying", 2);
-		typeMapString.put("poison", 3);
-		typeMapString.put("ground", 4);
-		typeMapString.put("rock", 5);
-		typeMapString.put("bug", 6);
-		typeMapString.put("ghost", 7);
-		typeMapString.put("steel", 8);
-		typeMapString.put("fire", 9);
-		typeMapString.put("water", 10);
-		typeMapString.put("grass", 11);
-		typeMapString.put("electric", 12);
-		typeMapString.put("psychic", 13);
-		typeMapString.put("ice", 14);
-		typeMapString.put("dragon", 15);
-		typeMapString.put("dark", 16);
-		typeMapString.put("fairy", 17);
+		return typeColor.get(type.toLowerCase());
+	}
+	
+	static
+	{
+		typeMapString.put("normal".intern(), 0);
+		typeMapString.put("fighting".intern(), 1);
+		typeMapString.put("flying".intern(), 2);
+		typeMapString.put("poison".intern(), 3);
+		typeMapString.put("ground".intern(), 4);
+		typeMapString.put("rock".intern(), 5);
+		typeMapString.put("bug".intern(), 6);
+		typeMapString.put("ghost".intern(), 7);
+		typeMapString.put("steel".intern(), 8);
+		typeMapString.put("fire".intern(), 9);
+		typeMapString.put("water".intern(), 10);
+		typeMapString.put("grass".intern(), 11);
+		typeMapString.put("electric".intern(), 12);
+		typeMapString.put("psychic".intern(), 13);
+		typeMapString.put("ice".intern(), 14);
+		typeMapString.put("dragon".intern(), 15);
+		typeMapString.put("dark".intern(), 16);
+		typeMapString.put("fairy".intern(), 17);
+		typeMapString.put("bird".intern(), 18);
 		
-		typeMapInt.put(0, "Normal");
-		typeMapInt.put(1, "Fighting");
-		typeMapInt.put(2, "Flying");
-		typeMapInt.put(3, "Poison");
-		typeMapInt.put(4, "Ground");
-		typeMapInt.put(5, "Rock");
-		typeMapInt.put(6, "Bug");
-		typeMapInt.put(7, "Ghost");
-		typeMapInt.put(8, "Steel");
-		typeMapInt.put(9, "Fire");
-		typeMapInt.put(10, "Water");
-		typeMapInt.put(11, "Grass");
-		typeMapInt.put(12, "Electric");
-		typeMapInt.put(13, "Psychic");
-		typeMapInt.put(14, "Ice");
-		typeMapInt.put(15, "Dragon");
-		typeMapInt.put(16, "Dark");
+		typeMapInt.put(0, "Normal".intern());
+		typeMapInt.put(1, "Fighting".intern());
+		typeMapInt.put(2, "Flying".intern());
+		typeMapInt.put(3, "Poison".intern());
+		typeMapInt.put(4, "Ground".intern());
+		typeMapInt.put(5, "Rock".intern());
+		typeMapInt.put(6, "Bug".intern());
+		typeMapInt.put(7, "Ghost".intern());
+		typeMapInt.put(8, "Steel".intern());
+		typeMapInt.put(9, "Fire".intern());
+		typeMapInt.put(10, "Water".intern());
+		typeMapInt.put(11, "Grass".intern());
+		typeMapInt.put(12, "Electric".intern());
+		typeMapInt.put(13, "Psychic".intern());
+		typeMapInt.put(14, "Ice".intern());
+		typeMapInt.put(15, "Dragon".intern());
+		typeMapInt.put(16, "Dark".intern());
 		typeMapInt.put(17, "Fairy");
+		typeMapInt.put(18, "Bird");
+		
+		typeColor.put("normal".intern(), Color.decode("0xA8A77A"));
+		typeColor.put("fighting".intern(), Color.decode("0xC22E28"));
+		typeColor.put("flying".intern(), Color.decode("0xA98FF3"));
+		typeColor.put("poison".intern(), Color.decode("0xA33EA1"));
+		typeColor.put("ground".intern(), Color.decode("0xE2BF65"));
+		typeColor.put("rock".intern(), Color.decode("0xB6A136"));
+		typeColor.put("bug".intern(), Color.decode("0xA6B91A"));
+		typeColor.put("ghost".intern(), Color.decode("0x735797"));
+		typeColor.put("steel".intern(), Color.decode("0xB7B7CE"));
+		typeColor.put("fire".intern(), Color.decode("0xEE8130"));
+		typeColor.put("water".intern(), Color.decode("0x6390F0"));
+		typeColor.put("grass".intern(), Color.decode("0x7AC74C"));
+		typeColor.put("electric".intern(), Color.decode("0xF7D02C"));
+		typeColor.put("psychic".intern(), Color.decode("0xF95587"));
+		typeColor.put("ice".intern(), Color.decode("0x96D9D6"));
+		typeColor.put("dragon".intern(), Color.decode("0x6F35FC"));
+		typeColor.put("dark".intern(), Color.decode("0x705746"));
+		typeColor.put("fairy".intern(), Color.decode("0xD685AD"));
+		typeColor.put("bird".intern(), Color.decode("0xA4BBB3"));
 	}
 		
 }

@@ -28,8 +28,9 @@ public class TwitchClient
 		DatabaseInterface dbi = DatabaseInterface.getInstance();
 		TwitchChannelGroup allChannels = dbi.extractAllTwitchChannelsFromDB();
 		
-		for(TwitchChannel tc : allChannels.getChannels())
-			registerListener("#"+tc.getChannelName());
+		if(allChannels.getSuccess().isPresent())
+			for(TwitchChannel tc : allChannels.getChannels())
+				registerListener("#"+tc.getChannelName());
 	}
 	
 	/**

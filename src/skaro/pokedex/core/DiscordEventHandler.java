@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -16,6 +17,7 @@ import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.IShard;
 import sx.blah.discord.api.events.Event;
 import sx.blah.discord.api.events.EventSubscriber;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageUpdateEvent;
@@ -156,15 +158,20 @@ public class DiscordEventHandler
         
         //Send the textual reply to the user
         channelID = input.getChannel().getLongID();
-        sendMessage(channelID, response.getDiscordTextReply());
         
-        //If there is an image portion, send that.
+    	sendMessage(channelID, response.getDiscordTextReply());
+        
+    	//If there is an embed object, send it
+    	if(response.getEmbedObject().isPresent())
+        	sendEmbedMessage(channelID, response.getEmbedObject().get());
+        
+        //If there is an image portion, send it
         if(response.getImageReply() != null)
         {
         	sendImages(channelID, response.getImageReply());
         }
         
-        //If there is an audio portion, send that as well.
+        //If there is an audio portion, send it
         if(response.getAudioReply() != null)
         {
         	//Send the audio to the voice channel a user is in. If they are not in a voice channel,
@@ -192,7 +199,7 @@ public class DiscordEventHandler
         }
     }
     
-    public void playDexEntry(IVoiceChannel channel, AudioPlayer player, Track audioTrack, long channelID, String user) throws RateLimitException, MissingPermissionsException, DiscordException, IOException, InterruptedException
+    private void playDexEntry(IVoiceChannel channel, AudioPlayer player, Track audioTrack, long channelID, String user) throws RateLimitException, MissingPermissionsException, DiscordException, IOException, InterruptedException
     {        	
     	if(!channel.isConnected())
     	{
@@ -219,7 +226,7 @@ public class DiscordEventHandler
     	}
     }
     
-    public void sendMessage(long ChannelID, String msg) throws RateLimitException, MissingPermissionsException, DiscordException
+    private void sendMessage(long ChannelID, String msg) throws RateLimitException, MissingPermissionsException, DiscordException
     {
     	RequestBuffer.request(() -> 
     	{
@@ -236,7 +243,24 @@ public class DiscordEventHandler
         });
     }
     
-    public void sendImages(long ChannelID, ArrayList<InputStream> imgs) throws RateLimitException, MissingPermissionsException, DiscordException
+    private void sendEmbedMessage(long ChannelID, EmbedObject eo) throws RateLimitException, MissingPermissionsException, DiscordException
+    {
+    	RequestBuffer.request(() -> 
+    	{
+            try
+            {
+            	discordClient.getChannelByID(ChannelID).sendMessage(eo);
+            	System.out.println("\t[DiscordEventHandler] EmbedObject response sent.");
+            } 
+            catch (Exception e)
+            {
+                System.err.println("[DiscordEventHandler] Text (queued) could not be sent with error: "+ e.getClass().getSimpleName());
+                throw e;	//Sends the message to the request buffer
+            }
+        });
+    }
+    
+    private void sendImages(long ChannelID, ArrayList<InputStream> imgs) throws RateLimitException, MissingPermissionsException, DiscordException
     {
     	RequestBuffer.request(() -> 
     	{

@@ -30,7 +30,11 @@ public interface ICommand
 		StringBuilder result = new StringBuilder();
 		int i;
 		for(i = 0; i < list.size() - 1; i++)
-			result.append(list.get(i).toString() + "*/* ");
+			if(i %2 == 0)
+				result.append(list.get(i).toString() + "*/* ");
+			else
+				result.append(list.get(i).toString() + "\n");
+
 		result.append(list.get(i).toString());
 		
 		return result.toString();

@@ -81,9 +81,9 @@ public class ComplexPokemon
 			
 			//Model URL
 			modelData.next();
-			model = modelData.getString(1).intern();
+			shinyModel = modelData.getString(1).intern();
 			if(modelData.next())
-				shinyModel = modelData.getString(1).intern();
+				model = modelData.getString(1).intern();
 		} 
 		catch (SQLException e) 
 		{

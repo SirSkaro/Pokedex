@@ -4,20 +4,25 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Optional;
 
 import javax.sound.sampled.AudioInputStream;
 
-public class Response 
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
+
+public class Response
 {
 	private StringBuilder textReply;
-	private AudioInputStream audioReply;
-	private ArrayList<InputStream> imageReply;
+	private AudioInputStream audioReply;		//Discord Specific
+	private ArrayList<InputStream> imageReply;	//Discord Specific
+	private EmbedObject embededReply;			//Discord Specific
 	
 	public Response()
 	{
 		textReply = new StringBuilder();
 		audioReply = null;
 		imageReply = null;
+		embededReply = null;
 	}
 	
 	/**
@@ -28,27 +33,9 @@ public class Response
 		audioReply = ais;
 	}
 	
-	public void setImage(String img)
+	public void setEmbededReply(EmbedObject eo)
 	{
-		URL url;
-		HttpURLConnection httpCon;
-		try 
-		{
-			url = new URL("http://play.pokemonshowdown.com/sprites/xyani/"+img+".gif");
-			httpCon = (HttpURLConnection) url.openConnection(); 
-			httpCon.addRequestProperty("User-Agent", "Mozilla/4.76"); 
-		    imageReply.add(httpCon.getInputStream());
-		    
-		    url = new URL("http://play.pokemonshowdown.com/sprites/xyani-shiny/"+img+".gif");
-			httpCon = (HttpURLConnection) url.openConnection(); 
-			httpCon.addRequestProperty("User-Agent", "Mozilla/4.76"); 
-		    imageReply.add(httpCon.getInputStream());
-		}
-		catch (Exception e) 
-		{
-			System.out.println(e);
-			imageReply = null;
-		}
+		embededReply = eo;
 	}
 	
 	public void addImage(String imagePath)
@@ -96,5 +83,10 @@ public class Response
 	public ArrayList<InputStream> getImageReply()
 	{
 		return imageReply;
+	}
+	
+	public Optional<EmbedObject> getEmbedObject()
+	{
+		return Optional.ofNullable(embededReply);
 	}
 }
