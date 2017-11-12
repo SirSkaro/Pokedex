@@ -177,7 +177,7 @@ public class ComplexPokemon
 			}
 		}
 		
-		public String toString() { return (num + "/" + denom).intern(); }
+		public String toString() { return (num + "\\" + denom).intern(); }
 		 
 		private boolean isZero() { return num == 0; }
 	}

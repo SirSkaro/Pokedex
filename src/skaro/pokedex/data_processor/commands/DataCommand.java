@@ -82,15 +82,23 @@ public class DataCommand implements ICommand
 			return reply;
 		}
 		
+		//Format reply
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
 		int stats[] = poke.getStats();
 		
+		
+		String stats1 = String.format("%-10s%-10s%-10s%-10s%-10s%-10s",
+				"HP", "Atk", "Def", "SpAtk", "SpDef","Spd").intern();
+		String stats2 = String.format("%-10d%-10d%-10d%-10d%-10d%-10d",
+				stats[0], stats[1], stats[2], stats[3], stats[4], stats[5]);
+		
 		reply.addToReply("**__"+poke.getSpecies()+"__**");
+		//builder.appendField("Base Stats",stats[0]+"*/* "+stats[1]+"*/* " +stats[2]+"\n"+stats[3]+"*/* "
+		//		+stats[4]+"*/* "+stats[5], true);
+		builder.appendField("Base Stats", "`" +stats1 + "`\n`" + stats2+ "`", false);
 		builder.appendField("Typing", 
 				poke.getType2() == null ? poke.getType1() : poke.getType1()+"*/* "+poke.getType2(), true);
-		builder.appendField("Base Stats",stats[0]+"*/* "+stats[1]+"*/* " +stats[2]+"\n"+stats[3]+"*/* "
-				+stats[4]+"*/* "+stats[5], true);
 		builder.appendField("Abilities", listToItemizedDiscordString(poke.getAbilities()), true);
 		builder.appendField("National Dex Num", Integer.toString(poke.getDexNum()), true);
 		builder.appendField("Height", poke.getHeight() + " m", true);
@@ -102,6 +110,7 @@ public class DataCommand implements ICommand
 			builder.appendField("Evolutions", listToItemizedDiscordString(poke.getEvolutions()), true);
 			builder.appendField("Evolution Level", poke.getEvoLevel(), true);
 		}
+		builder.withFooterText("Protip: to see shiny Pokemon, use the %shiny command");
 		
 		//Add images
 		builder.withImage(poke.getModel());

@@ -159,11 +159,7 @@ public class DiscordEventHandler
         //Send the textual reply to the user
         channelID = input.getChannel().getLongID();
         
-    	sendMessage(channelID, response.getDiscordTextReply());
-        
-    	//If there is an embed object, send it
-    	if(response.getEmbedObject().isPresent())
-        	sendEmbedMessage(channelID, response.getEmbedObject().get());
+    	sendMessage(channelID, response.getDiscordTextReply(), response.getEmbedObject());
         
         //If there is an image portion, send it
         if(response.getImageReply() != null)
@@ -243,14 +239,19 @@ public class DiscordEventHandler
         });
     }
     
-    private void sendEmbedMessage(long ChannelID, EmbedObject eo) throws RateLimitException, MissingPermissionsException, DiscordException
+    private void sendMessage(long ChannelID, String msg, Optional<EmbedObject> eo) throws RateLimitException, MissingPermissionsException, DiscordException
     {
     	RequestBuffer.request(() -> 
     	{
             try
             {
-            	discordClient.getChannelByID(ChannelID).sendMessage(eo);
-            	System.out.println("\t[DiscordEventHandler] EmbedObject response sent.");
+            	discordClient.getChannelByID(ChannelID).sendMessage(msg);
+            	System.out.println("\t[DiscordEventHandler] Text response sent.");
+            	if(eo.isPresent())
+            	{
+            		discordClient.getChannelByID(ChannelID).sendMessage(eo.get());
+            		System.out.println("\t[DiscordEventHandler] Embed response sent.");
+            	}
             } 
             catch (Exception e)
             {
