@@ -75,7 +75,6 @@ public class WeakCommand implements ICommand
 		//Declare utility variables
 		TypeInteractionWrapper wrapper;
 		String formattedList, temp1, temp2;
-		TypeTracker tt = new TypeTracker();
 		DatabaseInterface dbi = DatabaseInterface.getInstance();
 		
 		//Build reply according to the argument case
@@ -90,19 +89,19 @@ public class WeakCommand implements ICommand
 				return reply;
 			}
 				
-			wrapper = tt.onDefense(poke.getType1(), poke.getType2()); 
+			wrapper = TypeTracker.onDefense(poke.getType1(), poke.getType2()); 
 			reply.addToReply(("**"+poke.getSpecies()+"**").intern());
 		}
 		else
 		{
 			if(input.getArgs().size() == 1) // argument is one type
 			{
-				wrapper = tt.onDefense(input.getArg(0).getDB(), null);
+				wrapper = TypeTracker.onDefense(input.getArg(0).getDB(), null);
 				reply.addToReply("**"+wrapper.getType1()+"**");
 			}
 			else //argument is two types
 			{
-				wrapper = tt.onDefense(input.getArg(0).getDB(), input.getArg(1).getDB());
+				wrapper = TypeTracker.onDefense(input.getArg(0).getDB(), input.getArg(1).getDB());
 				reply.addToReply("**"+wrapper.getType1()+"/"+wrapper.getType2()+"**");
 			}
 		}
@@ -153,7 +152,6 @@ public class WeakCommand implements ICommand
 		//Declare utility variables
 		TypeInteractionWrapper wrapper;
 		String formattedList, temp1, temp2;
-		TypeTracker tt = new TypeTracker();
 		DatabaseInterface dbi = DatabaseInterface.getInstance();
 		
 		//Build reply according to the argument case
@@ -168,19 +166,19 @@ public class WeakCommand implements ICommand
 				return reply;
 			}
 				
-			wrapper = tt.onDefense(poke.getType1(), poke.getType2()); 
+			wrapper = TypeTracker.onDefense(poke.getType1(), poke.getType2()); 
 			reply.addToReply("*"+poke.getSpecies()+"*");
 		}
 		else
 		{
 			if(input.getArgs().size() == 1) // argument is one type
 			{
-				wrapper = tt.onDefense(input.getArg(0).getDB(), null);
+				wrapper = TypeTracker.onDefense(input.getArg(0).getDB(), null);
 				reply.addToReply("*"+wrapper.getType1()+"*");
 			}
 			else //argument is two types
 			{
-				wrapper = tt.onDefense(input.getArg(0).getDB(), input.getArg(1).getDB());
+				wrapper = TypeTracker.onDefense(input.getArg(0).getDB(), input.getArg(1).getDB());
 				reply.addToReply("*"+wrapper.getType1()+"/"+wrapper.getType2()+"*");
 			}
 		}

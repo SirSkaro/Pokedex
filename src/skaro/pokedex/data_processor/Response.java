@@ -16,6 +16,7 @@ public class Response
 	private AudioInputStream audioReply;		//Discord Specific
 	private ArrayList<InputStream> imageReply;	//Discord Specific
 	private EmbedObject embededReply;			//Discord Specific
+	private boolean privateMessage;
 	
 	public Response()
 	{
@@ -23,6 +24,7 @@ public class Response
 		audioReply = null;
 		imageReply = null;
 		embededReply = null;
+		privateMessage = false;
 	}
 	
 	/**
@@ -36,6 +38,11 @@ public class Response
 	public void setEmbededReply(EmbedObject eo)
 	{
 		embededReply = eo;
+	}
+	
+	public void setPrivate(boolean b)
+	{
+		privateMessage = b;
 	}
 	
 	public void addImage(String imagePath)
@@ -88,5 +95,10 @@ public class Response
 	public Optional<EmbedObject> getEmbedObject()
 	{
 		return Optional.ofNullable(embededReply);
+	}
+	
+	public boolean isPrivateMessage()
+	{
+		return privateMessage;
 	}
 }

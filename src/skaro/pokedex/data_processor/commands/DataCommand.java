@@ -94,8 +94,6 @@ public class DataCommand implements ICommand
 				stats[0], stats[1], stats[2], stats[3], stats[4], stats[5]);
 		
 		reply.addToReply("**__"+poke.getSpecies()+"__**");
-		//builder.appendField("Base Stats",stats[0]+"*/* "+stats[1]+"*/* " +stats[2]+"\n"+stats[3]+"*/* "
-		//		+stats[4]+"*/* "+stats[5], true);
 		builder.appendField("Base Stats", "`" +stats1 + "`\n`" + stats2+ "`", false);
 		builder.appendField("Typing", 
 				poke.getType2() == null ? poke.getType1() : poke.getType1()+"*/* "+poke.getType2(), true);
@@ -110,7 +108,7 @@ public class DataCommand implements ICommand
 			builder.appendField("Evolutions", listToItemizedDiscordString(poke.getEvolutions()), true);
 			builder.appendField("Evolution Level", poke.getEvoLevel(), true);
 		}
-		builder.withFooterText("Protip: to see shiny Pokemon, use the %shiny command");
+		builder.withFooterText("Note: Shiny Pokemon will return soon!");
 		
 		//Add images
 		builder.withImage(poke.getModel());

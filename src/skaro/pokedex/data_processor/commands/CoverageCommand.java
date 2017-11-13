@@ -75,7 +75,6 @@ public class CoverageCommand implements ICommand
 		//If argument is a move, get the typing
 		SimpleMove move;
 		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		TypeTracker tt = new TypeTracker();
 		TypeInteractionWrapper wrapper;
 		
 		for(int i = 0; i < input.getArgs().size(); i++)
@@ -95,7 +94,7 @@ public class CoverageCommand implements ICommand
 			}
 		}
 		
-		wrapper = tt.coverage
+		wrapper = TypeTracker.coverage
 				(input.getArg(0).getDB(), 
 				input.getArgs().size() > 1 ? input.getArg(1).getDB() : null,
 				input.getArgs().size() > 2 ? input.getArg(2).getDB() : null,
@@ -122,7 +121,6 @@ public class CoverageCommand implements ICommand
 		//If argument is a move, get the typing
 		SimpleMove move;
 		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		TypeTracker tt = new TypeTracker();
 		TypeInteractionWrapper wrapper;
 		
 		for(int i = 0; i < input.getArgs().size(); i++)
@@ -142,7 +140,7 @@ public class CoverageCommand implements ICommand
 			}
 		}
 		
-		wrapper = tt.coverage
+		wrapper = TypeTracker.coverage
 				(input.getArg(0).getDB(), 
 				input.getArgs().size() > 1 ? input.getArg(1).getDB() : null,
 				input.getArgs().size() > 2 ? input.getArg(2).getDB() : null,
