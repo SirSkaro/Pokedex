@@ -4,9 +4,11 @@ import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.database_resources.ComplexMove;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.input_processor.Input;
+import sx.blah.discord.util.EmbedBuilder;
 
 public class MoveCommand implements ICommand 
 {
@@ -81,32 +83,41 @@ public class MoveCommand implements ICommand
 			return reply;
 		}
 		
+		//Format reply
+		EmbedBuilder builder = new EmbedBuilder();	
+		builder.setLenient(true);
+		
 		//Organize the data and add it to the reply
 		String tempString;
-		reply.addToReply(("**"+move.getName()+"**").intern());
+		reply.addToReply(("**__"+move.getName()+"__**").intern());
 		
 		if(move.getPower() > 1)
-			reply.addToReply("\tBase Power | "+move.getPower());
+			builder.appendField("Base Power", Integer.toString(move.getPower()), true);
 		if(move.getZPower() > 1)
-			reply.addToReply("\tZ-Base Power | "+move.getZPower());
+			builder.appendField("Z-Base Power", Integer.toString(move.getZPower()), true);
 		if(move.getCrystal() != null)
-			reply.addToReply("\tZ-Crystal | "+move.getCrystal());
-		reply.addToReply("\tAccuracy | "+ (move.getAccuracy() != 0 ? move.getAccuracy() : "-"));
-		reply.addToReply("\tCategory | "+move.getCategory());
-		reply.addToReply("\tType | "+move.getType());
-		reply.addToReply("\tBase PP | "+move.getBasePP());
-		reply.addToReply("\tMax PP | "+move.getMaxPP());
+			builder.appendField("Z-Crystal", move.getCrystal(), true);
+		builder.appendField("Accuracy", (move.getAccuracy() != 0 ? Integer.toString(move.getAccuracy()) : "-"), true);
+		builder.appendField("Category", move.getCategory(), true);
+		builder.appendField("Type", move.getType(), true);
+		builder.appendField("Base PP", Integer.toString(move.getBasePP()), true);
+		builder.appendField("Max PP", Integer.toString(move.getMaxPP()), true);
 		if(move.getZBoost() != null)
-			reply.addToReply("\tZ-Boosts | "+move.getZBoost());
+			builder.appendField("Z-Boosts", move.getZBoost(), true);
 		if((tempString = move.getZEffect()) != null)
-			reply.addToReply("\tZ-Effect | "+tempString);
-		reply.addToReply("\tPriority | "+move.getPriority());
-		reply.addToReply("\tDescription | "+move.getShortDesc());
-		reply.addToReply("\tTechnical Description | "+move.getTechDesc());
-		reply.addToReply("\tTarget | "+move.getTarget());
-		reply.addToReply("\tContest Category | "+move.getContest());
+			builder.appendField("Z-Effect", tempString, true);
+		builder.appendField("Priority", Integer.toString(move.getPriority()), true);
+		builder.appendField("Target", move.getTarget(), true);
+		builder.appendField("Contest Category", move.getContest(), true);
+		builder.appendField("Game Description", move.getShortDesc(), false);
+		builder.appendField("Technical Description", move.getTechDesc(), false);
 		if((tempString = move.getFlags()) != null)
-			reply.addToReply("\tOther Properties | "+tempString);
+			builder.appendField("Other Properties", tempString, false);
+		
+		//Set embed color
+		builder.withColor(TypeTracker.getColor(move.getType()));
+		
+		reply.setEmbededReply(builder.build());
 		
 		return reply;
 	}
