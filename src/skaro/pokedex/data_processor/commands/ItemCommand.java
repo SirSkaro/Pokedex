@@ -84,7 +84,7 @@ public class ItemCommand implements ICommand
 		}
 		
 		//Organize the data and add it to the reply
-		reply.addToReply(("**"+item.getName()+"**").intern());
+		reply.addToReply(("**__"+item.getName()+"__**").intern());
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
 		
