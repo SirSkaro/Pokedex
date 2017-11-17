@@ -102,6 +102,7 @@ public class TypeTracker {
 		Set<String> neutral = new HashSet<String>();
 		Set<String> immune = new HashSet<String>();
 		ArrayList<String> temp = new ArrayList<String>();
+		Color currColor = null;
 		
 		for(int i = 0; i < 4; i++)
 		{
@@ -116,8 +117,11 @@ public class TypeTracker {
 					neutral.addAll(atkNeutral(types[i]));
 					immune.addAll(atkImmune(types[i]));
 				}
+				currColor = blend(getColor(types[i]), currColor);
 			}
 		}
+		
+		result.setColor(currColor);
 		
 		//Add all super effective types
 		temp.addAll(effective);
@@ -270,6 +274,23 @@ public class TypeTracker {
 	public static Color getColor(String type)
 	{
 		return typeColor.get(type.toLowerCase());
+	}
+	
+	private static Color blend(Color c0, Color c1) 
+	{
+		if(c1 == null)
+			return c0;
+		
+		double totalAlpha = c0.getAlpha() + c1.getAlpha();
+		double weight0 = c0.getAlpha() / totalAlpha;
+		double weight1 = c1.getAlpha() / totalAlpha;
+		
+		double r = weight0 * c0.getRed() + weight1 * c1.getRed();
+		double g = weight0 * c0.getGreen() + weight1 * c1.getGreen();
+		double b = weight0 * c0.getBlue() + weight1 * c1.getBlue();
+		double a = Math.max(c0.getAlpha(), c1.getAlpha());
+		
+		return new Color((int) r, (int) g, (int) b, (int) a);
 	}
 	
 	static

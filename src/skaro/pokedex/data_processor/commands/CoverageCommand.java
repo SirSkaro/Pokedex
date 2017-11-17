@@ -9,6 +9,7 @@ import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.SimpleMove;
 import skaro.pokedex.input_processor.Input;
+import sx.blah.discord.util.EmbedBuilder;
 
 public class CoverageCommand implements ICommand 
 {
@@ -76,6 +77,8 @@ public class CoverageCommand implements ICommand
 		SimpleMove move;
 		DatabaseInterface dbi = DatabaseInterface.getInstance();
 		TypeInteractionWrapper wrapper;
+		EmbedBuilder builder = new EmbedBuilder();	
+		builder.setLenient(true);
 		
 		for(int i = 0; i < input.getArgs().size(); i++)
 		{
@@ -101,11 +104,16 @@ public class CoverageCommand implements ICommand
 				input.getArgs().size() > 3 ? input.getArg(3).getDB() : null);
 		
 		//Build reply
-		reply.addToReply("**"+wrapper.typesToString()+"**");
-		reply.addToReply("\tSuper Effective | "+wrapper.listToString(2.0));
-		reply.addToReply("\tNeutral | "+wrapper.listToString(1.0));
-		reply.addToReply("\tResistant | "+wrapper.listToString(0.5));
-		reply.addToReply("\tImmune | "+wrapper.listToString(0.0));
+		reply.addToReply("**__"+wrapper.typesToString()+"__**");
+		builder.appendField("Super Effective", wrapper.listToString(2.0), false);
+		builder.appendField("Neutral", wrapper.listToString(1.0), false);
+		builder.appendField("Resistant", wrapper.listToString(0.5), false);
+		builder.appendField("Immune", wrapper.listToString(0.0), false);
+		
+		//Set border color
+		builder.withColor(wrapper.getColor());
+		
+		reply.setEmbededReply(builder.build());
 		
 		return reply;
 	}
