@@ -93,6 +93,7 @@ public class AbilityCommand implements ICommand
 			
 			reply.addToReply(("**__"+abil.getName()+"__**").intern());
 			builder.appendField("Debut", "Gen "+abil.getDebut(), true);
+			builder.appendField("Smogon Viability", abil.getViability(), true);
 			builder.appendField("Pokemon with this Ability", Integer.toString(abil.getMany()), true);
 			builder.appendField("Game Description", abil.getShortDesc(), false);
 			builder.appendField("Technical Description", abil.getTechDesc(), false);

@@ -105,8 +105,13 @@ public class ComplexPokemon
 	public ArrayList<String> getEvolutions() { return evolutions; }
 	public String getMaleRatio() { return maleRatio.toString(); }
 	public String getFemaleRatio() { return femaleRatio.toString(); }
-	public String getModel() { return model; }
 	public String getShinyModel() { return shinyModel; }
+	public String getModel() 
+	{ 
+		if(model != null)
+			return model; 
+		return shinyModel;
+	}
 
 	public String getDiscordGenderRatio()
 	{
