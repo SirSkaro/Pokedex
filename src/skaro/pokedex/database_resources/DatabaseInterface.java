@@ -474,11 +474,19 @@ public class DatabaseInterface
 		//Check prefixes
 		if(s.contains("primal ") 
 				|| (s.contains("mega ") && !s.contains("omega "))
-				|| (s.contains("alola ") || s.contains("alolan ")) )
+				|| (s.contains("alola ") || s.contains("alolan ")) 
+				|| (s.contains("ultra "))						)
 		{
 			s = s.replace("alolan", "alola");
 			String[] name = s.split(" ");
 			return (name[1]+name[0]+((name.length == 3) ? name[2] : ""));
+		}
+		
+		//Check for Necrozma forms
+		if((s.contains("dusk") || s.contains("dawn")))
+		{
+			String temp = s.replace("necrozma", "");
+			return "necrozma"+temp.replace(" ", "");
 		}
 		
 		//Check for other symbols

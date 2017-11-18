@@ -88,9 +88,9 @@ public class DataCommand implements ICommand
 		int stats[] = poke.getStats();
 		
 		
-		String stats1 = String.format("%-10s%-10s%-10s%-10s%-10s%-10s",
-				"HP", "Atk", "Def", "SpAtk", "SpDef","Spd").intern();
-		String stats2 = String.format("%-10d%-10d%-10d%-10d%-10d%-10d",
+		String stats1 = String.format("%-7s%-7s%-7s%-7s%-7s%-7s",
+				"HP", "Atk", "Def", "SpAtk", "SpDef","Spe").intern();
+		String stats2 = String.format("%-7d%-7d%-7d%-7d%-7d%-7d",
 				stats[0], stats[1], stats[2], stats[3], stats[4], stats[5]);
 		
 		reply.addToReply("**__"+poke.getSpecies()+"__**");

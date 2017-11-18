@@ -91,12 +91,16 @@ public class StatsCommand implements ICommand
 		//Organize the data and add it to the reply
 		reply.addToReply("**__"+poke.getSpecies()+"__**");
 		
-		String stats1 = String.format("%-10s%-10s%-10s%-10s%-10s%-10s",
-				"HP", "Attack", "Defense", "Sp. Atk", "Sp. Def","Speed").intern();
-		String stats2 = String.format("%-10d%-10d%-10d%-10d%-10d%-10d",
-				stats[0], stats[1], stats[2], stats[3], stats[4], stats[5]);
+		String names1 = String.format("%-12s%-12s", "HP", "Attack");
+		String names2 = String.format("%-12s%-12s", "Defense", "Sp. Attack");
+		String names3 = String.format("%-12s%-12s", "Sp. Defense", "Speed");
+		String stats1 = String.format("%-12d%-12d", stats[0], stats[1]);
+		String stats2 = String.format("%-12d%-12d", stats[2], stats[3]);
+		String stats3 = String.format("%-12d%d", stats[4], stats[5]);
 		
-		builder.withDescription("`" +stats1 + "`\n`" + stats2+ "`");
+		builder.withDescription("`"+names1+"`\n`"+stats1+"`"
+								+ "\n\n`"+ names2+"`\n`"+stats2+"`"
+								+ "\n\n`"+ names3+"`\n`"+stats3 +"`");
 		
 		//Set embed color
 		builder.withColor(TypeTracker.getColor(poke.getType1()));
