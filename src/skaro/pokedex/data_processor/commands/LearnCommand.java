@@ -4,11 +4,13 @@ import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.SimpleMove;
 import skaro.pokedex.database_resources.SimplePokemon;
 import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
+import sx.blah.discord.util.EmbedBuilder;
 
 public class LearnCommand implements ICommand 
 {
@@ -60,9 +62,8 @@ public class LearnCommand implements ICommand
 			if(!input.getArg(0).isValid())
 			{
 				reply.addToReply(input.getArg(0).getRaw()+" is not a recognized Pokemon");
+				return false;
 			}
-			
-			return false;
 		}
 		
 		return true;
@@ -86,11 +87,16 @@ public class LearnCommand implements ICommand
 			return reply;
 		}
 		
+		//Utility variables
 		Argument moveArg;
 		String dbMove;
 		SimpleMove sMove;
 		
-		reply.addToReply(("**"+poke.getSpecies()+"**").intern());
+		//Format reply
+		EmbedBuilder builder = new EmbedBuilder();	
+		builder.setLenient(true);
+		
+		reply.addToReply(("**__"+poke.getSpecies()+"__**").intern());
 		for(int i = 1; i < input.getArgs().size(); i++)
 		{
 			moveArg = input.getArg(i);
@@ -98,14 +104,19 @@ public class LearnCommand implements ICommand
 			{
 				dbMove = moveArg.getDB()+"-m";
 				sMove = dbi.extractSimpleMoveFromDB(dbMove);
-				reply.addToReply("\t"+sMove.getName()+" | "
-						+(dbi.inMoveSet(dbMove, input.getArg(0).getDB()) ? "able" : "not able"));
+				builder.appendField(sMove.getName().intern(), 
+						(dbi.inMoveSet(dbMove, input.getArg(0).getDB()) ? "able" : "not able"), true);
 			}
 			else
 			{
-				reply.addToReply("\t"+moveArg.getRaw()+ " | not recognized");
+				builder.appendField(moveArg.getRaw(), "not recognized", true);
 			}
 		}
+		
+		//Set embed color
+		builder.withColor(TypeTracker.getColor(poke.getType1()));
+		
+		reply.setEmbededReply(builder.build());
 		
 		return reply;
 	}
