@@ -1,10 +1,12 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.awt.Color;
 import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
+import sx.blah.discord.util.EmbedBuilder;
 
 public class DonateCommand implements ICommand 
 {
@@ -23,13 +25,16 @@ public class DonateCommand implements ICommand
 		staticDiscordReply = new Response();
 		staticTwitchReply = new Response();
 		
-		staticDiscordReply.addToReply("```Call for Donations!```");
-		staticDiscordReply.addToReply("Hello everyone, Sir Skaro here. I wish I could personally thank everyone who uses Pokedex individually for "
-				+ "their support! I used to rent cheap server space to keep the bot running 24/7, however with the increase in popularity "
-				+ "I have been forced to upgrade my server space to keep up with the massive amount of traffic Pokedex gets. It is now more "
-				+ "expensive to keep the bot up and running smoothly. Every little bit helps! _All donations go toward paying for the server "
-				+ "space._ Thank you for your continued support!");
-		staticDiscordReply.addToReply("Donation link: https://goo.gl/HlrFrD");
+		EmbedBuilder builder = new EmbedBuilder();	
+		builder.setLenient(true);
+		builder.withColor(new Color(255,255,255));
+		
+		builder.appendField("Call for Donations!", "Every little bit helps! _All donations go "
+				+ "toward paying for the server space!_", false);
+		builder.appendField("Donation link (PayPal)", "[donate here](https://goo.gl/HlrFrD)", false);
+		
+		staticDiscordReply.setEmbededReply(builder.build());
+		
 		
 		staticTwitchReply.addToReply("If you'd like to support the bot, please consider donating! "
 				+ "All donations go toward renting server space for the bot to be up 24/7!");

@@ -472,6 +472,7 @@ public class DatabaseInterface
 		s = s.toLowerCase();
 		
 		//Check prefixes
+		if(!s.contains("launcher"))
 		if(s.contains("primal ") 
 				|| (s.contains("mega ") && !s.contains("omega "))
 				|| (s.contains("alola ") || s.contains("alolan ")) 
@@ -483,7 +484,9 @@ public class DatabaseInterface
 		}
 		
 		//Check for Necrozma forms
-		if((s.contains("dusk") || s.contains("dawn")))
+		if( s.contains("necrozma") &&
+				((s.contains("dusk") || s.contains("dawn")))
+				)
 		{
 			String temp = s.replace("necrozma", "");
 			return "necrozma"+temp.replace(" ", "");

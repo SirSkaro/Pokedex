@@ -24,9 +24,9 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageUpdateEve
 import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelJoinEvent;
 import sx.blah.discord.handle.impl.events.shard.ShardReadyEvent;
 import sx.blah.discord.handle.obj.IMessage;
-import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
+import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 import sx.blah.discord.util.RequestBuffer;
@@ -159,15 +159,8 @@ public class DiscordEventHandler
         
         //Send the textual reply to the user
         channelID = input.getChannel().getLongID();
-        
-        if(response.isPrivateMessage())
-        {
-        	pmUser(input.getAuthor(), response.getDiscordTextReply(), response.getEmbedObject());
-        	sendMessage(channelID, "Response sent to your PMs!");
-        	return;
-        }
-        
-    	sendMessage(channelID, response.getDiscordTextReply(), response.getEmbedObject());
+    	
+    	sendResponse(input, response);
         
         //If there is an image portion, send it
         if(response.getImageReply() != null)
@@ -230,6 +223,46 @@ public class DiscordEventHandler
     	}
     }
     
+    private void sendResponse(IMessage userMsg, Response response)
+    {
+    	//Utility variables
+    	MessageBuilder reply = new MessageBuilder(discordClient);
+    	Optional<EmbedObject> eo = response.getEmbedObject();
+    	
+    	//Set up basic reply
+    	reply.withContent(response.getDiscordTextReply());
+    	if(eo.isPresent())
+    		reply.withEmbed(eo.get());
+    	
+    	//Buffer the reply
+    	RequestBuffer.request(() -> 
+    	{
+    		try
+    		{
+	    		if(response.isPrivateMessage())
+	    		{
+	    			reply.withChannel(discordClient.getOrCreatePMChannel(userMsg.getAuthor()));
+	    			reply.appendContent("**Join the Pokedex's Home Server!**\n"
+	            			+ "https://discord.gg/D5CfFkN".intern());
+	    			reply.send();
+	    			userMsg.getChannel().sendMessage("Sent to your inbox!".intern());
+	    			System.out.println("\t[DiscordEventHandler] PM sent.");
+	    		}
+	    		else
+	    		{
+	    			reply.withChannel(userMsg.getChannel());
+	    			reply.send();
+	    			System.out.println("\t[DiscordEventHandler] Response sent.");
+	    		}
+    		}
+    		catch (Exception e)
+    		{
+    			System.err.println("[DiscordEventHandler] Message (queued) could not be sent with error: "+ e.getClass().getSimpleName());
+                throw e;	//Sends the message to the request buffer
+    		}
+    	});
+    }
+    
     private void sendMessage(long ChannelID, String msg) throws RateLimitException, MissingPermissionsException, DiscordException
     {
     	RequestBuffer.request(() -> 
@@ -238,28 +271,6 @@ public class DiscordEventHandler
             {
             	discordClient.getChannelByID(ChannelID).sendMessage(msg);
             	System.out.println("\t[DiscordEventHandler] Text response sent.");
-            } 
-            catch (Exception e)
-            {
-                System.err.println("[DiscordEventHandler] Text (queued) could not be sent with error: "+ e.getClass().getSimpleName());
-                throw e;	//Sends the message to the request buffer
-            }
-        });
-    }
-    
-    private void sendMessage(long ChannelID, String msg, Optional<EmbedObject> eo) throws RateLimitException, MissingPermissionsException, DiscordException
-    {
-    	RequestBuffer.request(() -> 
-    	{
-            try
-            {
-            	discordClient.getChannelByID(ChannelID).sendMessage(msg);
-            	System.out.println("\t[DiscordEventHandler] Text response sent.");
-            	if(eo.isPresent())
-            	{
-            		discordClient.getChannelByID(ChannelID).sendMessage(eo.get());
-            		System.out.println("\t[DiscordEventHandler] Embed response sent.");
-            	}
             } 
             catch (Exception e)
             {
@@ -283,28 +294,6 @@ public class DiscordEventHandler
             {
             	System.err.println("[DiscordEventHandler] Images could not be sent with error: "+ e.getClass().getSimpleName());
             	throw e;
-            }
-        });
-    }
-    
-    private void pmUser(IUser user, String msg, Optional<EmbedObject> eo) throws RateLimitException, MissingPermissionsException, DiscordException
-    {
-    	RequestBuffer.request(() -> 
-    	{
-            try
-            {
-            	discordClient.getOrCreatePMChannel(user).sendMessage(msg);
-            	if(eo.isPresent())
-            		discordClient.getOrCreatePMChannel(user).sendMessage(eo.get());
-            	
-            	discordClient.getOrCreatePMChannel(user).sendMessage("**Join the Pokedex's Home Server!**\n"
-            			+ "https://discord.gg/D5CfFkN");
-            	System.out.println("\t[DiscordEventHandler] PM sent");
-            } 
-            catch (Exception e)
-            {
-            	System.err.println("[DiscordEventHandler] PM could not be sent with error: "+ e.getClass().getSimpleName());
-                throw e;
             }
         });
     }

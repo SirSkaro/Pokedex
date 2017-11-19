@@ -89,18 +89,18 @@ public class StatsCommand implements ICommand
 		int stats[] = poke.getStats();
 		
 		//Organize the data and add it to the reply
-		reply.addToReply("**__"+poke.getSpecies()+"__**");
+		reply.addToReply(("**__"+poke.getSpecies()+"__**").intern());
 		
-		String names1 = String.format("%-12s%-12s", "HP", "Attack");
-		String names2 = String.format("%-12s%-12s", "Defense", "Sp. Attack");
-		String names3 = String.format("%-12s%-12s", "Sp. Defense", "Speed");
-		String stats1 = String.format("%-12d%-12d", stats[0], stats[1]);
-		String stats2 = String.format("%-12d%-12d", stats[2], stats[3]);
+		String names1 = String.format("%-12s%s", "HP", "Attack").intern();
+		String names2 = String.format("%-12s%s", "Defense", "Sp. Attack").intern();
+		String names3 = String.format("%-12s%s", "Sp. Defense", "Speed").intern();
+		String stats1 = String.format("%-12d%d", stats[0], stats[1]);
+		String stats2 = String.format("%-12d%d", stats[2], stats[3]);
 		String stats3 = String.format("%-12d%d", stats[4], stats[5]);
 		
-		builder.withDescription("`"+names1+"`\n`"+stats1+"`"
-								+ "\n\n`"+ names2+"`\n`"+stats2+"`"
-								+ "\n\n`"+ names3+"`\n`"+stats3 +"`");
+		builder.withDescription("__`"+names1+"`__\n`"+stats1+"`"
+								+ "\n\n__`"+ names2+"`__\n`"+stats2+"`"
+								+ "\n\n__`"+ names3+"`__\n`"+stats3 +"`");
 		
 		//Set embed color
 		builder.withColor(TypeTracker.getColor(poke.getType1()));
