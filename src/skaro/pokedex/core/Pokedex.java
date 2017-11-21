@@ -50,7 +50,7 @@ public class Pokedex
 	{			
 		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
-		Configurator configurator = Configurator.initializeConfigurator(true);
+		Configurator configurator = Configurator.initializeConfigurator(false);
 		
 		//Initialize CommandMaps
 		System.out.println("[Pokedex main] Initializing resources...");
