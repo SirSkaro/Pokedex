@@ -9,6 +9,7 @@ import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.SimplePokemon;
 import skaro.pokedex.input_processor.Input;
+import sx.blah.discord.util.EmbedBuilder;
 
 public class WeakCommand implements ICommand 
 {
@@ -76,6 +77,8 @@ public class WeakCommand implements ICommand
 		TypeInteractionWrapper wrapper;
 		String formattedList, temp1, temp2;
 		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		EmbedBuilder builder = new EmbedBuilder();	
+		builder.setLenient(true);
 		
 		//Build reply according to the argument case
 		if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON) //argument is a Pokemon
@@ -90,23 +93,26 @@ public class WeakCommand implements ICommand
 			}
 				
 			wrapper = TypeTracker.onDefense(poke.getType1(), poke.getType2()); 
-			reply.addToReply(("**"+poke.getSpecies()+"**").intern());
+			reply.addToReply(("**__"+poke.getSpecies()+"__**").intern());
+			builder.withColor(TypeTracker.getColor(poke.getType1()));
 		}
 		else
 		{
 			if(input.getArgs().size() == 1) // argument is one type
 			{
 				wrapper = TypeTracker.onDefense(input.getArg(0).getDB(), null);
-				reply.addToReply("**"+wrapper.getType1()+"**");
+				reply.addToReply("**__"+wrapper.getType1()+"__**");
+				builder.withColor(wrapper.getColor());
 			}
 			else //argument is two types
 			{
 				wrapper = TypeTracker.onDefense(input.getArg(0).getDB(), input.getArg(1).getDB());
-				reply.addToReply("**"+wrapper.getType1()+"/"+wrapper.getType2()+"**");
+				reply.addToReply("**__"+wrapper.getType1()+"/"+wrapper.getType2()+"__**");
+				builder.withColor(wrapper.getColor());
 			}
 		}
 		
-		//Format weaknesses into a list
+		//Format reply
 		temp1 = wrapper.listToString(2.0);
 		temp2 = wrapper.listToString(4.0);
 		
@@ -117,10 +123,10 @@ public class WeakCommand implements ICommand
 		else
 			formattedList = temp1 +", **"+temp2+"**";
 		
-		reply.addToReply("\tWeak | "+formattedList);
+		builder.appendField("Weak", formattedList, false);
 		
 		//Format neutral exchanges into a list
-		reply.addToReply("\tNeutral | "+wrapper.listToString(1.0));
+		builder.appendField("Neurtral", wrapper.listToString(1.0), false);
 		
 		//Format resistances into a list
 		temp1 = wrapper.listToString(0.5);
@@ -133,10 +139,12 @@ public class WeakCommand implements ICommand
 		else
 			formattedList = temp1 +", **"+temp2+"**";
 		
-		reply.addToReply("\tResist | "+formattedList);
+		builder.appendField("Resist", formattedList, false);
 		
 		//Format immunities into a list
-		reply.addToReply("\tImmune | "+wrapper.listToString(0.0));
+		builder.appendField("Immune", wrapper.listToString(0.0), false);
+	
+		reply.setEmbededReply(builder.build());
 		
 		return reply;
 	}

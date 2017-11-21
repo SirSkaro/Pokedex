@@ -51,7 +51,9 @@ public class TypeTracker {
 		
 		ArrayList<String> temp = new ArrayList<String>();
 		Double[] multiplier = {0.0, 0.25, 0.5, 1.0, 2.0, 4.0};
+		Color color = null;
 		type1 = type1.toLowerCase();
+		color = blend(getColor(type1), color);
 		
 		if(type2 == null)
 		{
@@ -68,6 +70,7 @@ public class TypeTracker {
 		else
 		{
 			type2 = type2.toLowerCase();
+			color = blend(getColor(type2), color);
 			for(int j = 0; j < multiplier.length; j++)
 			{
 				for(int i = 0; i < 18; i++)
@@ -80,6 +83,7 @@ public class TypeTracker {
 			
 		}
 		
+		result.setColor(color);
 		result.setType1(typeMapInt.get(typeMapString.get(type1))); //Get capitalized name
 		if(type2 != null)
 			result.setType2(typeMapInt.get(typeMapString.get(type2))); //Get capitalized name
