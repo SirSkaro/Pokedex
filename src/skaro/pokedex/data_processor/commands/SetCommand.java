@@ -64,7 +64,8 @@ public class SetCommand implements ICommand
 					for(Argument arg : input.getArgs())
 						if(!arg.isValid())
 							reply.addToReply("\t\""+arg.getRaw()+"\" is not a recognized "+ arg.getCategory());
-					reply.addToReply("\n*top suggestion*: did you include commas between inputs?");
+					reply.addToReply("\n*top suggestion*: Only Smogon and VGC metas are supported, and not updated for gen 7. "
+							+ "Try an official tier or gens 1-6?");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 109)");
