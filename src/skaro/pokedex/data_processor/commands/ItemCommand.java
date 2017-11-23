@@ -50,7 +50,7 @@ public class ItemCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("This command must have one Item as an argument.");
+					reply.addToReply("You must specify exactly one Item as input for this command.");
 				break;
 				case 2:
 					reply.addToReply(input.getArg(0).getRaw() +" is not a recognized Item");

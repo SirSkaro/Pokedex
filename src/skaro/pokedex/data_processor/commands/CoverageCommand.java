@@ -57,7 +57,7 @@ public class CoverageCommand implements ICommand
 							+ "(seperated by commas).");
 				break;
 				case 2:
-					reply.addToReply("Could not process your request due to the following problem(s):");
+					reply.addToReply("Could not process your request due to the following problem(s):".intern());
 					for(Argument arg : input.getArgs())
 						if(!arg.isValid())
 							reply.addToReply("\t\""+arg.getRaw()+"\" is not a recognized Type or Move.");
