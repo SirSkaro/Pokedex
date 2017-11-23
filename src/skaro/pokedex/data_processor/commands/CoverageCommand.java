@@ -9,6 +9,7 @@ import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.SimpleMove;
+import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
 import sx.blah.discord.util.EmbedBuilder;
 
@@ -52,10 +53,15 @@ public class CoverageCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("This command must have a list of Moves/Types as input.");
+					reply.addToReply("You must specify between 1 to 4 Types or Moves as input for this command "
+							+ "(seperated by commas).");
 				break;
 				case 2:
-					reply.addToReply("Input is not a list of Moves and/or Types");
+					reply.addToReply("Could not process your request due to the following problem(s):".intern());
+					for(Argument arg : input.getArgs())
+						if(!arg.isValid())
+							reply.addToReply("\t\""+arg.getRaw()+"\" is not a recognized Type or Move.");
+					reply.addToReply("\n*top suggestion*: did you include commas between inputs?");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 107)");

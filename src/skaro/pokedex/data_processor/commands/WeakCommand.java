@@ -9,6 +9,7 @@ import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.SimplePokemon;
+import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
 import sx.blah.discord.util.EmbedBuilder;
 
@@ -52,10 +53,15 @@ public class WeakCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("This command must have a Pokemon name or Type combination as input.");
+					reply.addToReply("You must specify 1 Pokemon or between 1 and 2 Types (seperated by commas) "
+							+ "as input for this command.");
 				break;
 				case 2:
-					reply.addToReply("Input is not a recognized Pokemon or Type combination.");
+					reply.addToReply("Could not process your request due to the following problem(s):".intern());
+					for(Argument arg : input.getArgs())
+						if(!arg.isValid())
+							reply.addToReply("\t\""+arg.getRaw()+"\" is not a recognized "+ arg.getCategory());
+					reply.addToReply("\n*top suggestion*: did you include commas between inputs?");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 106)");

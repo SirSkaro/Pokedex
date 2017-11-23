@@ -52,10 +52,10 @@ public class AbilityCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("This command must have a Pokemon or Ability as an argument.");
+					reply.addToReply("You must specify exactly one Pokemon or Ability as input for this command.".intern());
 				break;
 				case 2:
-					reply.addToReply(input.getArg(0).getRaw() +" is not a recognized Pokemon or Ability");
+					reply.addToReply("\""+input.getArg(0).getRaw() +"\" is not a recognized Pokemon or Ability");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 103)");

@@ -84,25 +84,28 @@ public interface ICommand
 			switch(this)
 			{
 				case POKEMON:
-					result = "pokemon";
+					result = "Pokemon";
 					break;
 				case ITEM:
-					result = "items";
+					result = "Item";
 					break;
 				case TYPE:
-					result = "types";
+					result = "Type";
 					break;
 				case MOVE:
-					result = "moves";
+					result = "Move";
 					break;
 				case META:
-					result = "meta";
+					result = "Meta";
 					break;
 				case ABILITY:
-					result = "abilities";
+					result = "Ability";
 					break;
 				case VERSION:
-					result = "versions";
+					result = "Version";
+					break;
+				case GEN:
+					result = "Gen";
 					break;
 				default:
 					result = null;
