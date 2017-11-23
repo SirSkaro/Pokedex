@@ -58,7 +58,7 @@ public class DatabaseInterface
 		types.add("ground"); types.add("rock"); types.add("bug"); types.add("water");
 		types.add("ghost"); types.add("steel"); types.add("fire"); types.add("electric");
 		types.add("grass"); types.add("psychic"); types.add("ice"); types.add("dragon");
-		types.add("dark"); types.add("fairy");
+		types.add("dark"); types.add("fairy"); types.add("bird");
 		
 		regions = new ArrayList<String>();
 		regions.add("kanto"); regions.add("johto"); regions.add("hoenn"); regions.add("sinnoh");
@@ -72,6 +72,7 @@ public class DatabaseInterface
 		versions.add("black2"); versions.add("white"); versions.add("white2"); versions.add("heartgold");
 		versions.add("soulsilver"); versions.add("x"); versions.add("y");
 		versions.add("omegaruby"); versions.add("alphasapphire"); versions.add("sun"); versions.add("moon");
+		versions.add("ultrasun"); versions.add("ultramoon");
 	}
 	
 	public static DatabaseInterface getInstance()

@@ -2,6 +2,7 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 
+import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
@@ -111,7 +112,7 @@ public class CoverageCommand implements ICommand
 		builder.appendField("Immune", wrapper.listToString(0.0), false);
 		
 		//Set border color
-		builder.withColor(wrapper.getColor());
+		builder.withColor(ColorTracker.getColorFromWrapper(wrapper));
 		
 		reply.setEmbededReply(builder.build());
 		

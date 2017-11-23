@@ -2,9 +2,9 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 
+import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.Set;
 import skaro.pokedex.database_resources.SetGroup;
@@ -130,7 +130,7 @@ public class SetCommand implements ICommand
 			
 		}
 		
-		eBuilder.withColor(TypeTracker.getColor(poke.getType1()));
+		eBuilder.withColor(ColorTracker.getColorFromType(poke.getType1()));
 		eBuilder.withFooterText("You can learn more about these sets at Smogon's competitive Pokedex:\n"+sets.getURL());
 		reply.setEmbededReply(eBuilder.build());
 		

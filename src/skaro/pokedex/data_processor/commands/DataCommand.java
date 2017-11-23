@@ -2,9 +2,9 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 
+import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.database_resources.ComplexPokemon;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.input_processor.Input;
@@ -115,7 +115,7 @@ public class DataCommand implements ICommand
 		builder.withImage(poke.getModel());
 		
 		//Set embed color
-		builder.withColor(TypeTracker.getColor(poke.getType1()));
+		builder.withColor(ColorTracker.getColorFromType(poke.getType1()));
 		
 		reply.setEmbededReply(builder.build());
 				

@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,7 +31,6 @@ public class TypeTracker {
 		  /*18Bird*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
 		    			};
 		    			
-	private static Map<String, Color> typeColor = new HashMap<>();
 	private static Map<String,Integer> typeMapString = new HashMap<>();
 	private static Map<Integer,String> typeMapInt = new HashMap<>();
 	
@@ -51,9 +49,7 @@ public class TypeTracker {
 		
 		ArrayList<String> temp = new ArrayList<String>();
 		Double[] multiplier = {0.0, 0.25, 0.5, 1.0, 2.0, 4.0};
-		Color color = null;
 		type1 = type1.toLowerCase();
-		color = blend(getColor(type1), color);
 		
 		if(type2 == null)
 		{
@@ -70,7 +66,6 @@ public class TypeTracker {
 		else
 		{
 			type2 = type2.toLowerCase();
-			color = blend(getColor(type2), color);
 			for(int j = 0; j < multiplier.length; j++)
 			{
 				for(int i = 0; i < 18; i++)
@@ -83,7 +78,6 @@ public class TypeTracker {
 			
 		}
 		
-		result.setColor(color);
 		result.setType1(typeMapInt.get(typeMapString.get(type1))); //Get capitalized name
 		if(type2 != null)
 			result.setType2(typeMapInt.get(typeMapString.get(type2))); //Get capitalized name
@@ -106,7 +100,6 @@ public class TypeTracker {
 		Set<String> neutral = new HashSet<String>();
 		Set<String> immune = new HashSet<String>();
 		ArrayList<String> temp = new ArrayList<String>();
-		Color currColor = null;
 		
 		for(int i = 0; i < 4; i++)
 		{
@@ -121,11 +114,9 @@ public class TypeTracker {
 					neutral.addAll(atkNeutral(types[i]));
 					immune.addAll(atkImmune(types[i]));
 				}
-				currColor = blend(getColor(types[i]), currColor);
 			}
 		}
 		
-		result.setColor(currColor);
 		
 		//Add all super effective types
 		temp.addAll(effective);
@@ -275,28 +266,6 @@ public class TypeTracker {
         return list;
     }
 	
-	public static Color getColor(String type)
-	{
-		return typeColor.get(type.toLowerCase());
-	}
-	
-	private static Color blend(Color c0, Color c1) 
-	{
-		if(c1 == null)
-			return c0;
-		
-		double totalAlpha = c0.getAlpha() + c1.getAlpha();
-		double weight0 = c0.getAlpha() / totalAlpha;
-		double weight1 = c1.getAlpha() / totalAlpha;
-		
-		double r = weight0 * c0.getRed() + weight1 * c1.getRed();
-		double g = weight0 * c0.getGreen() + weight1 * c1.getGreen();
-		double b = weight0 * c0.getBlue() + weight1 * c1.getBlue();
-		double a = Math.max(c0.getAlpha(), c1.getAlpha());
-		
-		return new Color((int) r, (int) g, (int) b, (int) a);
-	}
-	
 	static
 	{
 		typeMapString.put("normal".intern(), 0);
@@ -338,26 +307,6 @@ public class TypeTracker {
 		typeMapInt.put(16, "Dark".intern());
 		typeMapInt.put(17, "Fairy");
 		typeMapInt.put(18, "Bird");
-		
-		typeColor.put("normal".intern(), Color.decode("0xA8A77A"));
-		typeColor.put("fighting".intern(), Color.decode("0xC22E28"));
-		typeColor.put("flying".intern(), Color.decode("0xA98FF3"));
-		typeColor.put("poison".intern(), Color.decode("0xA33EA1"));
-		typeColor.put("ground".intern(), Color.decode("0xE2BF65"));
-		typeColor.put("rock".intern(), Color.decode("0xB6A136"));
-		typeColor.put("bug".intern(), Color.decode("0xA6B91A"));
-		typeColor.put("ghost".intern(), Color.decode("0x735797"));
-		typeColor.put("steel".intern(), Color.decode("0xB7B7CE"));
-		typeColor.put("fire".intern(), Color.decode("0xEE8130"));
-		typeColor.put("water".intern(), Color.decode("0x6390F0"));
-		typeColor.put("grass".intern(), Color.decode("0x7AC74C"));
-		typeColor.put("electric".intern(), Color.decode("0xF7D02C"));
-		typeColor.put("psychic".intern(), Color.decode("0xF95587"));
-		typeColor.put("ice".intern(), Color.decode("0x96D9D6"));
-		typeColor.put("dragon".intern(), Color.decode("0x6F35FC"));
-		typeColor.put("dark".intern(), Color.decode("0x705746"));
-		typeColor.put("fairy".intern(), Color.decode("0xD685AD"));
-		typeColor.put("bird".intern(), Color.decode("0xA4BBB3"));
 	}
 		
 }

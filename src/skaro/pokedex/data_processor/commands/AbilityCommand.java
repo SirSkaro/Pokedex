@@ -1,11 +1,10 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.awt.Color;
 import java.util.ArrayList;
 
+import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.database_resources.ComplexAbility;
 import skaro.pokedex.database_resources.ComplexPokemon;
 import skaro.pokedex.database_resources.DatabaseInterface;
@@ -98,7 +97,7 @@ public class AbilityCommand implements ICommand
 			builder.appendField("Game Description", abil.getShortDesc(), false);
 			builder.appendField("Technical Description", abil.getTechDesc(), false);
 			
-			builder.withColor(new Color(0x66E1FB));
+			builder.withColor(ColorTracker.getColorForAbility());
 		}
 		else if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
 		{
@@ -134,7 +133,7 @@ public class AbilityCommand implements ICommand
 			}
 			
 			//Set embed color
-			builder.withColor(TypeTracker.getColor(poke.getType1()));
+			builder.withColor(ColorTracker.getColorFromType(poke.getType1()));
 		}
 		else //This should never be executed
 		{

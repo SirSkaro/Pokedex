@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor;
 
-import java.awt.Color;
 import java.util.ArrayList;
 
 public class TypeInteractionWrapper 
@@ -15,7 +14,6 @@ public class TypeInteractionWrapper
 	private String type2;
 	private String type3;
 	private String type4;
-	private Color colorBlend;
 	
 	//Constructor
 	public TypeInteractionWrapper()
@@ -29,7 +27,6 @@ public class TypeInteractionWrapper
 		type2 = null;
 		type3 = null;
 		type4 = null;
-		colorBlend = null;
 	}
 	
 	//Get and set methods
@@ -43,7 +40,6 @@ public class TypeInteractionWrapper
 	public void setType2(String t){ type2 = t; }
 	public void setType3(String t){ type3 = t; }
 	public void setType4(String t){ type4 = t; }
-	public void setColor(Color c){ colorBlend = c; }
 	public void setType(String t, int i)
 	{
 		switch(i)
@@ -87,7 +83,6 @@ public class TypeInteractionWrapper
 	public String getType2() { return type2; }
 	public String getType3() { return type3; }
 	public String getType4() { return type4; }
-	public Color getColor() { return colorBlend; }
 	
 	public String listToString(double mult)
 	{

@@ -2,6 +2,7 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 
+import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
@@ -94,7 +95,7 @@ public class WeakCommand implements ICommand
 				
 			wrapper = TypeTracker.onDefense(poke.getType1(), poke.getType2()); 
 			reply.addToReply(("**__"+poke.getSpecies()+"__**").intern());
-			builder.withColor(TypeTracker.getColor(poke.getType1()));
+			builder.withColor(ColorTracker.getColorFromType(poke.getType1()));
 		}
 		else
 		{
@@ -102,13 +103,13 @@ public class WeakCommand implements ICommand
 			{
 				wrapper = TypeTracker.onDefense(input.getArg(0).getDB(), null);
 				reply.addToReply("**__"+wrapper.getType1()+"__**");
-				builder.withColor(wrapper.getColor());
+				builder.withColor(ColorTracker.getColorFromWrapper(wrapper));
 			}
 			else //argument is two types
 			{
 				wrapper = TypeTracker.onDefense(input.getArg(0).getDB(), input.getArg(1).getDB());
 				reply.addToReply("**__"+wrapper.getType1()+"/"+wrapper.getType2()+"__**");
-				builder.withColor(wrapper.getColor());
+				builder.withColor(ColorTracker.getColorFromWrapper(wrapper));
 			}
 		}
 		
