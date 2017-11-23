@@ -69,13 +69,15 @@ public class RandpokeCommand implements ICommand
 		int stats[] = poke.getStats();
 		
 		
-		String stats1 = String.format("%-10s%-10s%-10s%-10s%-10s%-10s",
-				"HP", "Atk", "Def", "SpAtk", "SpDef","Spd").intern();
-		String stats2 = String.format("%-10d%-10d%-10d%-10d%-10d%-10d",
-				stats[0], stats[1], stats[2], stats[3], stats[4], stats[5]);
+		String names1 = String.format("%-9s%-9s%s", "HP", "Atk", "Def").intern();
+		String names2 = String.format("%-9s%-9s%s", "Sp.Atk", "Sp.Def", "Spe").intern();
+		String stats1 = String.format("%-9d%-9d%d", stats[0], stats[1], stats[2]);
+		String stats2 = String.format("%-9d%-9d%d", stats[3], stats[4], stats[5]);
+		String baseStats = "__`"+names1+"`__\n`"+stats1+"`"
+				+ "\n__`"+ names2+"`__\n`"+stats2+"`";
 		
 		reply.addToReply("**__"+poke.getSpecies()+"__**");
-		builder.appendField("Base Stats", "`" +stats1 + "`\n`" + stats2+ "`", false);
+		builder.appendField("Base Stats", baseStats, true);
 		builder.appendField("Typing", 
 				poke.getType2() == null ? poke.getType1() : poke.getType1()+"*/* "+poke.getType2(), true);
 		builder.appendField("Abilities", listToItemizedDiscordString(poke.getAbilities()), true);
