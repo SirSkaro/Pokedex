@@ -50,7 +50,7 @@ public class DataCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("You must specify exactly one Pokemon as input for this command.");
+					reply.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
 				break;
 				case 2:
 					reply.addToReply("\""+input.getArg(0).getRaw() +"\" is not a recognized Pokemon.");

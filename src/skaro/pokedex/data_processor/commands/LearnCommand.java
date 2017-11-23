@@ -25,7 +25,7 @@ public class LearnCommand implements ICommand
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.MOVE_LIST);
-		expectedArgRange = new Integer[]{2,20};
+		expectedArgRange = new Integer[]{2,21};
 	}
 	
 	public static ICommand getInstance()
@@ -53,7 +53,8 @@ public class LearnCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("This command must have a Pokemon and a list of Moves as arguments.");
+					reply.addToReply("You must specify between 1 Pokemon and 1 to 20 Moves as input for this command "
+							+ "(seperated by commas).");
 				return false;	
 			}
 			
@@ -61,7 +62,7 @@ public class LearnCommand implements ICommand
 			//the Pokemon is valid but allow other arguments to go unchecked
 			if(!input.getArg(0).isValid())
 			{
-				reply.addToReply(input.getArg(0).getRaw()+" is not a recognized Pokemon");
+				reply.addToReply("\""+input.getArg(0).getRaw()+"\" is not a recognized Pokemon.");
 				return false;
 			}
 		}

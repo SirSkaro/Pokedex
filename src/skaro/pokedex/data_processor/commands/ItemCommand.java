@@ -50,10 +50,10 @@ public class ItemCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("You must specify exactly one Item as input for this command.");
+					reply.addToReply("You must specify exactly one Item as input for this command.".intern());
 				break;
 				case 2:
-					reply.addToReply(input.getArg(0).getRaw() +" is not a recognized Item");
+					reply.addToReply("\""+input.getArg(0).getRaw() +"\" is not a recognized Item");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 104)");

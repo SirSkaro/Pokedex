@@ -50,10 +50,10 @@ public class StatsCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("This command must have a Pokemon as an argument.");
+					reply.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
 				break;
 				case 2:
-					reply.addToReply(input.getArg(0).getRaw() +" is not a recognized Pokemon");
+					reply.addToReply("\""+ input.getArg(0).getRaw() +"\" is not a recognized Pokemon");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 101)");

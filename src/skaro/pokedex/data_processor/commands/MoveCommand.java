@@ -50,10 +50,10 @@ public class MoveCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("This command must have one Move as an argument.");
+					reply.addToReply("You must specify exactly one Move as input for this command.".intern());
 				break;
 				case 2:
-					reply.addToReply(input.getArg(0).getRaw() +" is not a recognized Move");
+					reply.addToReply("\""+input.getArg(0).getRaw() +"\" is not a recognized Move");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 105)");
