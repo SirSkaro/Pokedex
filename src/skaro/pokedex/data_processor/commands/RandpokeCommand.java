@@ -2,11 +2,13 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 
+import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.database_resources.ComplexPokemon;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.input_processor.Input;
+import sx.blah.discord.util.EmbedBuilder;
 
 public class RandpokeCommand implements ICommand
 {
@@ -61,30 +63,43 @@ public class RandpokeCommand implements ICommand
 			return reply;
 		}
 		
+		//Format reply
+		EmbedBuilder builder = new EmbedBuilder();	
+		builder.setLenient(true);
 		int stats[] = poke.getStats();
 		
-		//Organize the data and add it to the reply
-		reply.addToReply(("**"+poke.getSpecies()+"**").intern());
 		
-		reply.addToReply("\tBase Stats | "+stats[0]+"*/* "+stats[1]+"*/* " +stats[2]+"*/* "+stats[3]+"*/* "
-				+stats[4]+"*/* "+stats[5]);
-		reply.addToReply("\tAbilities | "+listToItemizedDiscordString(poke.getAbilities()));
-		reply.addToReply("\tNational Dex Num | "+poke.getDexNum());
-		reply.addToReply("\tTyping | "+ 
-				(poke.getType2() == null ? poke.getType1() : poke.getType1()+"*/* "+poke.getType2()));
-		reply.addToReply("\tHeight | "+poke.getHeight() + " m");
-		reply.addToReply("\tWeight | "+poke.getWeight() + " kg");
-		reply.addToReply("\tGender Ratio | " + poke.getDiscordGenderRatio());
-		reply.addToReply("\tEgg Groups | "+ listToItemizedDiscordString(poke.getEggGroups()));
+		String names1 = String.format("%-9s%-9s%s", "HP", "Atk", "Def").intern();
+		String names2 = String.format("%-9s%-9s%s", "Sp.Atk", "Sp.Def", "Spe").intern();
+		String stats1 = String.format("%-9d%-9d%d", stats[0], stats[1], stats[2]);
+		String stats2 = String.format("%-9d%-9d%d", stats[3], stats[4], stats[5]);
+		String baseStats = "__`"+names1+"`__\n`"+stats1+"`"
+				+ "\n__`"+ names2+"`__\n`"+stats2+"`";
+		
+		reply.addToReply("**__"+poke.getSpecies()+"__**");
+		builder.appendField("Base Stats", baseStats, true);
+		builder.appendField("Typing", 
+				poke.getType2() == null ? poke.getType1() : poke.getType1()+"*/* "+poke.getType2(), true);
+		builder.appendField("Abilities", listToItemizedDiscordString(poke.getAbilities()), true);
+		builder.appendField("National Dex Num", Integer.toString(poke.getDexNum()), true);
+		builder.appendField("Height", poke.getHeight() + " m", true);
+		builder.appendField("Weight", poke.getWeight() + " kg", true);
+		builder.appendField("Gender Ratio", poke.getDiscordGenderRatio(), true);
+		builder.appendField("Egg Groups",listToItemizedDiscordString(poke.getEggGroups()), true);
 		if(poke.getEvolutions() != null)
 		{
-			reply.addToReply("\tEvolutions | "+ listToItemizedDiscordString(poke.getEvolutions()));
-			reply.addToReply("\tEvolution Level | "+poke.getEvoLevel());
+			builder.appendField("Evolutions", listToItemizedDiscordString(poke.getEvolutions()), true);
+			builder.appendField("Evolution Level", poke.getEvoLevel(), true);
 		}
+		builder.withFooterText("Note: Shiny Pokemon will return soon!");
 		
 		//Add images
-		reply.addImage(poke.getModel());
-		reply.addImage(poke.getShinyModel());
+		builder.withImage(poke.getModel());
+		
+		//Set embed color
+		builder.withColor(ColorTracker.getColorFromType(poke.getType1()));
+		
+		reply.setEmbededReply(builder.build());
 				
 		return reply;
 	}

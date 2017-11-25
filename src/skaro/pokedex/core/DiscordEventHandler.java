@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -16,6 +17,7 @@ import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.IShard;
 import sx.blah.discord.api.events.Event;
 import sx.blah.discord.api.events.EventSubscriber;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageUpdateEvent;
@@ -24,6 +26,7 @@ import sx.blah.discord.handle.impl.events.shard.ShardReadyEvent;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.DiscordException;
+import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 import sx.blah.discord.util.RequestBuffer;
@@ -52,7 +55,7 @@ public class DiscordEventHandler
 		statusMessages.add("!commands/!help");
 		statusMessages.add("%commands/%help");
 		statusMessages.add("commands()/help()");
-		statusMessages.add("[NEW] %invite");
+		statusMessages.add("[NEW] %randpoke");
         
         statusTimer = new Timer();
 		statusTask = new TimerTask() {
@@ -87,7 +90,7 @@ public class DiscordEventHandler
     {
 		try
 		{
-			ResponseHandler(event);
+			responseHandler(event);
 		} 
 		catch(RateLimitException | MissingPermissionsException | DiscordException | IOException
 				| InterruptedException e) 
@@ -101,7 +104,7 @@ public class DiscordEventHandler
     {
     	try 
     	{
-			ResponseHandler(event);
+			responseHandler(event);
 		}
     	catch(RateLimitException | MissingPermissionsException | DiscordException | IOException
 				| InterruptedException e) 
@@ -116,7 +119,7 @@ public class DiscordEventHandler
     	event.getPlayer().getGuild().getConnectedVoiceChannel().leave();
     }
     
-    public void ResponseHandler(Event event) throws RateLimitException, MissingPermissionsException, DiscordException, IOException, InterruptedException
+    public void responseHandler(Event event) throws RateLimitException, MissingPermissionsException, DiscordException, IOException, InterruptedException
     {
     	//Initial utility variable
 		IMessage input;
@@ -156,15 +159,16 @@ public class DiscordEventHandler
         
         //Send the textual reply to the user
         channelID = input.getChannel().getLongID();
-        sendMessage(channelID, response.getDiscordTextReply());
+    	
+    	sendResponse(input, response);
         
-        //If there is an image portion, send that.
+        //If there is an image portion, send it
         if(response.getImageReply() != null)
         {
         	sendImages(channelID, response.getImageReply());
         }
         
-        //If there is an audio portion, send that as well.
+        //If there is an audio portion, send it
         if(response.getAudioReply() != null)
         {
         	//Send the audio to the voice channel a user is in. If they are not in a voice channel,
@@ -192,7 +196,7 @@ public class DiscordEventHandler
         }
     }
     
-    public void playDexEntry(IVoiceChannel channel, AudioPlayer player, Track audioTrack, long channelID, String user) throws RateLimitException, MissingPermissionsException, DiscordException, IOException, InterruptedException
+    private void playDexEntry(IVoiceChannel channel, AudioPlayer player, Track audioTrack, long channelID, String user) throws RateLimitException, MissingPermissionsException, DiscordException, IOException, InterruptedException
     {        	
     	if(!channel.isConnected())
     	{
@@ -219,7 +223,47 @@ public class DiscordEventHandler
     	}
     }
     
-    public void sendMessage(long ChannelID, String msg) throws RateLimitException, MissingPermissionsException, DiscordException
+    private void sendResponse(IMessage userMsg, Response response)
+    {
+    	//Utility variables
+    	MessageBuilder reply = new MessageBuilder(discordClient);
+    	Optional<EmbedObject> eo = response.getEmbedObject();
+    	
+    	//Set up basic reply
+    	reply.withContent(response.getDiscordTextReply());
+    	if(eo.isPresent())
+    		reply.withEmbed(eo.get());
+    	
+    	//Buffer the reply
+    	RequestBuffer.request(() -> 
+    	{
+    		try
+    		{
+	    		if(response.isPrivateMessage())
+	    		{
+	    			reply.withChannel(discordClient.getOrCreatePMChannel(userMsg.getAuthor()));
+	    			reply.appendContent("**Join the Pokedex's Home Server!**\n"
+	            			+ "https://discord.gg/D5CfFkN".intern());
+	    			reply.send();
+	    			userMsg.getChannel().sendMessage("Sent to your inbox!".intern());
+	    			System.out.println("\t[DiscordEventHandler] PM sent.");
+	    		}
+	    		else
+	    		{
+	    			reply.withChannel(userMsg.getChannel());
+	    			reply.send();
+	    			System.out.println("\t[DiscordEventHandler] Response sent.");
+	    		}
+    		}
+    		catch (Exception e)
+    		{
+    			System.err.println("[DiscordEventHandler] Message (queued) could not be sent with error: "+ e.getClass().getSimpleName());
+                throw e;	//Sends the message to the request buffer
+    		}
+    	});
+    }
+    
+    private void sendMessage(long ChannelID, String msg) throws RateLimitException, MissingPermissionsException, DiscordException
     {
     	RequestBuffer.request(() -> 
     	{
@@ -230,12 +274,13 @@ public class DiscordEventHandler
             } 
             catch (Exception e)
             {
-                System.err.println("[DiscordEventHandler] Text could not be sent with error: "+ e.getClass().getSimpleName());
+                System.err.println("[DiscordEventHandler] Text (queued) could not be sent with error: "+ e.getClass().getSimpleName());
+                throw e;	//Sends the message to the request buffer
             }
         });
     }
     
-    public void sendImages(long ChannelID, ArrayList<InputStream> imgs) throws RateLimitException, MissingPermissionsException, DiscordException
+    private void sendImages(long ChannelID, ArrayList<InputStream> imgs) throws RateLimitException, MissingPermissionsException, DiscordException
     {
     	RequestBuffer.request(() -> 
     	{
@@ -248,8 +293,9 @@ public class DiscordEventHandler
             catch (Exception e)
             {
             	System.err.println("[DiscordEventHandler] Images could not be sent with error: "+ e.getClass().getSimpleName());
+            	throw e;
             }
         });
     }
-     
+    
 }

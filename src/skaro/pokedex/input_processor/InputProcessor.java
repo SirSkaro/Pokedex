@@ -40,7 +40,7 @@ public class InputProcessor
 	public Input processInput(String input)
 	{
 		//Utility variables
-		String[] args = parseTextMessage(input);
+		String[] args = parseTextMessage(input.replace("[", "").replace("]", ""));
 		
 		//If args is null, then the input does not match the command format. Discard.
 		if(args == null)

@@ -58,7 +58,7 @@ public class DatabaseInterface
 		types.add("ground"); types.add("rock"); types.add("bug"); types.add("water");
 		types.add("ghost"); types.add("steel"); types.add("fire"); types.add("electric");
 		types.add("grass"); types.add("psychic"); types.add("ice"); types.add("dragon");
-		types.add("dark"); types.add("fairy");
+		types.add("dark"); types.add("fairy"); types.add("bird");
 		
 		regions = new ArrayList<String>();
 		regions.add("kanto"); regions.add("johto"); regions.add("hoenn"); regions.add("sinnoh");
@@ -72,6 +72,7 @@ public class DatabaseInterface
 		versions.add("black2"); versions.add("white"); versions.add("white2"); versions.add("heartgold");
 		versions.add("soulsilver"); versions.add("x"); versions.add("y");
 		versions.add("omegaruby"); versions.add("alphasapphire"); versions.add("sun"); versions.add("moon");
+		versions.add("ultrasun"); versions.add("ultramoon");
 	}
 	
 	public static DatabaseInterface getInstance()
@@ -448,6 +449,17 @@ public class DatabaseInterface
 	}
 	
 	/**
+	 * Extracts all channel data for Twitch channels that the bot's Twitch account is invited to
+	 * @return  - a TwitchChannelGroup object that contain all relevant data to all Twitch channels
+	 */
+	public TwitchChannelGroup extractAllTwitchChannelsFromDB()
+	{
+		ResultSet allChannelsData = dbQuery("SELECT * FROM TwitchChannel;");
+		
+		return new TwitchChannelGroup(allChannelsData);
+	}
+	
+	/**
 	 * Takes in a name and returns it in the formatting used
 	 * in the data base. No spaces or symbols.
 	 * @param s - pokemon name
@@ -461,13 +473,24 @@ public class DatabaseInterface
 		s = s.toLowerCase();
 		
 		//Check prefixes
+		if(!s.contains("launcher"))
 		if(s.contains("primal ") 
 				|| (s.contains("mega ") && !s.contains("omega "))
-				|| (s.contains("alola ") || s.contains("alolan ")) )
+				|| (s.contains("alola ") || s.contains("alolan ")) 
+				|| (s.contains("ultra "))						)
 		{
 			s = s.replace("alolan", "alola");
 			String[] name = s.split(" ");
 			return (name[1]+name[0]+((name.length == 3) ? name[2] : ""));
+		}
+		
+		//Check for Necrozma forms
+		if( s.contains("necrozma") &&
+				((s.contains("dusk") || s.contains("dawn")))
+				)
+		{
+			String temp = s.replace("necrozma", "");
+			return "necrozma"+temp.replace(" ", "");
 		}
 		
 		//Check for other symbols

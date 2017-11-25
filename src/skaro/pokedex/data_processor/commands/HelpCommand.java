@@ -1,10 +1,12 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.awt.Color;
 import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
+import sx.blah.discord.util.EmbedBuilder;
 
 public class HelpCommand implements ICommand 
 {
@@ -23,11 +25,14 @@ public class HelpCommand implements ICommand
 		staticDiscordReply = new Response();
 		staticTwitchReply = new Response();
 		
-		staticDiscordReply.addToReply("A short description of every command, along with some examples"
-				+ " can be found here: http://pastebin.com/cxhSeuew");
-		staticDiscordReply.addToReply("");//line break
-		staticDiscordReply.addToReply("***Call for Donations!***");
-		staticDiscordReply.addToReply("\tCheck out the %donate command for more info!");
+		EmbedBuilder builder = new EmbedBuilder();	
+		builder.setLenient(true);
+		builder.withColor(new Color(255,255,255));
+		
+		builder.appendField("Examples", "[click here for examples of every command]"
+				+ "(http://pastebin.com/cxhSeuew)", false);
+		
+		staticDiscordReply.setEmbededReply(builder.build());
 		
 		staticTwitchReply.addToReply("A short description of every command, along with some examples"
 				+ " can be found here: http://pastebin.com/cxhSeuew");

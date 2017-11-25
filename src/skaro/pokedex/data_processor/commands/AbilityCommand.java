@@ -2,6 +2,7 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 
+import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.database_resources.ComplexAbility;
@@ -9,6 +10,7 @@ import skaro.pokedex.database_resources.ComplexPokemon;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.SimpleAbility;
 import skaro.pokedex.input_processor.Input;
+import sx.blah.discord.util.EmbedBuilder;
 
 public class AbilityCommand implements ICommand 
 {
@@ -50,10 +52,10 @@ public class AbilityCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("This command must have a Pokemon or Ability as an argument.");
+					reply.addToReply("You must specify exactly one Pokemon or Ability as input for this command.".intern());
 				break;
 				case 2:
-					reply.addToReply(input.getArg(0).getRaw() +" is not a recognized Pokemon or Ability");
+					reply.addToReply("\""+input.getArg(0).getRaw() +"\" is not a recognized Pokemon or Ability");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 103)");
@@ -73,6 +75,8 @@ public class AbilityCommand implements ICommand
 			return reply;
 		
 		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		EmbedBuilder builder = new EmbedBuilder();	
+		builder.setLenient(true);
 		
 		//Extract data from data base
 		if(input.getArg(0).getCategory() == ArgumentCategory.ABILITY)
@@ -86,11 +90,14 @@ public class AbilityCommand implements ICommand
 				return reply;
 			}
 			
-			reply.addToReply(("**"+abil.getName()+"**").intern());
-			reply.addToReply("\tDescription | "+abil.getShortDesc());
-			reply.addToReply("\tTechnical Description | "+abil.getTechDesc());
-			reply.addToReply("\tNumber of Pokemon with this Ability | "+abil.getMany());
-			reply.addToReply("\tDebut | Generation "+abil.getDebut());
+			reply.addToReply(("**__"+abil.getName()+"__**").intern());
+			builder.appendField("Debut", "Gen "+abil.getDebut(), true);
+			builder.appendField("Smogon Viability", abil.getViability(), true);
+			builder.appendField("Pokemon with this Ability", Integer.toString(abil.getMany()), true);
+			builder.appendField("Game Description", abil.getShortDesc(), false);
+			builder.appendField("Technical Description", abil.getTechDesc(), false);
+			
+			builder.withColor(ColorTracker.getColorForAbility());
 		}
 		else if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
 		{
@@ -105,31 +112,35 @@ public class AbilityCommand implements ICommand
 			
 			ArrayList<SimpleAbility> sAbils = poke.getAbilities();
 			
-			reply.addToReply(("**"+poke.getSpecies()+"**").intern());
+			reply.addToReply(("**__"+poke.getSpecies()+"__**").intern());
 			switch(sAbils.size())
 			{
 				case 1:
-					reply.addToReply("\tAbility 1 | "+sAbils.get(0).getName());
-					reply.addToReply("\tAbility 2 | N/A");
-					reply.addToReply("\tHidden Ability | N/A");
+					builder.appendField("Ability 1", sAbils.get(0).getName(), true);
+					builder.appendField("Ability 2", "N/A", true);
+					builder.appendField("Hidden Ability", "N/A", true);
 				break;
 				case 2:
-					reply.addToReply("\tAbility 1 | "+sAbils.get(0).getName());
-					reply.addToReply("\tAbility 2 | N/A");
-					reply.addToReply("\tHidden Ability | "+sAbils.get(1).getName());
+					builder.appendField("Ability 1", sAbils.get(0).getName(), true);
+					builder.appendField("Ability 2", "N/A", true);
+					builder.appendField("Hidden Ability", sAbils.get(1).getName(), true);
 				break;
 				case 3:
-					reply.addToReply("\tAbility 1 | "+sAbils.get(0).getName());
-					reply.addToReply("\tAbility 2 | "+sAbils.get(1).getName());
-					reply.addToReply("\tHidden Ability | "+sAbils.get(2).getName());
+					builder.appendField("Ability 1", sAbils.get(0).getName(), true);
+					builder.appendField("Ability 2", sAbils.get(1).getName(), true);
+					builder.appendField("Hidden Ability", sAbils.get(2).getName(), true);
 				break;
 			}
+			
+			//Set embed color
+			builder.withColor(ColorTracker.getColorFromType(poke.getType1()));
 		}
 		else //This should never be executed
 		{
-			reply.addToReply("A technical error occured. Please report code 364 to twitter.com/sirskaro");
+			reply.addToReply("A technical error occured. Please report code 2112 to twitter.com/sirskaro");
 		}
 		
+		reply.setEmbededReply(builder.build());
 		return reply;
 	}
 	

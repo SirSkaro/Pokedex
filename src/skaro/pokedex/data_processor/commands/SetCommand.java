@@ -2,12 +2,16 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 
+import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.Set;
 import skaro.pokedex.database_resources.SetGroup;
+import skaro.pokedex.database_resources.SimplePokemon;
+import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
+import sx.blah.discord.util.EmbedBuilder;
 
 public class SetCommand implements ICommand 
 {
@@ -52,10 +56,16 @@ public class SetCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("This command must have a Pokemon, Meta, and Generation as input.");
+					reply.addToReply("You must specify a Pokemon, a Meta, and a Generation as input for this command "
+							+ "(seperated by commas).");
 				break;
 				case 2:
-					reply.addToReply("Input was not recognized as a Pokemon, Meta, and Generation.");
+					reply.addToReply("Could not process your request due to the following problem(s):".intern());
+					for(Argument arg : input.getArgs())
+						if(!arg.isValid())
+							reply.addToReply("\t\""+arg.getRaw()+"\" is not a recognized "+ arg.getCategory());
+					reply.addToReply("\n*top suggestion*: Only Smogon and VGC metas are supported, and not updated for gen 7. "
+							+ "Try an official tier or gens 1-6?");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 109)");
@@ -76,16 +86,15 @@ public class SetCommand implements ICommand
 			return reply;
 		
 		//Utility variables
+		String temp;
 		DatabaseInterface dbi = DatabaseInterface.getInstance();
 		SetGroup sets = dbi.extractSetsFromDB(input.getArg(0).getDB(),
 					input.getArg(1).getDB(), Integer.parseInt(input.getArg(2).getDB()));
-        
-		//If "species" field is null, then some error occured
-//		if(sets.getSpecies() == null)
-//		{
-//			reply.addToReply("A technical error occured (code 1011). Please report this (twitter.com/sirskaro))");
-//			return reply;
-//		}
+		SimplePokemon poke = dbi.extractSimplePokeFromDB(input.getArg(0).getDB());
+		EmbedBuilder eBuilder = new EmbedBuilder();	
+		StringBuilder sBuilder;
+		eBuilder.setLenient(true);
+		
 		
 		if(sets.getSets().isEmpty())
 		{
@@ -95,42 +104,42 @@ public class SetCommand implements ICommand
 		}
 		
 		//Populate reply
-		reply.addToReply("**"+sets.getTier()+"** sets for **"+sets.getSpecies()+"** "
-				+ "in Generation **"+sets.getGen()+"**");
-		reply.addToReply("");
+		reply.addToReply("__**"+sets.getTier()+"** sets for **"+sets.getSpecies()+"** "
+				+ "in Generation **"+sets.getGen()+"**__");
 	
-		String temp;
 		for(Set currSet : sets.getSets())
 		{
-			reply.addToReply("\"*"+currSet.getTitle()+"*\"");	//title
-			reply.addToReply(sets.getSpecies() 	//name and item
-						+ (currSet.getItem() != null ? " @ "+ currSet.getItem() : "" ));
+			sBuilder = new StringBuilder();
+			sBuilder.append(sets.getSpecies() 					//Name and Item
+						+ (currSet.getItem() != null ? " @ "+ currSet.getItem() : "" )
+						+ "\n");
+			if(currSet.getAbility() != null)					//Ability
+				sBuilder.append("Ability: "+currSet.getAbility() + "\n"); 
 			
-			if(currSet.getAbility() != null)			//ability
-				reply.addToReply("Ability: "+currSet.getAbility()); 
+			if((temp = currSet.evsToString()) != null)			//EVs
+				sBuilder.append("EVs: "+temp + "\n");
 			
-			if((temp = currSet.evsToString()) != null)	//EVs
-			reply.addToReply("EVs: "+temp);
-			
-			if(currSet.getNature() != null)			//Nature
-				reply.addToReply(currSet.getNature()+" Nature");
+			if(currSet.getNature() != null)						//Nature
+				sBuilder.append(currSet.getNature()+" Nature\n");
 			
 			if((temp = currSet.ivsToString()) != null)			//IVs
-				reply.addToReply("IVs: "+temp);
+				sBuilder.append("IVs: "+temp+"\n");
 			
-			reply.addToReply("- "+currSet.getMove1());					//moves
+			sBuilder.append("- "+currSet.getMove1()+"\n");			//Moves
 			if(currSet.getMove2() != null)
-				reply.addToReply("- "+currSet.getMove2());
+				sBuilder.append("- "+currSet.getMove2()+"\n");
 			if(currSet.getMove3() != null)
-				reply.addToReply("- "+currSet.getMove3());
+				sBuilder.append("- "+currSet.getMove3()+"\n");
 			if(currSet.getMove4() != null)
-				reply.addToReply("- "+currSet.getMove4());
+				sBuilder.append("- "+currSet.getMove4()+"\n");
 			
-			reply.addToReply("");					//Empty space
+			eBuilder.appendField("\"*"+currSet.getTitle()+"*\"", sBuilder.toString(), true);
+			
 		}
 		
-		reply.addToReply("You can learn more about these sets at Smogon's competitive Pokedex:");
-		reply.addToReply(sets.getURL());
+		eBuilder.withColor(ColorTracker.getColorFromType(poke.getType1()));
+		eBuilder.withFooterText("You can learn more about these sets at Smogon's competitive Pokedex:\n"+sets.getURL());
+		reply.setEmbededReply(eBuilder.build());
 		
 		return reply;
 	}

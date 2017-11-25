@@ -7,6 +7,7 @@ import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TTSConverter;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.PokedexEntry;
+import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
 
 public class DexCommand implements ICommand
@@ -52,10 +53,15 @@ public class DexCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("This command must have a list of Pokemon and a Version as input.");
+					reply.addToReply("You must specify a Pokemon and a Version as input for this command "
+							+ "(seperated by commas).");
 				break;
 				case 2:
-					reply.addToReply("Input is not a Pokemon and Version");
+					reply.addToReply("Could not process your request due to the following problem(s):".intern());
+					for(Argument arg : input.getArgs())
+						if(!arg.isValid())
+							reply.addToReply("\t\""+arg.getRaw()+"\" is not a recognized "+ arg.getCategory());
+					reply.addToReply("\n*top suggestion*: Not updated for gen 7. Try gens 1-6?");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 108)");

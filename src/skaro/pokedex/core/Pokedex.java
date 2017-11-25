@@ -50,7 +50,7 @@ public class Pokedex
 	{			
 		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
-		Configurator configurator = Configurator.initializeConfigurator(true);
+		Configurator configurator = Configurator.initializeConfigurator(false);
 		
 		//Initialize CommandMaps
 		System.out.println("[Pokedex main] Initializing resources...");
@@ -65,11 +65,11 @@ public class Pokedex
 		twitchLogin(twitchToken, twitchUsername, ip);
 		
 		/**
-    	 * DISCORD SETUP
-    	 */
-    	//Log into Discord and establish a listener
-    	System.out.println("[Pokedex main] Logging into Discord");
-    	Optional<String> discordToken = configurator.getAuthToken("discord");
+		 * DISCORD SETUP
+		 */
+		//Log into Discord and establish a listener
+		System.out.println("[Pokedex main] Logging into Discord");
+		Optional<String> discordToken = configurator.getAuthToken("discord");
 		Optional<IDiscordClient> discordClient = discordLogin(discordToken, ip);
 		
 		/**

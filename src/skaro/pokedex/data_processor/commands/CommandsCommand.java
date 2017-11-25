@@ -6,6 +6,7 @@ import java.util.HashSet;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
+import sx.blah.discord.util.EmbedBuilder;
 
 public class CommandsCommand implements ICommand 
 {
@@ -24,26 +25,25 @@ public class CommandsCommand implements ICommand
 		staticDiscordReply = new Response();
 		staticTwitchReply = new Response();
 		
-		staticDiscordReply.addToReply("```Prefixes: ! or %");
-		staticDiscordReply.addToReply("Alternative: command(argument list)```");
-		staticDiscordReply.addToReply("```List of Commands:");
+		EmbedBuilder builder = new EmbedBuilder();	
+		builder.setLenient(true);
+		
+		staticDiscordReply.setPrivate(true);
+		staticDiscordReply.addToReply("**__Pokedex Commands__**");
+		builder.withColor(255, 255, 255);
+		builder.appendField("Prefixes", "!command or %command", true);
+		builder.appendField("Postfix", "command(input)", true);
+		builder.appendField("Hints","Use `%help` for examples. __Don't forget your commas!__", false);
 		
 		for(ICommand entry : library)
-		    staticDiscordReply.addToReply("\t" + entry.getCommandName() +" | "+ entry.getArguments());
+			builder.appendField("`"+entry.getCommandName()+"`", ("input: "+ entry.getArguments()).intern(), false);
 		
-		staticDiscordReply.addToReply("```***NOTE***");
-		staticDiscordReply.addToReply("\t __You must include__ commas");
-		staticDiscordReply.addToReply("\t __Do not include__ '[', '}', or '|'");
-		staticDiscordReply.addToReply("\t __Do not forget__ prefixes or alternative. For examples, use the help command.");
+		builder.withFooterText("If you like the bot, please consider donating! Use the donate command for a link.");
 		
-		staticDiscordReply.addToReply(""); //line break
-		staticDiscordReply.addToReply("***Call for Donations!***");
-		staticDiscordReply.addToReply("\tPlease read more in the %donate command!");
-		
-		staticTwitchReply.addToReply("*Commands* (Use !help for examples)");
+		staticDiscordReply.setEmbededReply(builder.build());
 		
 		for(ICommand entry : library)
-			staticTwitchReply.addToReply(entry.getCommandName()); //+" | "+ twitchCommandCache.get(entry).getArguments());
+			staticTwitchReply.addToReply(entry.getCommandName());
 	}
 	
 	public static ICommand getInstance(HashSet<ICommand> library)

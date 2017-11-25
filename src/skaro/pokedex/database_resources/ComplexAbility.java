@@ -15,6 +15,7 @@ public class ComplexAbility
 	private String techDesc;
 	private String shortDesc;
 	private int many;			//The number of Pokemon that can have this ability
+	private String viability;
 	
 	public ComplexAbility(ResultSet basicData)
 	{
@@ -26,6 +27,7 @@ public class ComplexAbility
 			techDesc = basicData.getString(4);
 			shortDesc = basicData.getString(5);
 			many = basicData.getInt(6);
+			viability = basicData.getString(7).intern();
 		} 
 		catch (SQLException e) 
 		{
@@ -40,4 +42,5 @@ public class ComplexAbility
 	public String getTechDesc() { return techDesc; }
 	public String getShortDesc() { return shortDesc; }
 	public int getMany() { return many; }	
+	public String getViability() { return viability; }
 }

@@ -2,11 +2,13 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 
+import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.SimplePokemon;
 import skaro.pokedex.input_processor.Input;
+import sx.blah.discord.util.EmbedBuilder;
 
 public class StatsCommand implements ICommand 
 {	
@@ -48,10 +50,10 @@ public class StatsCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("This command must have a Pokemon as an argument.");
+					reply.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
 				break;
 				case 2:
-					reply.addToReply(input.getArg(0).getRaw() +" is not a recognized Pokemon");
+					reply.addToReply("\""+ input.getArg(0).getRaw() +"\" is not a recognized Pokemon");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 101)");
@@ -81,17 +83,29 @@ public class StatsCommand implements ICommand
 			return reply;
 		}
 		
+		//Format reply
+		EmbedBuilder builder = new EmbedBuilder();	
+		builder.setLenient(true);
 		int stats[] = poke.getStats();
 		
 		//Organize the data and add it to the reply
-		reply.addToReply(("**"+poke.getSpecies()+"**").intern());
+		reply.addToReply(("**__"+poke.getSpecies()+"__**").intern());
 		
-		reply.addToReply("\tHP | "+stats[0]);
-		reply.addToReply("\tAtk | "+stats[1]);
-		reply.addToReply("\tDef | "+stats[2]);
-		reply.addToReply("\tSpAtk | "+stats[3]);
-		reply.addToReply("\tSpDef | "+stats[4]);
-		reply.addToReply("\tSpeed | "+stats[5]);
+		String names1 = String.format("%-12s%s", "HP", "Attack").intern();
+		String names2 = String.format("%-12s%s", "Defense", "Sp. Attack").intern();
+		String names3 = String.format("%-12s%s", "Sp. Defense", "Speed").intern();
+		String stats1 = String.format("%-12d%d", stats[0], stats[1]);
+		String stats2 = String.format("%-12d%d", stats[2], stats[3]);
+		String stats3 = String.format("%-12d%d", stats[4], stats[5]);
+		
+		builder.withDescription("__`"+names1+"`__\n`"+stats1+"`"
+								+ "\n\n__`"+ names2+"`__\n`"+stats2+"`"
+								+ "\n\n__`"+ names3+"`__\n`"+stats3 +"`");
+		
+		//Set embed color
+		builder.withColor(ColorTracker.getColorFromType(poke.getType1()));
+		
+		reply.setEmbededReply(builder.build());
 				
 		return reply;
 	}

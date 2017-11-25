@@ -109,6 +109,7 @@ public class ComplexMove
 		flagDesc.put("bullet", "Has no effect on Pokemon with the Ability Bulletproof.");
 		flagDesc.put("charge", "The user is unable to make a move between turns.");
 		flagDesc.put("contact", "Makes contact.");
+		flagDesc.put("dance", "When used by a Pokemon, other Pokemon with the Ability Dancer can attempt to execute the same move.");
 		flagDesc.put("defrost", "Thaws the user if executed successfully while the user is frozen.");
 		flagDesc.put("distance", "Can target a Pokemon positioned anywhere in a Triple Battle.");
 		flagDesc.put("gravity", "Prevented from being executed or selected during Gravity's effect.");
@@ -128,7 +129,7 @@ public class ComplexMove
 		effectDesc.put("clearnegativeboost", "Clears negative stat boosts.");
 		effectDesc.put("heal", "Heals the user.");
 		effectDesc.put("healreplacement", "Heals the replacing Pokemon.");
-		effectDesc.put("crit1", "Increases crit rate.");
+		effectDesc.put("crit2", "Increases crit rate.");
 		effectDesc.put("redirect", "Redirects all attacks this turn to the user.");
 		effectDesc.put("curse", "If user is Ghost type, HP is restored. Otherwise, increases Attack by one more stage.");
 	}

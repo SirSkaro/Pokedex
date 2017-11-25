@@ -2,13 +2,16 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 
+import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.SimplePokemon;
+import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
+import sx.blah.discord.util.EmbedBuilder;
 
 public class WeakCommand implements ICommand 
 {
@@ -50,10 +53,15 @@ public class WeakCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("This command must have a Pokemon name or Type combination as input.");
+					reply.addToReply("You must specify 1 Pokemon or between 1 and 2 Types (seperated by commas) "
+							+ "as input for this command.");
 				break;
 				case 2:
-					reply.addToReply("Input is not a recognized Pokemon or Type combination.");
+					reply.addToReply("Could not process your request due to the following problem(s):".intern());
+					for(Argument arg : input.getArgs())
+						if(!arg.isValid())
+							reply.addToReply("\t\""+arg.getRaw()+"\" is not a recognized "+ arg.getCategory());
+					reply.addToReply("\n*top suggestion*: did you include commas between inputs?");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 106)");
@@ -75,8 +83,9 @@ public class WeakCommand implements ICommand
 		//Declare utility variables
 		TypeInteractionWrapper wrapper;
 		String formattedList, temp1, temp2;
-		TypeTracker tt = new TypeTracker();
 		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		EmbedBuilder builder = new EmbedBuilder();	
+		builder.setLenient(true);
 		
 		//Build reply according to the argument case
 		if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON) //argument is a Pokemon
@@ -90,24 +99,27 @@ public class WeakCommand implements ICommand
 				return reply;
 			}
 				
-			wrapper = tt.onDefense(poke.getType1(), poke.getType2()); 
-			reply.addToReply(("**"+poke.getSpecies()+"**").intern());
+			wrapper = TypeTracker.onDefense(poke.getType1(), poke.getType2()); 
+			reply.addToReply(("**__"+poke.getSpecies()+"__**").intern());
+			builder.withColor(ColorTracker.getColorFromType(poke.getType1()));
 		}
 		else
 		{
 			if(input.getArgs().size() == 1) // argument is one type
 			{
-				wrapper = tt.onDefense(input.getArg(0).getDB(), null);
-				reply.addToReply("**"+wrapper.getType1()+"**");
+				wrapper = TypeTracker.onDefense(input.getArg(0).getDB(), null);
+				reply.addToReply("**__"+wrapper.getType1()+"__**");
+				builder.withColor(ColorTracker.getColorFromWrapper(wrapper));
 			}
 			else //argument is two types
 			{
-				wrapper = tt.onDefense(input.getArg(0).getDB(), input.getArg(1).getDB());
-				reply.addToReply("**"+wrapper.getType1()+"/"+wrapper.getType2()+"**");
+				wrapper = TypeTracker.onDefense(input.getArg(0).getDB(), input.getArg(1).getDB());
+				reply.addToReply("**__"+wrapper.getType1()+"/"+wrapper.getType2()+"__**");
+				builder.withColor(ColorTracker.getColorFromWrapper(wrapper));
 			}
 		}
 		
-		//Format weaknesses into a list
+		//Format reply
 		temp1 = wrapper.listToString(2.0);
 		temp2 = wrapper.listToString(4.0);
 		
@@ -118,10 +130,10 @@ public class WeakCommand implements ICommand
 		else
 			formattedList = temp1 +", **"+temp2+"**";
 		
-		reply.addToReply("\tWeak | "+formattedList);
+		builder.appendField("Weak", formattedList, false);
 		
 		//Format neutral exchanges into a list
-		reply.addToReply("\tNeutral | "+wrapper.listToString(1.0));
+		builder.appendField("Neurtral", wrapper.listToString(1.0), false);
 		
 		//Format resistances into a list
 		temp1 = wrapper.listToString(0.5);
@@ -134,10 +146,12 @@ public class WeakCommand implements ICommand
 		else
 			formattedList = temp1 +", **"+temp2+"**";
 		
-		reply.addToReply("\tResist | "+formattedList);
+		builder.appendField("Resist", formattedList, false);
 		
 		//Format immunities into a list
-		reply.addToReply("\tImmune | "+wrapper.listToString(0.0));
+		builder.appendField("Immune", wrapper.listToString(0.0), false);
+	
+		reply.setEmbededReply(builder.build());
 		
 		return reply;
 	}
@@ -153,7 +167,6 @@ public class WeakCommand implements ICommand
 		//Declare utility variables
 		TypeInteractionWrapper wrapper;
 		String formattedList, temp1, temp2;
-		TypeTracker tt = new TypeTracker();
 		DatabaseInterface dbi = DatabaseInterface.getInstance();
 		
 		//Build reply according to the argument case
@@ -168,19 +181,19 @@ public class WeakCommand implements ICommand
 				return reply;
 			}
 				
-			wrapper = tt.onDefense(poke.getType1(), poke.getType2()); 
+			wrapper = TypeTracker.onDefense(poke.getType1(), poke.getType2()); 
 			reply.addToReply("*"+poke.getSpecies()+"*");
 		}
 		else
 		{
 			if(input.getArgs().size() == 1) // argument is one type
 			{
-				wrapper = tt.onDefense(input.getArg(0).getDB(), null);
+				wrapper = TypeTracker.onDefense(input.getArg(0).getDB(), null);
 				reply.addToReply("*"+wrapper.getType1()+"*");
 			}
 			else //argument is two types
 			{
-				wrapper = tt.onDefense(input.getArg(0).getDB(), input.getArg(1).getDB());
+				wrapper = TypeTracker.onDefense(input.getArg(0).getDB(), input.getArg(1).getDB());
 				reply.addToReply("*"+wrapper.getType1()+"/"+wrapper.getType2()+"*");
 			}
 		}

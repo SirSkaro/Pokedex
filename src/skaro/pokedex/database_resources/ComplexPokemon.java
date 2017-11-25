@@ -81,9 +81,9 @@ public class ComplexPokemon
 			
 			//Model URL
 			modelData.next();
-			model = modelData.getString(1).intern();
+			shinyModel = modelData.getString(1).intern();
 			if(modelData.next())
-				shinyModel = modelData.getString(1).intern();
+				model = modelData.getString(1).intern();
 		} 
 		catch (SQLException e) 
 		{
@@ -105,8 +105,13 @@ public class ComplexPokemon
 	public ArrayList<String> getEvolutions() { return evolutions; }
 	public String getMaleRatio() { return maleRatio.toString(); }
 	public String getFemaleRatio() { return femaleRatio.toString(); }
-	public String getModel() { return model; }
 	public String getShinyModel() { return shinyModel; }
+	public String getModel() 
+	{ 
+		if(model != null)
+			return model; 
+		return shinyModel;
+	}
 
 	public String getDiscordGenderRatio()
 	{
@@ -177,7 +182,7 @@ public class ComplexPokemon
 			}
 		}
 		
-		public String toString() { return (num + "/" + denom).intern(); }
+		public String toString() { return (num + "\\" + denom).intern(); }
 		 
 		private boolean isZero() { return num == 0; }
 	}

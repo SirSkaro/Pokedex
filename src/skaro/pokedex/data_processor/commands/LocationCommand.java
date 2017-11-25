@@ -2,12 +2,15 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 
+import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.Location;
 import skaro.pokedex.database_resources.LocationGroup;
+import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
+import sx.blah.discord.util.EmbedBuilder;
 
 public class LocationCommand implements ICommand 
 {
@@ -50,10 +53,15 @@ public class LocationCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("This command must have a Pokemon and Version as input.");
+					reply.addToReply("You must specify a Pokemon and a Version as input for this command "
+							+ "(seperated by commas).");
 				break;
 				case 2:
-					reply.addToReply("Input was not recognized as a Pokemon and Version.");
+					reply.addToReply("Could not process your request due to the following problem(s):".intern());
+					for(Argument arg : input.getArgs())
+						if(!arg.isValid())
+							reply.addToReply("\t\""+arg.getRaw()+"\" is not a recognized "+ arg.getCategory());
+					reply.addToReply("\n*top suggestion*: Not updated for gen7. Try versions from gens 1-6?");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 110)");
@@ -85,18 +93,24 @@ public class LocationCommand implements ICommand
 		}
 		
 		//Build reply
+		EmbedBuilder eBuilder = new EmbedBuilder();	
+		StringBuilder sBuilder;	
+		eBuilder.setLenient(true);
 		reply.addToReply("**"+locations.getSpecies()+"** can be found in **"+(locations.getLocations().size())+
-				"** locations in **"+locations.getVersion()+"** version.");
+				"** location(s) in **"+locations.getVersion()+"** version");
 		
 		for(Location loc : locations.getLocations())
 		{
-			reply.addToReply(""); //add line break;
-			reply.addToReply("*"+loc.getRoute()+"*");
-			reply.addToReply("\tRegion: "+loc.getRegion());
-			reply.addToReply("\tMethod: "+loc.getMethod());
-			reply.addToReply("\tLevels: "+loc.getLevel());
-			reply.addToReply("\tEncounter Rate: "+loc.getChance());
+			sBuilder = new StringBuilder();
+			sBuilder.append("Region: "+loc.getRegion()+"\n");
+			sBuilder.append("Method: "+loc.getMethod()+"\n");
+			sBuilder.append("Levels: "+loc.getLevel()+"\n");
+			sBuilder.append("Encounter Rate: "+ loc.getChance()+"\n");
+			eBuilder.appendField(loc.getRoute(), sBuilder.toString(), true);
 		}
+		
+		eBuilder.withColor(ColorTracker.getColorFromVersion(locations.getVersion()));
+		reply.setEmbededReply(eBuilder.build());
 		
 		return reply;
 	}
