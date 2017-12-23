@@ -133,7 +133,7 @@ public class WeakCommand implements ICommand
 		builder.appendField("Weak", formattedList, false);
 		
 		//Format neutral exchanges into a list
-		builder.appendField("Neurtral", wrapper.listToString(1.0), false);
+		builder.appendField("Neutral", wrapper.listToString(1.0), false);
 		
 		//Format resistances into a list
 		temp1 = wrapper.listToString(0.5);
