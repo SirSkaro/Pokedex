@@ -103,7 +103,7 @@ public class StatsCommand implements ICommand
 								+ "\n\n__`"+ names3+"`__\n`"+stats3 +"`");
 		
 		//Set embed color
-		builder.withColor(ColorTracker.getColorFromType(poke.getType1()));
+		builder.withColor(ColorTracker.getColorForType(poke.getType1()));
 		
 		reply.setEmbededReply(builder.build());
 				

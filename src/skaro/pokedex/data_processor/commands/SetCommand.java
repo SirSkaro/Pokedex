@@ -137,7 +137,7 @@ public class SetCommand implements ICommand
 			
 		}
 		
-		eBuilder.withColor(ColorTracker.getColorFromType(poke.getType1()));
+		eBuilder.withColor(ColorTracker.getColorForType(poke.getType1()));
 		eBuilder.withFooterText("You can learn more about these sets at Smogon's competitive Pokedex:\n"+sets.getURL());
 		reply.setEmbededReply(eBuilder.build());
 		

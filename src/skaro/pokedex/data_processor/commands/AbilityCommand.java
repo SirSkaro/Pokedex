@@ -133,7 +133,7 @@ public class AbilityCommand implements ICommand
 			}
 			
 			//Set embed color
-			builder.withColor(ColorTracker.getColorFromType(poke.getType1()));
+			builder.withColor(ColorTracker.getColorForType(poke.getType1()));
 		}
 		else //This should never be executed
 		{
