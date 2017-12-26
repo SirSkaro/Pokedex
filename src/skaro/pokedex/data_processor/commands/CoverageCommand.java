@@ -89,6 +89,7 @@ public class CoverageCommand implements ICommand
 		EmbedBuilder builder = new EmbedBuilder();	
 		ArrayList<Type> typeList = new ArrayList<Type>();
 		Type currType = null;
+		builder.setLenient(true);
 		
 		for(int i = 0; i < input.getArgs().size(); i++)
 		{
@@ -117,12 +118,11 @@ public class CoverageCommand implements ICommand
 		reply.addToReply("**__"+wrapper.typesToString()+"__**");
 		builder.appendField("Super Effective", getList(wrapper, 2.0), false);
 		builder.appendField("Neutral", getList(wrapper, 1.0), false);
-		builder.appendField("Resistant", getList(wrapper, 0.25), false);
+		builder.appendField("Resistant", getList(wrapper, 0.5), false);
 		builder.appendField("Immune", getList(wrapper, 0.0), false);
 		
 		//Set border color
 		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
-		builder.setLenient(true);
 		reply.setEmbededReply(builder.build());
 		
 		return reply;
@@ -179,6 +179,6 @@ public class CoverageCommand implements ICommand
 	private String getList(TypeInteractionWrapper wrapper, double mult)
 	{
 		Optional<String> strCheck = wrapper.interactionToString(mult);
-		return (strCheck.isPresent() ? strCheck.get() : "");
+		return (strCheck.isPresent() ? strCheck.get() : null);
 	}
 }

@@ -126,7 +126,6 @@ public class WeakCommand implements ICommand
 		
 		//Format reply
 		builder.appendField("Weak:", combineLists(wrapper, 2.0, 4.0), false);
-		
 		builder.appendField("Neutral", getList(wrapper, 1.0), false);
 		builder.appendField("Resist", combineLists(wrapper, 0.5, 0.25), false);
 		builder.appendField("Immune", getList(wrapper, 0.0), false);
