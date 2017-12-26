@@ -115,7 +115,7 @@ public class MoveCommand implements ICommand
 			builder.appendField("Other Properties", tempString, false);
 		
 		//Set embed color
-		builder.withColor(ColorTracker.getColorFromType(move.getType()));
+		builder.withColor(ColorTracker.getColorForType(move.getType()));
 		
 		reply.setEmbededReply(builder.build());
 		

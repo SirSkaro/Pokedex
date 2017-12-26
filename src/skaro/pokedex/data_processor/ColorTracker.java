@@ -9,29 +9,23 @@ public class ColorTracker
 	private static Map<String, Color> typeColorMap = new HashMap<>();
 	private static Map<String, Color> versionColorMap = new HashMap<>();
 	
-	public static Color getColorFromType(String type)
+	public static Color getColorForType(String type)
 	{
 		type = type.toLowerCase();
 		return typeColorMap.get(type);
 	}
 	
-	public static Color getColorFromWrapper(TypeInteractionWrapper wrapper)
+	public static Color getColorForWrapper(TypeInteractionWrapper wrapper)
 	{
 		Color result = null;
-		String[] types = {wrapper.getType1(), wrapper.getType2(),
-				wrapper.getType3(), wrapper.getType4()};
 		
-		for(int i = 0; i < 4; i++)
-		{
-			if(types[i] == null)
-				break;
-			result = blend(typeColorMap.get(types[i].toLowerCase()), result);
-		}
+		for(Type type : wrapper.getTypes())
+			result = blend(type.toColor(), result);
 		
 		return result;
 	}
 	
-	public static Color getColorFromVersion(String ver)
+	public static Color getColorForVersion(String ver)
 	{
 		ver = ver.toLowerCase();
 		return versionColorMap.get(ver);

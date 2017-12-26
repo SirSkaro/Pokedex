@@ -115,7 +115,7 @@ public class LearnCommand implements ICommand
 		}
 		
 		//Set embed color
-		builder.withColor(ColorTracker.getColorFromType(poke.getType1()));
+		builder.withColor(ColorTracker.getColorForType(poke.getType1()));
 		
 		reply.setEmbededReply(builder.build());
 		

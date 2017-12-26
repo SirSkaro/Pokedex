@@ -109,7 +109,7 @@ public class LocationCommand implements ICommand
 			eBuilder.appendField(loc.getRoute(), sBuilder.toString(), true);
 		}
 		
-		eBuilder.withColor(ColorTracker.getColorFromVersion(locations.getVersion()));
+		eBuilder.withColor(ColorTracker.getColorForVersion(locations.getVersion()));
 		reply.setEmbededReply(eBuilder.build());
 		
 		return reply;
