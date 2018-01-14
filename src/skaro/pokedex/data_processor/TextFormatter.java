@@ -10,4 +10,9 @@ public class TextFormatter
 		String noDashes = string.replace("-", " ");
 		return WordUtils.capitalize(noDashes);
 	}
+	
+	public static String[] getURLComponents(String url)
+	{
+		return url.split("/");
+	}
 }

@@ -120,7 +120,6 @@ public class WeakCommand implements ICommand
 		header.append("**__"+type1.toProperName());
 		header.append(type2 != null ? "/"+type2.toProperName()+"__**" : "__**");
 		reply.addToReply(header.toString());
-		
 		reply.setEmbededReply(formatEmbed(type1, type2));
 		
 		return reply;
