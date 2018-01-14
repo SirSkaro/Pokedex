@@ -1,6 +1,7 @@
 package skaro.pokedex.input_processor;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class Input 
 {
@@ -38,5 +39,14 @@ public class Input
 		if(index > -1 && index < args.size())
 			return args.get(index);
 		return null;
+	}
+	
+	public LinkedList<String> argsAsList()
+	{
+		LinkedList<String> list = new LinkedList<String>();
+		for(Argument arg : args)
+			list.add(arg.getDB());
+		
+		return list;
 	}
 }

@@ -40,6 +40,7 @@ import skaro.pokedex.data_processor.commands.SetCommand;
 import skaro.pokedex.data_processor.commands.StatsCommand;
 import skaro.pokedex.data_processor.commands.WeakCommand;
 import skaro.pokedex.input_processor.InputProcessor;
+import skaro.pokeflex.api.PokeFlexFactory;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.util.DiscordException;
@@ -54,7 +55,7 @@ public class Pokedex
 		
 		//Initialize CommandMaps
 		System.out.println("[Pokedex main] Initializing resources...");
-		InputProcessor ip = new InputProcessor(createCompleteLibrary());
+		InputProcessor ip = new InputProcessor(createCompleteLibrary(new PokeFlexFactory("http://localhost:5000")));
 		
 		/**
 		 * TWITCH SETUP
@@ -98,6 +99,7 @@ public class Pokedex
 			System.out.println("[Pokedex main] No configuration data found for Discord application.");
 			return Optional.empty();
 		}
+		
 		
 		IDiscordClient discordClient = getClient(discordToken.get());
 		DiscordCommandMap dcm = new DiscordCommandMap(createDiscordLibrary());
@@ -218,13 +220,13 @@ public class Pokedex
 		CommandLibrary lib = new CommandLibrary();
 		
 		lib.addToLibrary(RandpokeCommand.getInstance());
-		lib.addToLibrary(StatsCommand.getInstance());
+		lib.addToLibrary(StatsCommand.getInstance(null));
 		lib.addToLibrary(DataCommand.getInstance());
 		lib.addToLibrary(AbilityCommand.getInstance());
 		lib.addToLibrary(ItemCommand.getInstance());
 		lib.addToLibrary(MoveCommand.getInstance());
 		lib.addToLibrary(LearnCommand.getInstance());
-		lib.addToLibrary(WeakCommand.getInstance());
+		lib.addToLibrary(WeakCommand.getInstance(null));
 		lib.addToLibrary(CoverageCommand.getInstance());
 		lib.addToLibrary(DexCommand.getInstance());
 		lib.addToLibrary(SetCommand.getInstance());
@@ -248,13 +250,13 @@ public class Pokedex
 		CommandLibrary lib = new CommandLibrary();
 		
 		lib.addToLibrary(RandpokeCommand.getInstance());
-		lib.addToLibrary(StatsCommand.getInstance());
+		lib.addToLibrary(StatsCommand.getInstance(null));
 		lib.addToLibrary(DataCommand.getInstance());
 		lib.addToLibrary(AbilityCommand.getInstance());
 		lib.addToLibrary(ItemCommand.getInstance());
 		lib.addToLibrary(MoveCommand.getInstance());
 		lib.addToLibrary(LearnCommand.getInstance());
-		lib.addToLibrary(WeakCommand.getInstance());
+		lib.addToLibrary(WeakCommand.getInstance(null));
 		lib.addToLibrary(CoverageCommand.getInstance());
 		lib.addToLibrary(DexCommand.getInstance());
 		lib.addToLibrary(AboutCommand.getInstance());
@@ -272,18 +274,18 @@ public class Pokedex
 	 * recognized by any command map.
 	 * @return a CommandLibrary of ICommands that are supported for Discord
 	 */
-	private static CommandLibrary createCompleteLibrary()
+	private static CommandLibrary createCompleteLibrary(PokeFlexFactory factory)
 	{
 		CommandLibrary lib = new CommandLibrary();
 		
 		lib.addToLibrary(RandpokeCommand.getInstance());
-		lib.addToLibrary(StatsCommand.getInstance());
+		lib.addToLibrary(StatsCommand.getInstance(factory));
 		lib.addToLibrary(DataCommand.getInstance());
 		lib.addToLibrary(AbilityCommand.getInstance());
 		lib.addToLibrary(ItemCommand.getInstance());
 		lib.addToLibrary(MoveCommand.getInstance());
 		lib.addToLibrary(LearnCommand.getInstance());
-		lib.addToLibrary(WeakCommand.getInstance());
+		lib.addToLibrary(WeakCommand.getInstance(factory));
 		lib.addToLibrary(CoverageCommand.getInstance());
 		lib.addToLibrary(DexCommand.getInstance());
 		lib.addToLibrary(SetCommand.getInstance());
