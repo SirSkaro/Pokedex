@@ -11,6 +11,12 @@ public class TextFormatter
 		return WordUtils.capitalize(noDashes);
 	}
 	
+	public static String formatGeneration(String string)
+	{
+		String[] words = string.split("-");
+		return WordUtils.capitalize(words[0]) + " " + words[1].toUpperCase();
+	}
+	
 	public static String[] getURLComponents(String url)
 	{
 		return url.split("/");

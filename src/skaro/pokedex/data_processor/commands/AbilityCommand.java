@@ -17,6 +17,7 @@ import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.ability.Ability;
 import skaro.pokeflex.objects.pokemon.Pokemon;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class AbilityCommand implements ICommand 
@@ -99,15 +100,10 @@ public class AbilityCommand implements ICommand
 				reply.addToReply("A technical error occured (code 1003a). Please report this (twitter.com/sirskaro))");
 				return reply;
 			}
-			Ability abil = Ability.class.cast(flexObj.get());
-			reply.addToReply(("**__"+abil.getName()+"__**").intern());
-			builder.appendField("Debut", "Gen "+abil.getGeneration().getName(), true);
-			builder.appendField("Smogon Viability", abil.getRating(), true);
-			builder.appendField("Pokemon with this Ability", Integer.toString(abil.getPokemon().size()), true);
-			builder.appendField("Game Description", abil.getSdesc(), false);
-			builder.appendField("Technical Description", abil.getLdesc(), false);
 			
-			builder.withColor(ColorTracker.getColorForAbility());
+			Ability abil = Ability.class.cast(flexObj.get());
+			reply.addToReply(("**__"+TextFormatter.flexFormToProper(abil.getName())+"__**").intern());
+			reply.setEmbededReply(formatEmbed(abil));
 		}
 		else if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
 		{
@@ -121,73 +117,111 @@ public class AbilityCommand implements ICommand
 			}
 			
 			Pokemon pokemon = Pokemon.class.cast(flexObj.get());
-			List<Endpoint> endpoints = new ArrayList<Endpoint>();
-			List<List<String>> args = new ArrayList<List<String>>();
-			ArrayList<String> arg;
-			String[] urlComponents;
-			
-			for(skaro.pokeflex.objects.pokemon.Ability abil : pokemon.getAbilities())
-			{
-				arg = new ArrayList<String>();
-				urlComponents = TextFormatter.getURLComponents(abil.getAbility().getUrl());
-				arg.add(urlComponents[6]);
-				args.add(arg);
-				endpoints.add(Endpoint.ABILITY);
-			}
-			
 			List<Optional<?>> flexObjs;
 			List<Ability> abilities = new ArrayList<Ability>();
+			
 			try 
 			{
-				flexObjs = factory.createFlexObjects(endpoints, args);
+				flexObjs = getAbilityFlexObjs(pokemon);
+				abilities = extractAbilitiesFromFlexObjs(flexObjs);
 			}
 			catch (InterruptedException e) 
 			{
 				reply.addToReply("A technical error occured (code 1003c). Please report this (twitter.com/sirskaro))");
 				return reply;
 			}
-			
-			for(Optional<?> obj : flexObjs)
+			catch(IllegalStateException e)
 			{
-				if(!obj.isPresent())
-				{
-					reply.addToReply("A technical error occured (code 1003d). Please report this (twitter.com/sirskaro))");
-					return reply;
-				}
-				
-				abilities.add(Ability.class.cast(obj.get()));
+				reply.addToReply("A technical error occured (code 1003d). Please report this (twitter.com/sirskaro))");
+				return reply;
 			}
 			
 			reply.addToReply(("**__"+TextFormatter.flexFormToProper(pokemon.getName()+"__**")).intern());
-			switch(abilities.size())
-			{
-				case 1:
-					builder.appendField("Ability 1", TextFormatter.flexFormToProper(abilities.get(0).getName()), true);
-					builder.appendField("Ability 2", "N/A", true);
-					builder.appendField("Hidden Ability", "N/A", true);
-				break;
-				case 2:
-					builder.appendField("Ability 1",TextFormatter.flexFormToProper(abilities.get(1).getName()), true);
-					builder.appendField("Ability 2", "N/A", true);
-					builder.appendField("Hidden Ability", TextFormatter.flexFormToProper(abilities.get(0).getName()), true);
-				break;
-				case 3:
-					builder.appendField("Ability 1", TextFormatter.flexFormToProper(abilities.get(2).getName()), true);
-					builder.appendField("Ability 2", TextFormatter.flexFormToProper(abilities.get(1).getName()), true);
-					builder.appendField("Hidden Ability",TextFormatter.flexFormToProper(abilities.get(0).getName()), true);
-				break;
-			}
-			
-			//Set embed color
-			builder.withColor(ColorTracker.getColorForType(pokemon.getTypes().get(0).getType().getName()));
+			reply.setEmbededReply(formatEmbed(pokemon, abilities));
 		}
 		else //This should never be executed
 		{
 			reply.addToReply("A technical error occured. Please report code 2112 to twitter.com/sirskaro");
 		}
 		
-		reply.setEmbededReply(builder.build());
 		return reply;
+	}
+	
+	private List<Ability> extractAbilitiesFromFlexObjs(List<Optional<?>> flexObjs) throws IllegalStateException
+	{
+		List<Ability> abilities = new ArrayList<Ability>();
+		for(Optional<?> obj : flexObjs)
+		{
+			if(!obj.isPresent())
+				throw new IllegalStateException();
+			
+			abilities.add(Ability.class.cast(obj.get()));
+		}
+		
+		return abilities;
+	}
+	
+	private List<Optional<?>> getAbilityFlexObjs(Pokemon pokemon) throws InterruptedException
+	{
+		List<Endpoint> endpoints = new ArrayList<Endpoint>();
+		List<List<String>> args = new ArrayList<List<String>>();
+		ArrayList<String> arg;
+		String[] urlComponents;
+		
+		for(skaro.pokeflex.objects.pokemon.Ability abil : pokemon.getAbilities())
+		{
+			arg = new ArrayList<String>();
+			urlComponents = TextFormatter.getURLComponents(abil.getAbility().getUrl());
+			arg.add(urlComponents[6]);
+			args.add(arg);
+			endpoints.add(Endpoint.ABILITY);
+		}
+		
+		return factory.createFlexObjects(endpoints, args);
+	}
+	
+	private EmbedObject formatEmbed(Pokemon pokemon, List<Ability> abilities)
+	{
+		EmbedBuilder builder = new EmbedBuilder();
+		
+		switch(abilities.size())
+		{
+			case 1:
+				builder.appendField("Ability 1", TextFormatter.flexFormToProper(abilities.get(0).getName()), true);
+				builder.appendField("Ability 2", "N/A", true);
+				builder.appendField("Hidden Ability", "N/A", true);
+			break;
+			case 2:
+				builder.appendField("Ability 1",TextFormatter.flexFormToProper(abilities.get(1).getName()), true);
+				builder.appendField("Ability 2", "N/A", true);
+				builder.appendField("Hidden Ability", TextFormatter.flexFormToProper(abilities.get(0).getName()), true);
+			break;
+			case 3:
+				builder.appendField("Ability 1", TextFormatter.flexFormToProper(abilities.get(2).getName()), true);
+				builder.appendField("Ability 2", TextFormatter.flexFormToProper(abilities.get(1).getName()), true);
+				builder.appendField("Hidden Ability",TextFormatter.flexFormToProper(abilities.get(0).getName()), true);
+			break;
+		}
+		
+		//Set embed color
+		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
+		builder.withColor(ColorTracker.getColorForType(type));
+		
+		return builder.build();
+	}
+	
+	private EmbedObject formatEmbed(Ability abil)
+	{
+		EmbedBuilder builder = new EmbedBuilder();
+		
+		builder.appendField("Debut", TextFormatter.formatGeneration(abil.getGeneration().getName()), true);
+		builder.appendField("Smogon Viability", abil.getRating(), true);
+		builder.appendField("Pokemon with this Ability", Integer.toString(abil.getPokemon().size()), true);
+		builder.appendField("Game Description", abil.getSdesc(), false);
+		builder.appendField("Technical Description", abil.getLdesc(), false);
+		builder.withColor(ColorTracker.getColorForAbility());
+		
+		return builder.build();
 	}
 	
 	public Response twitchReply(Input input)

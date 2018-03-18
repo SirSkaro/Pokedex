@@ -102,9 +102,10 @@ public class StatsCommand implements ICommand
 	
 	private EmbedObject formatEmbed(Pokemon pokemon)
 	{
-		EmbedBuilder builder = new EmbedBuilder();	
+		EmbedBuilder builder = new EmbedBuilder();
 		builder.setLenient(true);
 		int stats[] = extractStats(pokemon);
+		String type;
 		
 		String names1 = String.format("%-12s%s", "HP", "Attack").intern();
 		String names2 = String.format("%-12s%s", "Defense", "Sp. Attack").intern();
@@ -118,7 +119,8 @@ public class StatsCommand implements ICommand
 								+ "\n\n__`"+ names3+"`__\n`"+stats3 +"`");
 		
 		//Set embed color
-		builder.withColor(ColorTracker.getColorForType(pokemon.getTypes().get(0).getType().getName()));
+		type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
+		builder.withColor(ColorTracker.getColorForType(type));
 		return builder.build();
 	}
 	
