@@ -1,6 +1,7 @@
 package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import skaro.pokedex.data_processor.ColorTracker;
@@ -13,6 +14,10 @@ import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.SimpleMove;
 import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.objects.move.Move;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class CoverageCommand implements ICommand 
@@ -21,21 +26,23 @@ public class CoverageCommand implements ICommand
 	private static Integer[] expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
+	private static PokeFlexFactory factory;
 	
-	private CoverageCommand()
+	private CoverageCommand(PokeFlexFactory pff)
 	{
 		commandName = "coverage".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.MOVE_TYPE_LIST);
 		expectedArgRange = new Integer[]{1,4};
+		factory = pff;
 	}
 	
-	public static ICommand getInstance()
+	public static ICommand getInstance(PokeFlexFactory pff)
 	{
 		if(instance != null)
 			return instance;
 
-		instance = new CoverageCommand();
+		instance = new CoverageCommand(pff);
 		return instance;
 	}
 	
@@ -83,49 +90,100 @@ public class CoverageCommand implements ICommand
 			return reply;
 		
 		//If argument is a move, get the typing
-		SimpleMove move;
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
 		TypeInteractionWrapper wrapper;
-		EmbedBuilder builder = new EmbedBuilder();	
 		ArrayList<Type> typeList = new ArrayList<Type>();
-		Type currType = null;
-		builder.setLenient(true);
+		ArrayList<String> moveNames = new ArrayList<String>();
 		
 		for(int i = 0; i < input.getArgs().size(); i++)
 		{
 			if(input.getArg(i).getCategory() == ArgumentCategory.TYPE)
-				currType = Type.getByName(input.getArg(i).getDB());
-			else	//Category is ArgumentCategory.MOVE
 			{
-				move = dbi.extractSimpleMoveFromDB(input.getArg(i).getDB()+"-m");
-				
-				//If data is null, then an error occurred
-				if(move.getName() == null)
-				{
-					reply.addToReply("A technical error occured (code 1009). Please report this (twitter.com/sirskaro))");
-					return reply;
-				}
-				
-				currType = Type.getByName(move.getType());
+				typeList.add(Type.getByName(input.getArg(i).getDB()));
 			}
-			
-			typeList.add(currType);
+			else	//Category is ArgumentCategory.MOVE
+				moveNames.add(input.getArg(i).getDB());
+		}
+		
+		//If the user included Moves in their input, then request the Move's data from the FlexAPI
+		//and add it to the list of types
+		if(!moveNames.isEmpty())
+		{
+			try
+			{
+				List<Type> typesFromMoves = getMoveTypes(moveNames);
+				typeList.addAll(typesFromMoves);
+			}
+			catch(InterruptedException e)
+			{
+				reply.addToReply("A technical error occured (code 1009a). Please report this (twitter.com/sirskaro))");
+				return reply;
+			}
+			catch(IllegalStateException e)
+			{
+				reply.addToReply("A technical error occured (code 1009b). Please report this (twitter.com/sirskaro))");
+				return reply;
+			}
 		}
 		
 		wrapper = TypeTracker.onOffense(typeList);
 		
 		//Build reply
 		reply.addToReply("**__"+wrapper.typesToString()+"__**");
+		reply.setEmbededReply(formatEmbed(wrapper));
+		
+		return reply;
+	}
+	
+	private EmbedObject formatEmbed(TypeInteractionWrapper wrapper)
+	{
+		EmbedBuilder builder = new EmbedBuilder();	
+		builder.setLenient(true);
+		
 		builder.appendField("Super Effective", getList(wrapper, 2.0), false);
 		builder.appendField("Neutral", getList(wrapper, 1.0), false);
 		builder.appendField("Resistant", getList(wrapper, 0.5), false);
 		builder.appendField("Immune", getList(wrapper, 0.0), false);
-		
-		//Set border color
 		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
-		reply.setEmbededReply(builder.build());
 		
-		return reply;
+		return builder.build();
+	}
+	
+	private List<Type> getMoveTypes(List<String> moveNames) throws InterruptedException, IllegalStateException
+	{
+		List<Optional<?>> flexObjs = getMoveFlexObjs(moveNames);
+		List<Type> result = new ArrayList<Type>();
+		Move move;
+		Type type;
+		
+		for(Optional<?> obj : flexObjs)
+		{
+			if(!obj.isPresent())
+				throw new IllegalStateException();
+			
+			move = Move.class.cast(obj.get());
+			type = Type.getByName(move.getType().getName());
+			
+			result.add(type);
+		}
+		
+		return result;
+	}
+	
+	private List<Optional<?>> getMoveFlexObjs(List<String> moveNames) throws InterruptedException
+	{
+		List<Endpoint> endpoints = new ArrayList<Endpoint>();
+		List<List<String>> args = new ArrayList<List<String>>();
+		ArrayList<String> arg;
+		
+		for(String move :moveNames)
+		{
+			arg = new ArrayList<String>();
+			arg.add(move);
+			args.add(arg);
+			endpoints.add(Endpoint.MOVE);
+		}
+		
+		return factory.createFlexObjects(endpoints, args);
 	}
 	
 	public Response twitchReply(Input input)

@@ -84,9 +84,7 @@ public class AbilityCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 		
-		EmbedBuilder builder = new EmbedBuilder();
 		Optional<?> flexObj;
-		builder.setLenient(true);
 		
 		//Extract data from data base
 		if(input.getArg(0).getCategory() == ArgumentCategory.ABILITY)
@@ -183,6 +181,7 @@ public class AbilityCommand implements ICommand
 	private EmbedObject formatEmbed(Pokemon pokemon, List<Ability> abilities)
 	{
 		EmbedBuilder builder = new EmbedBuilder();
+		builder.setLenient(true);
 		
 		switch(abilities.size())
 		{
@@ -213,6 +212,7 @@ public class AbilityCommand implements ICommand
 	private EmbedObject formatEmbed(Ability abil)
 	{
 		EmbedBuilder builder = new EmbedBuilder();
+		builder.setLenient(true);
 		
 		builder.appendField("Debut", TextFormatter.formatGeneration(abil.getGeneration().getName()), true);
 		builder.appendField("Smogon Viability", abil.getRating(), true);
