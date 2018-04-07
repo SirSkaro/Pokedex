@@ -119,7 +119,7 @@ public class DataCommand implements ICommand
 		//Format reply
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
-		reply.addToReply("**__"+TextFormatter.flexFormToProper(pokemon.getName()+"__**"));
+		reply.addToReply("**__"+TextFormatter.flexFormToProper(pokemon.getName())+"__**");
 		reply.setEmbededReply(formatEmbed(pokemon, speciesData, peripheralData));
 				
 		return reply;

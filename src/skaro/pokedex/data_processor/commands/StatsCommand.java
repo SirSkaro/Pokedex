@@ -88,7 +88,7 @@ public class StatsCommand implements ICommand
 			Pokemon pokemon = Pokemon.class.cast(flexObj);
 			
 			//Format reply
-			reply.addToReply(("**__"+TextFormatter.flexFormToProper(pokemon.getName()+"__**")).intern());
+			reply.addToReply(("**__"+TextFormatter.flexFormToProper(pokemon.getName())+"__**").intern());
 			reply.setEmbededReply(formatEmbed(pokemon));
 		} 
 		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1001", e); }

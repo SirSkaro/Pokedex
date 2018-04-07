@@ -228,7 +228,7 @@ public class Pokedex
 		lib.addToLibrary(LearnCommand.getInstance());
 		lib.addToLibrary(WeakCommand.getInstance(null));
 		lib.addToLibrary(CoverageCommand.getInstance(null));
-		lib.addToLibrary(DexCommand.getInstance());
+		lib.addToLibrary(DexCommand.getInstance(null));
 		lib.addToLibrary(SetCommand.getInstance());
 		lib.addToLibrary(LocationCommand.getInstance());
 		lib.addToLibrary(AboutCommand.getInstance());
@@ -258,7 +258,7 @@ public class Pokedex
 		lib.addToLibrary(LearnCommand.getInstance());
 		lib.addToLibrary(WeakCommand.getInstance(null));
 		lib.addToLibrary(CoverageCommand.getInstance(null));
-		lib.addToLibrary(DexCommand.getInstance());
+		lib.addToLibrary(DexCommand.getInstance(null));
 		lib.addToLibrary(AboutCommand.getInstance());
 		lib.addToLibrary(HelpCommand.getInstance());
 		
@@ -287,7 +287,7 @@ public class Pokedex
 		lib.addToLibrary(LearnCommand.getInstance());
 		lib.addToLibrary(WeakCommand.getInstance(factory));
 		lib.addToLibrary(CoverageCommand.getInstance(factory));
-		lib.addToLibrary(DexCommand.getInstance());
+		lib.addToLibrary(DexCommand.getInstance(factory));
 		lib.addToLibrary(SetCommand.getInstance());
 		lib.addToLibrary(LocationCommand.getInstance());
 		lib.addToLibrary(AboutCommand.getInstance());

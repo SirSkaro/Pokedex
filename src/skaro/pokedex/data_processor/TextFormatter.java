@@ -21,4 +21,16 @@ public class TextFormatter
 	{
 		return url.split("/");
 	}
+	
+	public static String flexToDBForm(String string)
+	{
+		return string.replace("-", "");
+	}
+	
+	public static String formatDexEntry(String string)
+	{
+		String result = string.replace("\n", " ");
+		result = result.replace("POKéMON", "Pokémon");
+		return result.replace("\f", " ");
+	}
 }
