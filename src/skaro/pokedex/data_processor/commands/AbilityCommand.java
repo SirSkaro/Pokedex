@@ -1,8 +1,7 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
@@ -14,6 +13,7 @@ import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.SimpleAbility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.ability.Ability;
 import skaro.pokeflex.objects.pokemon.Pokemon;
@@ -84,123 +84,55 @@ public class AbilityCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 		
-		Optional<?> flexObj;
+		Object flexObj;
 		
-		//Extract data from data base
+		//Extract data
 		if(input.getArg(0).getCategory() == ArgumentCategory.ABILITY)
 		{
-			//Obtain data
-			flexObj = factory.createFlexObject(Endpoint.ABILITY, input.argsAsList());
-	
-			//If data is null, then an error occured
-			if(!flexObj.isPresent())
-			{
-				reply.addToReply("A technical error occured (code 1003a). Please report this (twitter.com/sirskaro))");
-				return reply;
-			}
-			
-			Ability abil = Ability.class.cast(flexObj.get());
-			reply.addToReply(("**__"+TextFormatter.flexFormToProper(abil.getName())+"__**").intern());
-			reply.setEmbededReply(formatEmbed(abil));
-		}
-		else if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
-		{
-			flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
-			
-			//If data is null, then an error occured
-			if(!flexObj.isPresent())
-			{
-				reply.addToReply("A technical error occured (code 1003b). Please report this (twitter.com/sirskaro))");
-				return reply;
-			}
-			
-			Pokemon pokemon = Pokemon.class.cast(flexObj.get());
-			List<Optional<?>> flexObjs;
-			List<Ability> abilities = new ArrayList<Ability>();
-			
 			try 
 			{
-				flexObjs = getAbilityFlexObjs(pokemon);
-				abilities = extractAbilitiesFromFlexObjs(flexObjs);
-			}
-			catch (InterruptedException e) 
-			{
-				reply.addToReply("A technical error occured (code 1003c). Please report this (twitter.com/sirskaro))");
-				return reply;
-			}
-			catch(IllegalStateException e)
-			{
-				reply.addToReply("A technical error occured (code 1003d). Please report this (twitter.com/sirskaro))");
-				return reply;
-			}
-			
-			reply.addToReply(("**__"+TextFormatter.flexFormToProper(pokemon.getName()+"__**")).intern());
-			reply.setEmbededReply(formatEmbed(pokemon, abilities));
+				//Obtain data
+				flexObj = factory.createFlexObject(Endpoint.ABILITY, input.argsAsList());
+				Ability abil = Ability.class.cast(flexObj);
+				
+				//format reply
+				reply.addToReply(("**__"+TextFormatter.flexFormToProper(abil.getName())+"__**").intern());
+				reply.setEmbededReply(formatEmbed(abil));
+			} 
+			catch (IOException | PokeFlexException e)  { this.addErrorMessage(reply, "1003a", e); }
 		}
-		else //This should never be executed
+		else//if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
 		{
-			reply.addToReply("A technical error occured. Please report code 2112 to twitter.com/sirskaro");
+			try 
+			{
+				//Obtain data
+				flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
+				Pokemon pokemon = Pokemon.class.cast(flexObj);
+				
+				//Format reply
+				reply.addToReply(("**__"+TextFormatter.flexFormToProper(pokemon.getName()+"__**")).intern());
+				reply.setEmbededReply(formatEmbed(pokemon));
+			}
+			catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1003b", e); }
 		}
 		
 		return reply;
 	}
-	
-	private List<Ability> extractAbilitiesFromFlexObjs(List<Optional<?>> flexObjs) throws IllegalStateException
-	{
-		List<Ability> abilities = new ArrayList<Ability>();
-		for(Optional<?> obj : flexObjs)
-		{
-			if(!obj.isPresent())
-				throw new IllegalStateException();
-			
-			abilities.add(Ability.class.cast(obj.get()));
-		}
 		
-		return abilities;
-	}
-	
-	private List<Optional<?>> getAbilityFlexObjs(Pokemon pokemon) throws InterruptedException
-	{
-		List<Endpoint> endpoints = new ArrayList<Endpoint>();
-		List<List<String>> args = new ArrayList<List<String>>();
-		ArrayList<String> arg;
-		String[] urlComponents;
-		
-		for(skaro.pokeflex.objects.pokemon.Ability abil : pokemon.getAbilities())
-		{
-			arg = new ArrayList<String>();
-			urlComponents = TextFormatter.getURLComponents(abil.getAbility().getUrl());
-			arg.add(urlComponents[6]);
-			args.add(arg);
-			endpoints.add(Endpoint.ABILITY);
-		}
-		
-		return factory.createFlexObjects(endpoints, args);
-	}
-	
-	private EmbedObject formatEmbed(Pokemon pokemon, List<Ability> abilities)
+	private EmbedObject formatEmbed(Pokemon pokemon)
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setLenient(true);
 		
-		switch(abilities.size())
-		{
-			case 1:
-				builder.appendField("Ability 1", TextFormatter.flexFormToProper(abilities.get(0).getName()), true);
-				builder.appendField("Ability 2", "N/A", true);
-				builder.appendField("Hidden Ability", "N/A", true);
-			break;
-			case 2:
-				builder.appendField("Ability 1",TextFormatter.flexFormToProper(abilities.get(1).getName()), true);
-				builder.appendField("Ability 2", "N/A", true);
-				builder.appendField("Hidden Ability", TextFormatter.flexFormToProper(abilities.get(0).getName()), true);
-			break;
-			case 3:
-				builder.appendField("Ability 1", TextFormatter.flexFormToProper(abilities.get(2).getName()), true);
-				builder.appendField("Ability 2", TextFormatter.flexFormToProper(abilities.get(1).getName()), true);
-				builder.appendField("Hidden Ability",TextFormatter.flexFormToProper(abilities.get(0).getName()), true);
-			break;
-		}
+		for(int slot = 1; slot <= 4; slot++)
+			for(skaro.pokeflex.objects.pokemon.Ability abil : pokemon.getAbilities())
+			{
+				if(slot == abil.getSlot())
+				{
+					builder.appendField(abil.isIsHidden() ? "Hidden Ability" : "Ability "+ slot,
+							TextFormatter.flexFormToProper(abil.getAbility().getName()), true);
+				}
+			}
 		
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list

@@ -15,7 +15,9 @@ import skaro.pokedex.database_resources.SimpleMove;
 import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.move.Move;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.util.EmbedBuilder;
@@ -97,9 +99,7 @@ public class CoverageCommand implements ICommand
 		for(int i = 0; i < input.getArgs().size(); i++)
 		{
 			if(input.getArg(i).getCategory() == ArgumentCategory.TYPE)
-			{
 				typeList.add(Type.getByName(input.getArg(i).getDB()));
-			}
 			else	//Category is ArgumentCategory.MOVE
 				moveNames.add(input.getArg(i).getDB());
 		}
@@ -113,18 +113,12 @@ public class CoverageCommand implements ICommand
 				List<Type> typesFromMoves = getMoveTypes(moveNames);
 				typeList.addAll(typesFromMoves);
 			}
-			catch(InterruptedException e)
+			catch(InterruptedException | PokeFlexException e)
 			{
-				reply.addToReply("A technical error occured (code 1009a). Please report this (twitter.com/sirskaro))");
-				return reply;
-			}
-			catch(IllegalStateException e)
-			{
-				reply.addToReply("A technical error occured (code 1009b). Please report this (twitter.com/sirskaro))");
+				this.addErrorMessage(reply, "1009", e);
 				return reply;
 			}
 		}
-		
 		wrapper = TypeTracker.onOffense(typeList);
 		
 		//Build reply
@@ -148,42 +142,36 @@ public class CoverageCommand implements ICommand
 		return builder.build();
 	}
 	
-	private List<Type> getMoveTypes(List<String> moveNames) throws InterruptedException, IllegalStateException
+	private List<Type> getMoveTypes(List<String> moveNames) throws InterruptedException, PokeFlexException
 	{
-		List<Optional<?>> flexObjs = getMoveFlexObjs(moveNames);
+		List<Object> flexObjs = getMoveFlexObjs(moveNames);
 		List<Type> result = new ArrayList<Type>();
 		Move move;
 		Type type;
 		
-		for(Optional<?> obj : flexObjs)
-		{
-			if(!obj.isPresent())
-				throw new IllegalStateException();
-			
-			move = Move.class.cast(obj.get());
+		for(Object obj : flexObjs)
+		{			
+			move = Move.class.cast(obj);
 			type = Type.getByName(move.getType().getName());
-			
 			result.add(type);
 		}
 		
 		return result;
 	}
 	
-	private List<Optional<?>> getMoveFlexObjs(List<String> moveNames) throws InterruptedException
+	private List<Object> getMoveFlexObjs(List<String> moveNames) throws InterruptedException, PokeFlexException
 	{
-		List<Endpoint> endpoints = new ArrayList<Endpoint>();
-		List<List<String>> args = new ArrayList<List<String>>();
-		ArrayList<String> arg;
+		ArrayList<String> urlParams;
+		List<Request> requests = new ArrayList<Request>();
 		
 		for(String move :moveNames)
 		{
-			arg = new ArrayList<String>();
-			arg.add(move);
-			args.add(arg);
-			endpoints.add(Endpoint.MOVE);
+			urlParams = new ArrayList<String>();
+			urlParams.add(move);
+			requests.add(new Request(Endpoint.MOVE, urlParams));
 		}
 		
-		return factory.createFlexObjects(endpoints, args);
+		return factory.createFlexObjects(requests);
 	}
 	
 	public Response twitchReply(Input input)

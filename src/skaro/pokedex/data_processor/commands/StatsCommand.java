@@ -1,7 +1,7 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Optional;
 
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
@@ -11,6 +11,7 @@ import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.SimplePokemon;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
@@ -81,22 +82,17 @@ public class StatsCommand implements ICommand
 			return reply;
 		
 		//Obtain data
-		Optional<?> flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
-		
-		//If data is null, then an error occurred
-		if(!flexObj.isPresent())
+		try 
 		{
-			reply.addToReply("A technical error occured (code 1001). Please report this (twitter.com/sirskaro))");
-			return reply;
-		}
+			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
+			Pokemon pokemon = Pokemon.class.cast(flexObj);
+			
+			//Format reply
+			reply.addToReply(("**__"+TextFormatter.flexFormToProper(pokemon.getName()+"__**")).intern());
+			reply.setEmbededReply(formatEmbed(pokemon));
+		} 
+		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1001", e); }
 		
-		//Format reply
-		Pokemon pokemon = Pokemon.class.cast(flexObj.get());
-		
-		//Organize the data and add it to the reply
-		reply.addToReply(("**__"+TextFormatter.flexFormToProper(pokemon.getName()+"__**")).intern());
-		reply.setEmbededReply(formatEmbed(pokemon));
-				
 		return reply;
 	}
 	
