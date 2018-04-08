@@ -10,7 +10,7 @@ public class TextFormatter
 	public static String flexFormToProper(String string)
 	{
 		String noDashes = string.replace("-", " ");
-		return WordUtils.capitalize(noDashes);
+		return WordUtils.capitalize(noDashes.trim());
 	}
 	
 	public static String formatGeneration(String string)
