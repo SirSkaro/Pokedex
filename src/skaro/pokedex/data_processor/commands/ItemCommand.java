@@ -81,9 +81,9 @@ public class ItemCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 		
-		//Obtain data
 		try 
 		{
+			//Obtain data
 			Object flexObj = factory.createFlexObject(Endpoint.ITEM, input.argsAsList());
 			Item item = Item.class.cast(flexObj);
 			
