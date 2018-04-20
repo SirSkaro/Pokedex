@@ -230,7 +230,7 @@ public class Pokedex
 		lib.addToLibrary(CoverageCommand.getInstance(null));
 		lib.addToLibrary(DexCommand.getInstance(null));
 		lib.addToLibrary(SetCommand.getInstance());
-		lib.addToLibrary(LocationCommand.getInstance());
+		lib.addToLibrary(LocationCommand.getInstance(null));
 		lib.addToLibrary(AboutCommand.getInstance());
 		lib.addToLibrary(HelpCommand.getInstance());
 		lib.addToLibrary(DonateCommand.getInstance());
@@ -289,7 +289,7 @@ public class Pokedex
 		lib.addToLibrary(CoverageCommand.getInstance(factory));
 		lib.addToLibrary(DexCommand.getInstance(factory));
 		lib.addToLibrary(SetCommand.getInstance());
-		lib.addToLibrary(LocationCommand.getInstance());
+		lib.addToLibrary(LocationCommand.getInstance(factory));
 		lib.addToLibrary(AboutCommand.getInstance());
 		lib.addToLibrary(HelpCommand.getInstance());
 		lib.addToLibrary(DonateCommand.getInstance());

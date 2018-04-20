@@ -246,7 +246,7 @@ public class DataCommand implements ICommand
 		else if(femaleInEights == 0)
 			return "M";
 		else
-			return 8 - femaleInEights+"\\8 ♂*/*"+ femaleInEights+"\\8 ♀";
+			return femaleInEights+"/8 ♀";
 	}
 	
 	/**
