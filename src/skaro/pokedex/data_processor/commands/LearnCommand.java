@@ -102,7 +102,6 @@ public class LearnCommand implements ICommand
 		//Obtain data
 		try 
 		{
-			
 			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, urlParams);
 			Pokemon pokemon = Pokemon.class.cast(flexObj);
 			

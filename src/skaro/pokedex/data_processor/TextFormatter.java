@@ -10,18 +10,18 @@ public class TextFormatter
 	public static String flexFormToProper(String string)
 	{
 		String noDashes = string.replace("-", " ");
-		return WordUtils.capitalize(noDashes.trim());
+		return WordUtils.capitalize(noDashes.trim()).intern();
 	}
 	
 	public static String formatGeneration(String string)
 	{
 		String[] words = string.split("-");
-		return WordUtils.capitalize(words[0]) + " " + words[1].toUpperCase();
+		return (WordUtils.capitalize(words[0]) + " " + words[1].toUpperCase()).intern();
 	}
 	
 	public static String formatGeneration(int gen)
 	{
-		return "Generation " + toRoman(gen);
+		return ("Generation " + toRoman(gen)).intern();
 	}
 	
 	public static String[] getURLComponents(String url)
@@ -31,7 +31,8 @@ public class TextFormatter
 	
 	public static String flexToDBForm(String string)
 	{
-		return string.replace("-", "");
+		
+		return string.replace("-", "").toLowerCase();
 	}
 	
 	public static String formatDexEntry(String string)

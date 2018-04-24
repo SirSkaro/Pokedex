@@ -1,13 +1,21 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.database_resources.ComplexPokemon;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.PokeFlexException;
+import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.objects.pokemon.Pokemon;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class RandpokeCommand implements ICommand
@@ -16,21 +24,23 @@ public class RandpokeCommand implements ICommand
 	private static Integer[] expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
+	private static PokeFlexFactory factory;
 	
-	private RandpokeCommand()
+	private RandpokeCommand(PokeFlexFactory pff)
 	{
 		commandName = "randpoke".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new Integer[]{0,0};
+		factory = pff;
 	}
 	
-	public static ICommand getInstance()
+	public static ICommand getInstance(PokeFlexFactory pff)
 	{
 		if(instance != null)
 			return instance;
 
-		instance = new RandpokeCommand();
+		instance = new RandpokeCommand(pff);
 		return instance;
 	}
 
@@ -59,49 +69,41 @@ public class RandpokeCommand implements ICommand
 		//If data is null, then an error occured
 		if(poke.getSpecies() == null)
 		{
-			reply.addToReply("A technical error occured (code 1002). Please report this (twitter.com/sirskaro))");
+			reply.addToReply("A technical error occured (code 1002a). Please report this (twitter.com/sirskaro))");
 			return reply;
 		}
 		
-		//Format reply
-		EmbedBuilder builder = new EmbedBuilder();	
-		builder.setLenient(true);
-		int stats[] = poke.getStats();
-		
-		
-		String names1 = String.format("%-9s%-9s%s", "HP", "Atk", "Def").intern();
-		String names2 = String.format("%-9s%-9s%s", "Sp.Atk", "Sp.Def", "Spe").intern();
-		String stats1 = String.format("%-9d%-9d%d", stats[0], stats[1], stats[2]);
-		String stats2 = String.format("%-9d%-9d%d", stats[3], stats[4], stats[5]);
-		String baseStats = "__`"+names1+"`__\n`"+stats1+"`"
-				+ "\n__`"+ names2+"`__\n`"+stats2+"`";
-		
-		reply.addToReply("**__"+poke.getSpecies()+"__**");
-		builder.appendField("Base Stats", baseStats, true);
-		builder.appendField("Typing", 
-				poke.getType2() == null ? poke.getType1() : poke.getType1()+"*/* "+poke.getType2(), true);
-		builder.appendField("Abilities", listToItemizedDiscordString(poke.getAbilities()), true);
-		builder.appendField("National Dex Num", Integer.toString(poke.getDexNum()), true);
-		builder.appendField("Height", poke.getHeight() + " m", true);
-		builder.appendField("Weight", poke.getWeight() + " kg", true);
-		builder.appendField("Gender Ratio", poke.getDiscordGenderRatio(), true);
-		builder.appendField("Egg Groups",listToItemizedDiscordString(poke.getEggGroups()), true);
-		if(poke.getEvolutions() != null)
+		//Obtain data
+		List<String> urlParams = new ArrayList<String>();
+		urlParams.add(TextFormatter.flexToDBForm(poke.getSpecies()));
+		try 
 		{
-			builder.appendField("Evolutions", listToItemizedDiscordString(poke.getEvolutions()), true);
-			builder.appendField("Evolution Level", poke.getEvoLevel(), true);
-		}
-		builder.withFooterText("Note: Shiny Pokemon will return soon!");
-		
-		//Add images
-		builder.withImage(poke.getModel());
-		
-		//Set embed color
-		builder.withColor(ColorTracker.getColorForType(poke.getType1()));
-		
-		reply.setEmbededReply(builder.build());
+			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, urlParams);
+			Pokemon pokemon = Pokemon.class.cast(flexObj);
+			
+			//Format reply
+			reply.setEmbededReply(formatEmbed(pokemon));
+		} 
+		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1002b", e); }
 				
 		return reply;
+	}
+	
+	private EmbedObject formatEmbed(Pokemon pokemon)
+	{
+		EmbedBuilder builder = new EmbedBuilder();
+		builder.setLenient(true);
+		
+		builder.withTitle(TextFormatter.flexFormToProper(pokemon.getName()).intern() + " | #" + Integer.toString(pokemon.getId()));
+		
+		//Add images
+		builder.withImage(pokemon.getModel().getUrl());
+		
+		//Set embed color
+		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
+		builder.withColor(ColorTracker.getColorForType(type));
+		
+		return builder.build();
 	}
 
 	@Override

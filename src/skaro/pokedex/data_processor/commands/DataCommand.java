@@ -17,6 +17,8 @@ import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.evolution_chain.Chain;
 import skaro.pokeflex.objects.evolution_chain.EvolutionChain;
+import skaro.pokeflex.objects.evolution_chain.EvolutionDetail;
+import skaro.pokeflex.objects.evolution_chain.EvolvesTo;
 import skaro.pokeflex.objects.pokemon.Ability;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon.Type;
@@ -144,9 +146,11 @@ public class DataCommand implements ICommand
 		
 		//Format peripheral data - Evolution Chain
 		EvolutionChain evolutionData = EvolutionChain.class.cast(getDataOfInstance(peripheralData, EvolutionChain.class));
-		builder.appendField("Evolution Chain", formatEvolutionChain(evolutionData) , true);
-		//builder.appendField("Evolution Requirements", poke.getEvoLevel(), true);
-		
+		if(!isOnlyEvolution(evolutionData))
+		{
+			builder.appendField("Evolution Chain", formatEvolutionChain(evolutionData, pokemon.getName()) , true);
+			builder.appendField("Evolution Requirements", formatEvolutionDetails(evolutionData, pokemon.getName()), true);
+		}
 		
 		//Footer data
 		builder.withFooterText("Note: Shiny Pokemon will return soon!");
@@ -203,25 +207,154 @@ public class DataCommand implements ICommand
 		
 		return baseStats;
 	}
+	
+	private boolean isOnlyEvolution(EvolutionChain evolutionData)
+	{
+		return evolutionData.getChain().getEvolvesTo().isEmpty();
+	}
 		
 	/**
-	 *	Checks the peripheral data to see if this Pokemon evolves
+	 *	Checks the peripheral data to see if this Pokemon evolves.
 	 *	@return Optional of the evolution data if it exists and the Pokemon evolves. Empty Optional otherwise
 	 **/
-	private String formatEvolutionChain(EvolutionChain evolutionData)
+	private String formatEvolutionChain(EvolutionChain evolutionData, String thisPokemon)
 	{
 		StringBuilder builder = new StringBuilder();
 		Chain chain = evolutionData.getChain();
-		
-		//Check if the Pokemon is alone in its chain
-		if(chain.getEvolvesTo().isEmpty())
-			return null;
+		int nameIndexStart;
 		
 		//first Pokemon name
 		builder.append(TextFormatter.flexFormToProper(chain.getSpecies().getName()));
 		builder.append(" -> ");
 		
+		//recursively parse chain
+		formatEvolutionChainResursive(chain.getEvolvesTo(), builder);
+		
+		//decorate the text of this Pokemon
+		thisPokemon = TextFormatter.flexFormToProper(thisPokemon);
+		nameIndexStart = builder.indexOf(thisPokemon);
+		builder.insert(nameIndexStart + thisPokemon.length(), "__");
+		builder.insert(nameIndexStart, "__");
+		
 		return  builder.toString();
+	}
+	
+	private void formatEvolutionChainResursive(List<EvolvesTo> evoTo, StringBuilder builder)
+	{
+		if(evoTo.size() == 1)
+		{
+			builder.append(TextFormatter.flexFormToProper(evoTo.get(0).getSpecies().getName()));
+			if(!evoTo.get(0).getEvolvesTo().isEmpty())
+			{
+				builder.append(" -> ");
+				formatEvolutionChainResursive(evoTo.get(0).getEvolvesTo(), builder);
+			}
+		}
+		else
+		{
+			for(EvolvesTo evo : evoTo)
+			{
+				builder.append(TextFormatter.flexFormToProper(evo.getSpecies().getName()));
+				if(!evo.getEvolvesTo().isEmpty())
+				{
+					builder.append(" -> ");
+					formatEvolutionChainResursive(evo.getEvolvesTo(), builder);
+				}
+				builder.append("/");
+			}
+			builder.deleteCharAt(builder.lastIndexOf("/"));
+		}
+	}
+	
+	private String formatEvolutionDetails(EvolutionChain evolutionData, String thisPokemon)
+	{
+		StringBuilder builder = new StringBuilder();
+		Chain chain = evolutionData.getChain();
+		List<EvolutionDetail> eDetails = null;
+		
+		if(chain.getSpecies().getName().equals(thisPokemon))
+			eDetails = chain.getEvolutionDetails();
+		else
+			eDetails = extractEvolutionDetailsRecursive(chain.getEvolvesTo(), thisPokemon, null);
+		
+		for(EvolutionDetail detail : eDetails)
+		{
+			builder.append(TextFormatter.flexFormToProper(detail.getTrigger().getName())+": ");
+			
+			if(detail.getMinLevel() != 0)
+				builder.append("Min level: "+detail.getMinLevel() + " & ");
+			if(detail.getMinBeauty() != 0)
+				builder.append("Min beauty: "+detail.getMinBeauty() + " & ");
+			if(detail.getTimeOfDay() != null && !detail.getTimeOfDay().isEmpty())
+				builder.append("At "+detail.getTimeOfDay()+ "-time & ");
+			if(detail.getGender() != 0)
+			{
+				switch(detail.getGender())
+				{
+					case 1: builder.append("Must be female & "); break;
+					case 2: builder.append("Must be male & "); break;
+				}
+			}
+			if(detail.getRelativePhysicalStats() != 0)
+			{
+				switch(detail.getRelativePhysicalStats())
+				{
+					case 0: builder.append("Attack = Defense & "); break;
+					case 1: builder.append("Attack > Defense & "); break;
+					case -1: builder.append("Attack < Defense & "); break;
+				}
+			}
+			if(detail.isNeedsOverworldRain())
+				builder.append("Needs overworld rain & ");
+			if(detail.isTurnUpsideDown())
+				builder.append("Turn 3DS upside down & ");
+			if(detail.getItem() != null)
+				builder.append("Use "+TextFormatter.flexFormToProper(detail.getItem().getName()) +" & ");
+			if(detail.getKnownMoveType() != null)
+				builder.append("Know "+ TextFormatter.flexFormToProper(detail.getKnownMoveType().getName()) +"-type move & ");
+			if(detail.getMinAffection() != 0)
+				builder.append("Min affection: "+detail.getMinAffection() + " & ");
+			if(detail.getPartyType() != null)
+				builder.append("With "+ TextFormatter.flexFormToProper(detail.getPartyType().getName()) +"-type in party & ");
+			if(detail.getTradeSpecies() != null)
+				builder.append("Trade for "+ TextFormatter.flexFormToProper(detail.getTradeSpecies().getName()) +" & ");
+			if(detail.getPartySpecies() != null)
+				builder.append("With "+ TextFormatter.flexFormToProper(detail.getPartySpecies().getName()) +" as party member & ");
+			if(detail.getMinHappiness() != 0)
+				builder.append("Min happiness: "+detail.getMinHappiness() + " & ");
+			if(detail.getHeldItem() != null)
+				builder.append("Holding item "+ TextFormatter.flexFormToProper(detail.getHeldItem().getName()) +" & ");
+			if(detail.getKnownMove() != null)
+				builder.append("Knows move "+ TextFormatter.flexFormToProper(detail.getKnownMove().getName()) +" & ");
+			if(detail.getLocation() != null)
+				builder.append("At location "+ TextFormatter.flexFormToProper(detail.getLocation().getName()) +" & ");
+			
+			if(builder.lastIndexOf("&") != -1)
+				builder.deleteCharAt(builder.lastIndexOf("&"));
+			builder.append("\n");
+		}
+		
+		return builder.toString();
+	}
+	
+	private List<EvolutionDetail> extractEvolutionDetailsRecursive(List<EvolvesTo> evoTo, String thisPokemon, List<EvolutionDetail> result)
+	{					
+		for(EvolvesTo evo : evoTo)
+		{
+			if(result != null)
+				return result; 
+			
+			if(evo.getSpecies().getName().equals(thisPokemon))
+			{
+				result = evo.getEvolutionDetails();
+				return result;
+			}
+			
+			if(!evo.getEvolvesTo().isEmpty())
+				return extractEvolutionDetailsRecursive(evo.getEvolvesTo(), thisPokemon, result);
+		}
+		
+		throw new IllegalArgumentException("Pokemon is not located in chain");
 	}
 	
 	private ArrayList<String> formatEggGroup(PokemonSpecies speciesData)
