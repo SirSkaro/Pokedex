@@ -37,6 +37,7 @@ import skaro.pokedex.data_processor.commands.LocationCommand;
 import skaro.pokedex.data_processor.commands.MoveCommand;
 import skaro.pokedex.data_processor.commands.RandpokeCommand;
 import skaro.pokedex.data_processor.commands.SetCommand;
+import skaro.pokedex.data_processor.commands.ShinyCommand;
 import skaro.pokedex.data_processor.commands.StatsCommand;
 import skaro.pokedex.data_processor.commands.WeakCommand;
 import skaro.pokedex.input_processor.InputProcessor;
@@ -55,7 +56,7 @@ public class Pokedex
 		
 		//Initialize CommandMaps
 		System.out.println("[Pokedex main] Initializing resources...");
-		InputProcessor ip = new InputProcessor(createCompleteLibrary(new PokeFlexFactory("http://localhost:5000")));
+		InputProcessor ip = new InputProcessor(createCompleteLibrary(new PokeFlexFactory("http://127.0.0.1:5000")));
 		
 		/**
 		 * TWITCH SETUP
@@ -235,6 +236,7 @@ public class Pokedex
 		lib.addToLibrary(HelpCommand.getInstance());
 		lib.addToLibrary(DonateCommand.getInstance());
 		lib.addToLibrary(InviteCommand.getInstance());
+		lib.addToLibrary(ShinyCommand.getInstance(null));
 		
 		lib.addToLibrary(CommandsCommand.getInstance(lib.getLibrary()));
 		
@@ -294,6 +296,7 @@ public class Pokedex
 		lib.addToLibrary(HelpCommand.getInstance());
 		lib.addToLibrary(DonateCommand.getInstance());
 		lib.addToLibrary(InviteCommand.getInstance());
+		lib.addToLibrary(ShinyCommand.getInstance(factory));
 		
 		lib.addToLibrary(CommandsCommand.getInstance(lib.getLibrary()));
 		

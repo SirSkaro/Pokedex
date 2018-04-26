@@ -423,9 +423,9 @@ public class DataCommand implements ICommand
 	private int[] extractStats(Pokemon pokemon)
 	{
 		int[] stats = new int[6];
-		
+				
 		for(int i = 0; i < 6; i++)
-			stats[i] = pokemon.getStats().get(i).getBaseStat();
+			stats[5-i] = pokemon.getStats().get(i).getBaseStat();
 		
 		return stats;
 	}

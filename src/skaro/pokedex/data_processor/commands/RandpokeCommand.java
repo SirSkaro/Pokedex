@@ -3,6 +3,7 @@ package skaro.pokedex.data_processor.commands;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
@@ -62,20 +63,13 @@ public class RandpokeCommand implements ICommand
 	public Response discordReply(Input input) 
 	{
 		//Set up utility variables
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		ComplexPokemon poke = dbi.extractRandomComplexPokeFromDB();
 		Response reply = new Response();
 		
-		//If data is null, then an error occured
-		if(poke.getSpecies() == null)
-		{
-			reply.addToReply("A technical error occured (code 1002a). Please report this (twitter.com/sirskaro))");
-			return reply;
-		}
-		
 		//Obtain data
+		Random rand = new Random();
+		int randDexNum = rand.nextInt(807) + 1;
 		List<String> urlParams = new ArrayList<String>();
-		urlParams.add(TextFormatter.flexToDBForm(poke.getSpecies()));
+		urlParams.add(Integer.toString(randDexNum));
 		try 
 		{
 			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, urlParams);
@@ -84,7 +78,7 @@ public class RandpokeCommand implements ICommand
 			//Format reply
 			reply.setEmbededReply(formatEmbed(pokemon));
 		} 
-		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1002b", e); }
+		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1002", e); }
 				
 		return reply;
 	}
