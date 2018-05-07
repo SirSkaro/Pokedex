@@ -101,7 +101,7 @@ public class CoverageCommand implements ICommand
 			if(input.getArg(i).getCategory() == ArgumentCategory.TYPE)
 				typeList.add(Type.getByName(input.getArg(i).getDB()));
 			else	//Category is ArgumentCategory.MOVE
-				moveNames.add(input.getArg(i).getDB());
+				moveNames.add(input.getArg(i).getFlex());
 		}
 		
 		//If the user included Moves in their input, then request the Move's data from the FlexAPI

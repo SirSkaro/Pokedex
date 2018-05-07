@@ -2,22 +2,25 @@ package skaro.pokedex.input_processor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import skaro.pokedex.core.CommandLibrary;
 import skaro.pokedex.data_processor.ICommand.ArgumentCategory;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.data_processor.TextFormatter;
 
 public class InputProcessor 
 {
 	private SpellChecker sc;
 	private ArgumentMap argMap;
-	private DatabaseInterface dbi;
+	private MySQLManager sqlManager;
+	private Validator validator;
 	
 	public InputProcessor(CommandLibrary lib)
 	{
-		dbi = DatabaseInterface.getInstance();
+		sqlManager = MySQLManager.getInstance();
+		validator = Validator.getInstance();
 		argMap = new ArgumentMap(lib);
 		
 		try
@@ -184,11 +187,13 @@ public class InputProcessor
 	public Argument setUpArg(ArgumentCategory ac, String resource)
 	{	
 		//Create new argument
-		Argument result = new Argument(resource.intern(), dbi.dbFormat(resource).intern(), ac);
+		String dbForm = TextFormatter.dbFormat(resource);
+		Optional<String> flexForm;
+		Argument result = new Argument(resource.intern(), dbForm, ac);
 		
 		//Check if resource is recognized. If it is not recognized, attempt to spell check it.
 		//If it is still not recognized, then return the argument as invalid (default)
-		if(!dbi.resourceExists(ac, result.getDB()))
+		if(!validator.resourceExists(ac, result.getDB()))
 		{
 			String correction;
 			correction = sc.spellCheckArgument(resource, ac);
@@ -197,10 +202,10 @@ public class InputProcessor
 			if(correction != null && correction.equalsIgnoreCase(resource))
 				return result;
 			
-			result.setDB(dbi.dbFormat(correction).intern());
+			result.setDB(TextFormatter.dbFormat(correction).intern());
 			
 			//If argument is still not recognized, return invalid argument
-			if(!dbi.resourceExists(ac, result.getDB()))
+			if(!validator.resourceExists(ac, result.getDB()))
 				return result;
 			
 			//Otherwise, spell check was successful
@@ -209,6 +214,13 @@ public class InputProcessor
 		}
 		
 		result.setValid(true);
+		
+		if(ac == ArgumentCategory.POKEMON || ac == ArgumentCategory.MOVE ||
+				ac == ArgumentCategory.ITEM || ac == ArgumentCategory.ABILITY)
+		{
+			flexForm = sqlManager.getFlexForm(result.getDB(), ac);
+			result.setFlexForm(flexForm.get());
+		}
 		
 		return result;
 	}

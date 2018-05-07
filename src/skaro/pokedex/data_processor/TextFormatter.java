@@ -13,6 +13,21 @@ public class TextFormatter
 		return WordUtils.capitalize(noDashes.trim()).intern();
 	}
 	
+	public static String pokemonFlexFormToProper(String string)
+	{
+		String components[] = string.split("-");
+		
+		if(string.contains("-mega"))
+		{
+			if(components.length == 2)
+				return WordUtils.capitalize(components[1] + " " + components[0]).intern();
+			else
+				return WordUtils.capitalize(components[1] + " " + components[0] + " " + components[2]).intern();
+		}
+		
+		return flexFormToProper(string);
+	}
+	
 	public static String formatGeneration(String string)
 	{
 		String[] words = string.split("-");
@@ -59,4 +74,77 @@ public class TextFormatter
       
         return numeralMap.get(largestSubtractableNumeral) + toRoman(number-largestSubtractableNumeral);
     }
+	
+	/**
+	 * Takes in a name and returns it in the formatting used
+	 * in the data base. No spaces or symbols.
+	 * @param s - pokemon name
+	 * @return formatted String
+	 */
+	public static String dbFormat(String s)
+	{
+		if(s == null)
+			return "";
+		
+		s = s.toLowerCase();
+		
+		//Check prefixes
+		if(!s.contains("launcher"))
+		if(s.contains("primal ") 
+				|| (s.contains("mega ") && !s.contains("omega "))
+				|| (s.contains("alola ") || s.contains("alolan ")) 
+				|| (s.contains("ultra "))						)
+		{
+			s = s.replace("alolan", "alola");
+			String[] name = s.split(" ");
+			return (name[1]+name[0]+((name.length == 3) ? name[2] : ""));
+		}
+		
+		//Check for Necrozma forms
+		if( s.contains("necrozma") &&
+				((s.contains("dusk") || s.contains("dawn")))
+				)
+		{
+			String temp = s.replace("necrozma", "");
+			return "necrozma"+temp.replace(" ", "");
+		}
+		
+		//Check for other symbols
+		if(s.endsWith("♀"))
+			s = s.replace("♀", "f");
+		
+		if(s.endsWith("♂"))
+			s = s.replace("♂", "m");
+		
+		if(s.contains("-"))
+			s = s.replace("-", "");
+		
+		if(s.contains("."))
+			s = s.replace(".", "");
+		
+		if(s.contains(" "))
+			s = s.replace(" ", "");
+		
+		if(s.contains(","))
+			s = s.replace(",", "");
+		
+		if(s.contains(":"))
+			s = s.replace(":", "");
+		
+		if(s.contains("%"))
+			s = s.replace("%", "");
+		
+		if(s.contains("alolan"))
+			s = s.replace("alolan", "alola");
+		
+		//Remove characters that would cause an SQL exception
+		if(s.contains("\\"))
+			s = s.replace("\\", "");
+		if(s.contains("\""))
+			s = s.replace("\"", "");
+		if(s.contains("'"))
+			s = s.replace("'", "");
+		
+		return s.intern();
+	}
 }

@@ -17,6 +17,7 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.FlavorTextEntry;
 import skaro.pokeflex.objects.pokemon_species.Genera;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
@@ -95,12 +96,18 @@ public class DexCommand implements ICommand
 			return reply;
 		
 		//Obtain data
+		Pokemon pokemon = null;
 		PokemonSpecies speciesData = null;
 		try 
 		{
 			List<String> urlParams = new ArrayList<String>();
-			urlParams.add(input.getArg(0).getDB());//Pokemon name
-			Object flexObj = factory.createFlexObject(Endpoint.POKEMON_SPECIES, urlParams);
+			urlParams.add(input.getArg(0).getFlex());//Pokemon name
+			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, urlParams);
+			pokemon = Pokemon.class.cast(flexObj);
+			
+			urlParams.clear();
+			urlParams.add(pokemon.getSpecies().getName());
+			flexObj = factory.createFlexObject(Endpoint.POKEMON_SPECIES, urlParams);
 			speciesData = PokemonSpecies.class.cast(flexObj);
 		} 
 		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1010", e); }

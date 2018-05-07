@@ -93,7 +93,7 @@ public class LearnCommand implements ICommand
 		
 		//Organize input
 		List<String> urlParams = new ArrayList<String>();
-		urlParams.add(input.getArg(0).getDB());
+		urlParams.add(input.getArg(0).getFlex());
 		
 		List<String> moves = new ArrayList<String>();
 		moves.addAll(input.argsAsList());
@@ -106,7 +106,7 @@ public class LearnCommand implements ICommand
 			Pokemon pokemon = Pokemon.class.cast(flexObj);
 			
 			//Format reply
-			reply.addToReply(("**__"+TextFormatter.flexFormToProper(pokemon.getName())+"__**").intern());
+			reply.addToReply(("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+"__**").intern());
 			reply.setEmbededReply(formatEmbed(pokemon, moves));
 		} 
 		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1007", e); }
@@ -167,7 +167,7 @@ public class LearnCommand implements ICommand
 	private Optional<Move> getMove(List<Move> allLearnableMoves, String moveToCheck)
 	{
 		for(Move move : allLearnableMoves)
-			if(TextFormatter.flexToDBForm(move.getMove().getName()).equals(moveToCheck))
+			if(move.getMove().getName().equals(moveToCheck))
 				return Optional.of(move);
 		
 		return Optional.empty();

@@ -1,5 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -93,12 +94,10 @@ public class DataCommand implements ICommand
 		//Obtain base Pokemon data
 		List<Object> baseData;
 		Pokemon pokemon = null;
-		PokemonSpecies speciesData = null;
 		try 
 		{
 			baseData = getBaseData(input.argsAsList());
 			pokemon = Pokemon.class.cast(getDataOfInstance(baseData, Pokemon.class));
-			speciesData = PokemonSpecies.class.cast(getDataOfInstance(baseData, PokemonSpecies.class));
 		}
 		catch (InterruptedException | PokeFlexException e) 
 		{
@@ -110,9 +109,9 @@ public class DataCommand implements ICommand
 		List<Object> peripheralData;
 		try 
 		{
-			peripheralData = getPeripheralData(speciesData);
+			peripheralData = getPeripheralData(pokemon);
 		}
-		catch (InterruptedException | PokeFlexException e) 
+		catch (InterruptedException | PokeFlexException | IOException e) 
 		{
 			this.addErrorMessage(reply, "1002b", e);
 			return reply;
@@ -121,14 +120,16 @@ public class DataCommand implements ICommand
 		//Format reply
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
-		reply.addToReply("**__"+TextFormatter.flexFormToProper(pokemon.getName())+"__**");
-		reply.setEmbededReply(formatEmbed(pokemon, speciesData, peripheralData));
+		reply.addToReply("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+"__**");
+		reply.setEmbededReply(formatEmbed(pokemon, peripheralData));
 				
 		return reply;
 	}
 
-	private EmbedObject formatEmbed(Pokemon pokemon, PokemonSpecies speciesData, List<Object> peripheralData)
+	private EmbedObject formatEmbed(Pokemon pokemon, List<Object> peripheralData)
 	{
+		PokemonSpecies speciesData = PokemonSpecies.class.cast(getDataOfInstance(peripheralData, PokemonSpecies.class));
+		EvolutionChain evolutionData = EvolutionChain.class.cast(getDataOfInstance(peripheralData, EvolutionChain.class));
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
 		
@@ -136,7 +137,7 @@ public class DataCommand implements ICommand
 		builder.appendField("Base Stats", formatBaseStats(extractStats(pokemon)), true);
 		builder.appendField("Typing", listToItemizedDiscordString(extractTyping(pokemon)), true);
 		builder.appendField("Abilities", listToItemizedDiscordString(extractAbilities(pokemon)), true);
-		builder.appendField("National Dex Num", Integer.toString(pokemon.getId()), true);
+		builder.appendField("National Dex Num", Integer.toString(speciesData.getId()), true);
 		builder.appendField("Height", pokemon.getHeight()/10.0 + " m", true);
 		builder.appendField("Weight", pokemon.getWeight()/10.0 + " kg", true);
 		
@@ -145,11 +146,10 @@ public class DataCommand implements ICommand
 		builder.appendField("Egg Groups",listToItemizedDiscordString(formatEggGroup(speciesData)), true);
 		
 		//Format peripheral data - Evolution Chain
-		EvolutionChain evolutionData = EvolutionChain.class.cast(getDataOfInstance(peripheralData, EvolutionChain.class));
 		if(!isOnlyEvolution(evolutionData))
 		{
-			builder.appendField("Evolution Chain", formatEvolutionChain(evolutionData, pokemon.getName()) , true);
-			builder.appendField("Evolution Requirements", formatEvolutionDetails(evolutionData, pokemon.getName()), true);
+			builder.appendField("Evolution Chain", formatEvolutionChain(evolutionData, speciesData.getName()) , true);
+			builder.appendField("Evolution Requirements", formatEvolutionDetails(evolutionData, speciesData.getName()), true);
 		}
 		
 		//Footer data
@@ -389,19 +389,33 @@ public class DataCommand implements ICommand
 	 * @return a List of the peripheral data wrapped in an Optional object
 	 * @throws InterruptedException
 	 * @throws PokeFlexException 
+	 * @throws IOException 
 	 */
-	private List<Object> getPeripheralData(PokemonSpecies speciesData) throws InterruptedException, PokeFlexException
+	private List<Object> getPeripheralData(Pokemon pokemon) throws InterruptedException, PokeFlexException, IOException
 	{
-		List<Request> requests = new ArrayList<Request>();
 		List<String> urlParameters = new ArrayList<String>();
+		Object flexObj;
+		PokemonSpecies speciesData;
 		String[] urlComponents;
+		List<Object> result = new ArrayList<Object>();
+		EvolutionChain evoChain;
+
+		//Get the species data based on the form of the Pokemon. If the form is temporary, get the base-form species data
+		urlParameters.add(pokemon.getSpecies().getName());
+		
+		flexObj = factory.createFlexObject(Endpoint.POKEMON_SPECIES, urlParameters);
+		speciesData = PokemonSpecies.class.cast(flexObj);
+		result.add(speciesData);
 		
 		//Evolution Chain data
 		urlComponents = TextFormatter.getURLComponents(speciesData.getEvolutionChain().getUrl());
+		urlParameters.clear();
 		urlParameters.add(urlComponents[6]);
-		requests.add(new Request(Endpoint.EVOLUTION_CHAIN, urlParameters));
+		flexObj = factory.createFlexObject(Endpoint.EVOLUTION_CHAIN, urlParameters);
+		evoChain = EvolutionChain.class.cast(flexObj);
+		result.add(evoChain);
 		
-		return factory.createFlexObjects(requests);
+		return result;
 	}
 	
 	/**
@@ -415,7 +429,7 @@ public class DataCommand implements ICommand
 	{
 		List<Request> requests = new ArrayList<Request>();
 		requests.add(new Request(Endpoint.POKEMON, urlParameters));
-		requests.add(new Request(Endpoint.POKEMON_SPECIES, urlParameters));
+		requests.add(new Request(Endpoint.POKEMON_FORM, urlParameters));
 		
 		return factory.createFlexObjects(requests);
 	}

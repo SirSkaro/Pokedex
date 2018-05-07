@@ -103,7 +103,7 @@ public class LocationCommand implements ICommand
 		{
 			//Obtain Pokemon data
 			List<String> urlParams = new ArrayList<String>();
-			urlParams.add(input.getArg(0).getDB());
+			urlParams.add(input.getArg(0).getFlex());
 			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, urlParams);
 			pokemon = Pokemon.class.cast(flexObj);
 			

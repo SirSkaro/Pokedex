@@ -45,7 +45,7 @@ public class Input
 	{
 		LinkedList<String> list = new LinkedList<String>();
 		for(Argument arg : args)
-			list.add(arg.getDB());
+			list.add(arg.getFlex());
 		
 		return list;
 	}
