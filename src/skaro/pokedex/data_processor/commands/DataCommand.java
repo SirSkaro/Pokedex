@@ -111,7 +111,7 @@ public class DataCommand implements ICommand
 		{
 			peripheralData = getPeripheralData(pokemon);
 		}
-		catch (InterruptedException | PokeFlexException | IOException e) 
+		catch(Exception e) 
 		{
 			this.addErrorMessage(reply, "1002b", e);
 			return reply;

@@ -61,10 +61,12 @@ public class Pokedex
 		/**
 		 * TWITCH SETUP
 		 */
+		/*
 		System.out.println("[Pokedex main] Logging to the Twitch Chat system.");
 		Optional<String> twitchToken = configurator.getAuthToken("twitch");
 		Optional<String> twitchUsername = configurator.getUsername("twitch");
 		twitchLogin(twitchToken, twitchUsername, ip);
+		*/
 		
 		/**
 		 * DISCORD SETUP
@@ -236,7 +238,7 @@ public class Pokedex
 		lib.addToLibrary(HelpCommand.getInstance());
 		lib.addToLibrary(DonateCommand.getInstance());
 		lib.addToLibrary(InviteCommand.getInstance());
-		lib.addToLibrary(ShinyCommand.getInstance(null));
+		//lib.addToLibrary(ShinyCommand.getInstance(null));
 		
 		lib.addToLibrary(CommandsCommand.getInstance(lib.getLibrary()));
 		
@@ -296,7 +298,7 @@ public class Pokedex
 		lib.addToLibrary(HelpCommand.getInstance());
 		lib.addToLibrary(DonateCommand.getInstance());
 		lib.addToLibrary(InviteCommand.getInstance());
-		lib.addToLibrary(ShinyCommand.getInstance(factory));
+		//lib.addToLibrary(ShinyCommand.getInstance(factory));
 		
 		lib.addToLibrary(CommandsCommand.getInstance(lib.getLibrary()));
 		
