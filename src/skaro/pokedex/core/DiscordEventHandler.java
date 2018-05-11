@@ -56,16 +56,14 @@ public class DiscordEventHandler
 		statusMessages.add("!commands/!help");
 		statusMessages.add("%commands/%help");
 		statusMessages.add("commands()/help()");
-		statusMessages.add("[NEW] %randpoke");
+		statusMessages.add("%invite");
         
         statusTimer = new Timer();
 		statusTask = new TimerTask() {
             @Override
             public void run() 
             {
-            	discordClient.changePresence(StatusType.ONLINE, ActivityType.PLAYING, (statusMessages.get(statusIndex % statusMessages.size()) +
-            			" | "+discordClient.getGuilds().size()+" servers | "+discordClient.getUsers().size() +
-            			" users"));
+            	discordClient.changePresence(StatusType.ONLINE, ActivityType.PLAYING, statusMessages.get(statusIndex % statusMessages.size()));
             	statusIndex++;
             }
         };	        

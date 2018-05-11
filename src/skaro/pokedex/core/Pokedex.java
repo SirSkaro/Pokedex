@@ -37,7 +37,6 @@ import skaro.pokedex.data_processor.commands.LocationCommand;
 import skaro.pokedex.data_processor.commands.MoveCommand;
 import skaro.pokedex.data_processor.commands.RandpokeCommand;
 import skaro.pokedex.data_processor.commands.SetCommand;
-import skaro.pokedex.data_processor.commands.ShinyCommand;
 import skaro.pokedex.data_processor.commands.StatsCommand;
 import skaro.pokedex.data_processor.commands.WeakCommand;
 import skaro.pokedex.input_processor.InputProcessor;
