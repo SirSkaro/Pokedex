@@ -1,13 +1,20 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.database_resources.ComplexMove;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.PokeFlexException;
+import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.objects.move.Move;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class MoveCommand implements ICommand 
@@ -16,21 +23,23 @@ public class MoveCommand implements ICommand
 	private static Integer[] expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
+	private static PokeFlexFactory factory;
 	
-	private MoveCommand()
+	private MoveCommand(PokeFlexFactory pff)
 	{
 		commandName = "move".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.MOVE);
 		expectedArgRange = new Integer[]{1,1};
+		factory = pff;
 	}
 	
-	public static ICommand getInstance()
+	public static ICommand getInstance(PokeFlexFactory pff)
 	{
 		if(instance != null)
 			return instance;
 
-		instance = new MoveCommand();
+		instance = new MoveCommand(pff);
 		return instance;
 	}
 	
@@ -56,7 +65,7 @@ public class MoveCommand implements ICommand
 					reply.addToReply("\""+input.getArg(0).getRaw() +"\" is not a recognized Move");
 				break;
 				default:
-					reply.addToReply("A technical error occured (code 105)");
+					reply.addToReply("A technical error occured (code 106)");
 			}
 			return false;
 		}
@@ -72,54 +81,60 @@ public class MoveCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 		
-		//Extract data from data base
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		ComplexMove move = dbi.extractComplexMoveFromDB(input.getArg(0).getDB()+"-m");
-		
-		//If data is null, then an error occurred
-		if(move.getName() == null)
+		try 
 		{
-			reply.addToReply("A technical error occured (code 1006). Please report this (twitter.com/sirskaro))");
-			return reply;
-		}
+			//Obtain data
+			Object flexObj = factory.createFlexObject(Endpoint.MOVE, input.argsAsList());
+			Move move = Move.class.cast(flexObj);
+			
+			//Format reply
+			reply.addToReply(("**__"+TextFormatter.flexFormToProper(move.getName())+"__**").intern());
+			reply.setEmbededReply(formatEmbed(move));
+		} 
+		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1006", e); }
 		
-		//Format reply
+		return reply;
+	}
+	
+	private EmbedObject formatEmbed(Move move)
+	{
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
 		
-		//Organize the data and add it to the reply
-		String tempString;
-		reply.addToReply(("**__"+move.getName()+"__**").intern());
-		
-		if(move.getPower() > 1)
+		if(move.getPower() != 0)
 			builder.appendField("Base Power", Integer.toString(move.getPower()), true);
-		if(move.getZPower() > 1)
+		if(move.getZPower() != 0)
 			builder.appendField("Z-Base Power", Integer.toString(move.getZPower()), true);
 		if(move.getCrystal() != null)
-			builder.appendField("Z-Crystal", move.getCrystal(), true);
+			builder.appendField("Z-Crystal", move.getCrystal().toString(), true);
 		builder.appendField("Accuracy", (move.getAccuracy() != 0 ? Integer.toString(move.getAccuracy()) : "-"), true);
-		builder.appendField("Category", move.getCategory(), true);
-		builder.appendField("Type", move.getType(), true);
-		builder.appendField("Base PP", Integer.toString(move.getBasePP()), true);
-		builder.appendField("Max PP", Integer.toString(move.getMaxPP()), true);
+		builder.appendField("Category", TextFormatter.flexFormToProper(move.getDamageClass().getName()), true);
+		builder.appendField("Type", TextFormatter.flexFormToProper(move.getType().getName()), true);
+		builder.appendField("Base PP", Integer.toString(move.getPp()), true);
+		builder.appendField("Max PP", Integer.toString(move.getMaxPp()), true);
 		if(move.getZBoost() != null)
-			builder.appendField("Z-Boosts", move.getZBoost(), true);
-		if((tempString = move.getZEffect()) != null)
-			builder.appendField("Z-Effect", tempString, true);
+			builder.appendField("Z-Boosts", move.getZBoost().toString(), true);
+		if(move.getZEffect() != null)
+			builder.appendField("Z-Effect", move.getZEffect().toString(), true);
 		builder.appendField("Priority", Integer.toString(move.getPriority()), true);
-		builder.appendField("Target", move.getTarget(), true);
-		builder.appendField("Contest Category", move.getContest(), true);
-		builder.appendField("Game Description", move.getShortDesc(), false);
-		builder.appendField("Technical Description", move.getTechDesc(), false);
-		if((tempString = move.getFlags()) != null)
-			builder.appendField("Other Properties", tempString, false);
+		builder.appendField("Target", TextFormatter.flexFormToProper(move.getTarget().getName()), true);
+		builder.appendField("Contest Category", TextFormatter.flexFormToProper(move.getContestType().getName()), true);
+		builder.appendField("Game Description", move.getSdesc(), false);
+		builder.appendField("Technical Description", move.getLdesc(), false);
+		
+		if(move.getFlags() != null)
+		{
+			StringBuilder flagBuilder = new StringBuilder();
+			for(String flag : move.getFlags())
+				flagBuilder.append(flag + " ");
+			
+			builder.appendField("Other Properties", flagBuilder.toString(), false);
+		}
 		
 		//Set embed color
-		builder.withColor(ColorTracker.getColorFromType(move.getType()));
+		builder.withColor(ColorTracker.getColorForType(move.getType().getName()));
 		
-		reply.setEmbededReply(builder.build());
-		
-		return reply;
+		return builder.build();
 	}
 	
 	public Response twitchReply(Input input)

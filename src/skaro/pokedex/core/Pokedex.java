@@ -40,6 +40,7 @@ import skaro.pokedex.data_processor.commands.SetCommand;
 import skaro.pokedex.data_processor.commands.StatsCommand;
 import skaro.pokedex.data_processor.commands.WeakCommand;
 import skaro.pokedex.input_processor.InputProcessor;
+import skaro.pokeflex.api.PokeFlexFactory;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.util.DiscordException;
@@ -50,19 +51,21 @@ public class Pokedex
 	{			
 		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
-		Configurator configurator = Configurator.initializeConfigurator(false);
+		Configurator configurator = Configurator.initializeConfigurator(true);
 		
 		//Initialize CommandMaps
 		System.out.println("[Pokedex main] Initializing resources...");
-		InputProcessor ip = new InputProcessor(createCompleteLibrary());
+		InputProcessor ip = new InputProcessor(createCompleteLibrary(new PokeFlexFactory("http://127.0.0.1:5000")));
 		
 		/**
 		 * TWITCH SETUP
 		 */
+		/*
 		System.out.println("[Pokedex main] Logging to the Twitch Chat system.");
 		Optional<String> twitchToken = configurator.getAuthToken("twitch");
 		Optional<String> twitchUsername = configurator.getUsername("twitch");
 		twitchLogin(twitchToken, twitchUsername, ip);
+		*/
 		
 		/**
 		 * DISCORD SETUP
@@ -98,6 +101,7 @@ public class Pokedex
 			System.out.println("[Pokedex main] No configuration data found for Discord application.");
 			return Optional.empty();
 		}
+		
 		
 		IDiscordClient discordClient = getClient(discordToken.get());
 		DiscordCommandMap dcm = new DiscordCommandMap(createDiscordLibrary());
@@ -217,22 +221,23 @@ public class Pokedex
 	{
 		CommandLibrary lib = new CommandLibrary();
 		
-		lib.addToLibrary(RandpokeCommand.getInstance());
-		lib.addToLibrary(StatsCommand.getInstance());
-		lib.addToLibrary(DataCommand.getInstance());
-		lib.addToLibrary(AbilityCommand.getInstance());
-		lib.addToLibrary(ItemCommand.getInstance());
-		lib.addToLibrary(MoveCommand.getInstance());
-		lib.addToLibrary(LearnCommand.getInstance());
-		lib.addToLibrary(WeakCommand.getInstance());
-		lib.addToLibrary(CoverageCommand.getInstance());
-		lib.addToLibrary(DexCommand.getInstance());
+		lib.addToLibrary(RandpokeCommand.getInstance(null));
+		lib.addToLibrary(StatsCommand.getInstance(null));
+		lib.addToLibrary(DataCommand.getInstance(null));
+		lib.addToLibrary(AbilityCommand.getInstance(null));
+		lib.addToLibrary(ItemCommand.getInstance(null));
+		lib.addToLibrary(MoveCommand.getInstance(null));
+		lib.addToLibrary(LearnCommand.getInstance(null));
+		lib.addToLibrary(WeakCommand.getInstance(null));
+		lib.addToLibrary(CoverageCommand.getInstance(null));
+		lib.addToLibrary(DexCommand.getInstance(null));
 		lib.addToLibrary(SetCommand.getInstance());
-		lib.addToLibrary(LocationCommand.getInstance());
+		lib.addToLibrary(LocationCommand.getInstance(null));
 		lib.addToLibrary(AboutCommand.getInstance());
 		lib.addToLibrary(HelpCommand.getInstance());
 		lib.addToLibrary(DonateCommand.getInstance());
 		lib.addToLibrary(InviteCommand.getInstance());
+		//lib.addToLibrary(ShinyCommand.getInstance(null));
 		
 		lib.addToLibrary(CommandsCommand.getInstance(lib.getLibrary()));
 		
@@ -247,16 +252,16 @@ public class Pokedex
 	{
 		CommandLibrary lib = new CommandLibrary();
 		
-		lib.addToLibrary(RandpokeCommand.getInstance());
-		lib.addToLibrary(StatsCommand.getInstance());
-		lib.addToLibrary(DataCommand.getInstance());
-		lib.addToLibrary(AbilityCommand.getInstance());
-		lib.addToLibrary(ItemCommand.getInstance());
-		lib.addToLibrary(MoveCommand.getInstance());
-		lib.addToLibrary(LearnCommand.getInstance());
-		lib.addToLibrary(WeakCommand.getInstance());
-		lib.addToLibrary(CoverageCommand.getInstance());
-		lib.addToLibrary(DexCommand.getInstance());
+		lib.addToLibrary(RandpokeCommand.getInstance(null));
+		lib.addToLibrary(StatsCommand.getInstance(null));
+		lib.addToLibrary(DataCommand.getInstance(null));
+		lib.addToLibrary(AbilityCommand.getInstance(null));
+		lib.addToLibrary(ItemCommand.getInstance(null));
+		lib.addToLibrary(MoveCommand.getInstance(null));
+		lib.addToLibrary(LearnCommand.getInstance(null));
+		lib.addToLibrary(WeakCommand.getInstance(null));
+		lib.addToLibrary(CoverageCommand.getInstance(null));
+		lib.addToLibrary(DexCommand.getInstance(null));
 		lib.addToLibrary(AboutCommand.getInstance());
 		lib.addToLibrary(HelpCommand.getInstance());
 		
@@ -272,26 +277,27 @@ public class Pokedex
 	 * recognized by any command map.
 	 * @return a CommandLibrary of ICommands that are supported for Discord
 	 */
-	private static CommandLibrary createCompleteLibrary()
+	private static CommandLibrary createCompleteLibrary(PokeFlexFactory factory)
 	{
 		CommandLibrary lib = new CommandLibrary();
 		
-		lib.addToLibrary(RandpokeCommand.getInstance());
-		lib.addToLibrary(StatsCommand.getInstance());
-		lib.addToLibrary(DataCommand.getInstance());
-		lib.addToLibrary(AbilityCommand.getInstance());
-		lib.addToLibrary(ItemCommand.getInstance());
-		lib.addToLibrary(MoveCommand.getInstance());
-		lib.addToLibrary(LearnCommand.getInstance());
-		lib.addToLibrary(WeakCommand.getInstance());
-		lib.addToLibrary(CoverageCommand.getInstance());
-		lib.addToLibrary(DexCommand.getInstance());
+		lib.addToLibrary(RandpokeCommand.getInstance(factory));
+		lib.addToLibrary(StatsCommand.getInstance(factory));
+		lib.addToLibrary(DataCommand.getInstance(factory));
+		lib.addToLibrary(AbilityCommand.getInstance(factory));
+		lib.addToLibrary(ItemCommand.getInstance(factory));
+		lib.addToLibrary(MoveCommand.getInstance(factory));
+		lib.addToLibrary(LearnCommand.getInstance(factory));
+		lib.addToLibrary(WeakCommand.getInstance(factory));
+		lib.addToLibrary(CoverageCommand.getInstance(factory));
+		lib.addToLibrary(DexCommand.getInstance(factory));
 		lib.addToLibrary(SetCommand.getInstance());
-		lib.addToLibrary(LocationCommand.getInstance());
+		lib.addToLibrary(LocationCommand.getInstance(factory));
 		lib.addToLibrary(AboutCommand.getInstance());
 		lib.addToLibrary(HelpCommand.getInstance());
 		lib.addToLibrary(DonateCommand.getInstance());
 		lib.addToLibrary(InviteCommand.getInstance());
+		//lib.addToLibrary(ShinyCommand.getInstance(factory));
 		
 		lib.addToLibrary(CommandsCommand.getInstance(lib.getLibrary()));
 		

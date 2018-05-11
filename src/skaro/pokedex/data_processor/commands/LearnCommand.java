@@ -1,15 +1,26 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.database_resources.SimpleMove;
 import skaro.pokedex.database_resources.SimplePokemon;
 import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.PokeFlexException;
+import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.objects.pokemon.Move;
+import skaro.pokeflex.objects.pokemon.Pokemon;
+import skaro.pokeflex.objects.pokemon.VersionGroupDetail;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class LearnCommand implements ICommand 
@@ -18,22 +29,24 @@ public class LearnCommand implements ICommand
 	private static Integer[] expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
+	private static PokeFlexFactory factory;
 	
-	private LearnCommand()
+	private LearnCommand(PokeFlexFactory pff)
 	{
 		commandName = "learn".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.MOVE_LIST);
 		expectedArgRange = new Integer[]{2,21};
+		factory = pff;
 	}
 	
-	public static ICommand getInstance()
+	public static ICommand getInstance(PokeFlexFactory pff)
 	{
 		if(instance != null)
 			return instance;
 
-		instance = new LearnCommand();
+		instance = new LearnCommand(pff);
 		return instance;
 	}
 	
@@ -53,7 +66,7 @@ public class LearnCommand implements ICommand
 			switch(input.getError())
 			{
 				case 1:
-					reply.addToReply("You must specify between 1 Pokemon and 1 to 20 Moves as input for this command "
+					reply.addToReply("You must specify 1 Pokemon and 1 to 20 Moves as input for this command "
 							+ "(seperated by commas).");
 				return false;	
 			}
@@ -78,48 +91,86 @@ public class LearnCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 		
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		SimplePokemon poke = dbi.extractSimplePokeFromDB(input.getArg(0).getDB());
+		//Organize input
+		List<String> urlParams = new ArrayList<String>();
+		urlParams.add(input.getArg(0).getFlex());
 		
-		//If data is null, then an error occurred
-		if(poke.getSpecies() == null)
+		List<String> moves = new ArrayList<String>();
+		moves.addAll(input.argsAsList());
+		moves.remove(0);	//remove the name of the Pokemon
+		
+		//Obtain data
+		try 
 		{
-			reply.addToReply("A technical error occured (code 1007). Please report this (twitter.com/sirskaro))");
-			return reply;
-		}
+			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, urlParams);
+			Pokemon pokemon = Pokemon.class.cast(flexObj);
+			
+			//Format reply
+			reply.addToReply(("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+"__**").intern());
+			reply.setEmbededReply(formatEmbed(pokemon, moves));
+		} 
+		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1007", e); }
 		
-		//Utility variables
-		Argument moveArg;
-		String dbMove;
-		SimpleMove sMove;
-		
-		//Format reply
-		EmbedBuilder builder = new EmbedBuilder();	
+		return reply;
+	}
+	
+	private EmbedObject formatEmbed(Pokemon pokemon, List<String> movesToCheckFor)
+	{
+		EmbedBuilder builder = new EmbedBuilder();
 		builder.setLenient(true);
+		List<Move> allLearnableMoves = pokemon.getMoves();
 		
-		reply.addToReply(("**__"+poke.getSpecies()+"__**").intern());
-		for(int i = 1; i < input.getArgs().size(); i++)
+		for(String move : movesToCheckFor)
 		{
-			moveArg = input.getArg(i);
-			if(moveArg.isValid())
+			Optional<Move> moveCheck = getMove(allLearnableMoves, move);
+			
+			if(!moveCheck.isPresent())
 			{
-				dbMove = moveArg.getDB()+"-m";
-				sMove = dbi.extractSimpleMoveFromDB(dbMove);
-				builder.appendField(sMove.getName().intern(), 
-						(dbi.inMoveSet(dbMove, input.getArg(0).getDB()) ? "able" : "not able"), true);
+				builder.appendField(TextFormatter.flexFormToProper(move), 
+						"*not able*", true);
 			}
 			else
 			{
-				builder.appendField(moveArg.getRaw(), "not recognized", true);
+				builder.appendField(TextFormatter.flexFormToProper(moveCheck.get().getMove().getName()).intern(), 
+						"*able* via:\n"+ formatLearnMethod(moveCheck.get()), true);
 			}
 		}
 		
 		//Set embed color
-		builder.withColor(ColorTracker.getColorFromType(poke.getType1()));
+		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
+		builder.withColor(ColorTracker.getColorForType(type));
 		
-		reply.setEmbededReply(builder.build());
+		return builder.build();
+	}
+	
+	private String formatLearnMethod(Move move) 
+	{
+		StringBuilder builder = new StringBuilder();
+		List<String> methods = new ArrayList<String>();
+		String methodName;
 		
-		return reply;
+		for(VersionGroupDetail details : move.getVersionGroupDetails())
+		{
+			methodName = TextFormatter.flexFormToProper(details.getMoveLearnMethod().getName());
+			
+			//Add the method if there no duplicates. For some reason, List#contains won't work
+			if(!(methods.contains(methodName)))
+				methods.add(methodName);
+		}
+		
+		for(String method : methods)
+			builder.append("\t"+method+"\n");
+		
+		return builder.toString();
+	}
+	
+	private Optional<Move> getMove(List<Move> allLearnableMoves, String moveToCheck)
+	{
+		for(Move move : allLearnableMoves)
+			if(move.getMove().getName().equals(moveToCheck))
+				return Optional.of(move);
+		
+		return Optional.empty();
 	}
 	
 	public Response twitchReply(Input input)

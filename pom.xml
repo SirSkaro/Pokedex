@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>Pokedex</groupId>
   <artifactId>Pokedex</artifactId>
-  <version>4.2.9</version>
+  <version>5.0.0</version>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
@@ -52,9 +52,10 @@
   <dependencies>
     <!-- Discord4j -->
     <dependency>
-      <groupId>com.github.austinv11</groupId>
+      <!-- <groupId>com.github.austinv11</groupId> -->
+      <groupId>com.github.Discord4J</groupId>
       <artifactId>Discord4j</artifactId>
-      <version>2.9.1</version>
+      <version>2.10.1</version>
     </dependency>
     <!-- Logback Classic: SLF4J Binding -->
     <dependency>
@@ -101,6 +102,12 @@
       <groupId>net.sf.jazzy</groupId>
       <artifactId>jazzy</artifactId>
       <version>0.5.2-rtext-1.4.1-2</version>
+    </dependency>
+    <!-- PokeFlex Java API  -->
+    <dependency>
+      <groupId>PokeFlex-API</groupId>
+      <artifactId>PokeFlex-API</artifactId>
+      <version>1.1.0</version>
     </dependency>
   </dependencies>
   <properties>

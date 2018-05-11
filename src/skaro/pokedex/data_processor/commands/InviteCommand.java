@@ -28,7 +28,7 @@ public class InviteCommand implements ICommand
 		builder.setLenient(true);
 		builder.withColor(new Color(255,255,255));
 		
-		builder.appendField("Invite Pokdex to your server!", "[Click to invite Pokedex](https://goo.gl/Mm5pU7)", false);
+		builder.appendField("Invite Pokdex to your server!", "[Click to invite Pokedex](https://discordapp.com/oauth2/authorize?client_id=206147222746824704&scope=bot&permissions=2165760)", false);
 		builder.appendField("Join Pokedex's home server!", "[Click to join Pokedex's server](https://discord.gg/D5CfFkN)", false);
 		
 		staticDiscordReply.setEmbededReply(builder.build());
