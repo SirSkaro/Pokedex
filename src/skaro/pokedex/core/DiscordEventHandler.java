@@ -1,6 +1,5 @@
 package skaro.pokedex.core;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +22,10 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedE
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageUpdateEvent;
 import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelJoinEvent;
 import sx.blah.discord.handle.impl.events.shard.ShardReadyEvent;
+import sx.blah.discord.handle.obj.ActivityType;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IVoiceChannel;
+import sx.blah.discord.handle.obj.StatusType;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
@@ -55,23 +56,21 @@ public class DiscordEventHandler
 		statusMessages.add("!commands/!help");
 		statusMessages.add("%commands/%help");
 		statusMessages.add("commands()/help()");
-		statusMessages.add("[NEW] %randpoke");
+		statusMessages.add("%invite");
         
         statusTimer = new Timer();
 		statusTask = new TimerTask() {
             @Override
             public void run() 
             {
-            	discordClient.changePlayingText(statusMessages.get(statusIndex % statusMessages.size()) +
-            			" | "+discordClient.getGuilds().size()+" servers | "+discordClient.getUsers().size() +
-            			" users");
+            	discordClient.changePresence(StatusType.ONLINE, ActivityType.PLAYING, statusMessages.get(statusIndex % statusMessages.size()));
             	statusIndex++;
             }
         };	        
 	}
 	
 	@EventSubscriber
-    public void onShardReadyEvent(ShardReadyEvent event) throws RateLimitException, MissingPermissionsException, DiscordException, InterruptedException
+    public void onShardReadyEvent(ShardReadyEvent event)
     {	    	    	
 		IShard shard = event.getShard();
 		System.out.println("[DiscordEventHandler] Shard "+shard.getInfo()[0]+" finished connecting "
@@ -79,7 +78,7 @@ public class DiscordEventHandler
     }
 	
     @EventSubscriber
-    public void onReadyEvent(ReadyEvent event) throws RateLimitException, MissingPermissionsException, DiscordException, InterruptedException
+    public void onReadyEvent(ReadyEvent event) 
     {	    	    	
     	statusTimer.scheduleAtFixedRate(statusTask, 1000, 1 * 60 * 1000); //1 minute
     	System.out.println("[DiscordEventHandler] Finished logging into Discord");
@@ -92,8 +91,7 @@ public class DiscordEventHandler
 		{
 			responseHandler(event);
 		} 
-		catch(RateLimitException | MissingPermissionsException | DiscordException | IOException
-				| InterruptedException e) 
+		catch(RateLimitException | MissingPermissionsException | DiscordException e) 
 		{
 			System.out.println("[DiscordEventHandler] text event error: "+e);
 		}
@@ -106,20 +104,19 @@ public class DiscordEventHandler
     	{
 			responseHandler(event);
 		}
-    	catch(RateLimitException | MissingPermissionsException | DiscordException | IOException
-				| InterruptedException e) 
+    	catch(RateLimitException | MissingPermissionsException | DiscordException e) 
 		{
 			System.out.println("[DiscordEventHandler] update text event error: "+e);
 		}
     }
     
     @EventSubscriber
-    public void onTrackFinishEvent(TrackFinishEvent event) throws RateLimitException, MissingPermissionsException, DiscordException, IOException, InterruptedException
+    public void onTrackFinishEvent(TrackFinishEvent event)
     {
     	event.getPlayer().getGuild().getConnectedVoiceChannel().leave();
     }
     
-    public void responseHandler(Event event) throws RateLimitException, MissingPermissionsException, DiscordException, IOException, InterruptedException
+    public void responseHandler(Event event)
     {
     	//Initial utility variable
 		IMessage input;
@@ -155,7 +152,8 @@ public class DiscordEventHandler
         //Get the reply of the command.
         response = command.discordReply(userInput);
         
-        System.out.println("[DiscordEventHandler][DISCORD "+input.getShard().getInfo()[0]+"] "+input.getAuthor().getName() + ": " + input.getContent());
+        System.out.println("[DiscordEventHandler][DISCORD "+input.getShard().getInfo()[0]+"] "
+        					+input.getAuthor().getName() + ": " + input.getContent());
         
         //Send the textual reply to the user
         channelID = input.getChannel().getLongID();
@@ -196,7 +194,7 @@ public class DiscordEventHandler
         }
     }
     
-    private void playDexEntry(IVoiceChannel channel, AudioPlayer player, Track audioTrack, long channelID, String user) throws RateLimitException, MissingPermissionsException, DiscordException, IOException, InterruptedException
+    private void playDexEntry(IVoiceChannel channel, AudioPlayer player, Track audioTrack, long channelID, String user)
     {        	
     	if(!channel.isConnected())
     	{
@@ -208,7 +206,7 @@ public class DiscordEventHandler
         		sendMessage(channelID, "Now playing Pokedex entry requested by "+ user);
         		System.out.println("\t[DiscordEventHandler] Audio response sent.");
     		}
-    		catch(MissingPermissionsException e)
+    		catch(MissingPermissionsException | InterruptedException e)
     		{
     			sendMessage(channelID, user
         				+", I do not have permission to join the voice channel you are in. "
@@ -263,7 +261,7 @@ public class DiscordEventHandler
     	});
     }
     
-    private void sendMessage(long ChannelID, String msg) throws RateLimitException, MissingPermissionsException, DiscordException
+    private void sendMessage(long ChannelID, String msg)
     {
     	RequestBuffer.request(() -> 
     	{
@@ -280,7 +278,7 @@ public class DiscordEventHandler
         });
     }
     
-    private void sendImages(long ChannelID, ArrayList<InputStream> imgs) throws RateLimitException, MissingPermissionsException, DiscordException
+    private void sendImages(long ChannelID, ArrayList<InputStream> imgs)
     {
     	RequestBuffer.request(() -> 
     	{

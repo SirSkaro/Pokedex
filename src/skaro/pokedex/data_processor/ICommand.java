@@ -51,9 +51,11 @@ public interface ICommand
 		return result.toString();
 	}
 	
-	public default void wanringMessage(String err)
+	public default void addErrorMessage(Response reply, String errCode, Exception e)
 	{
-		System.err.println("["+Class.class.getName()+"] WARNING: "+err);
+		reply.addToReply("A technical error occured ("+errCode+"). "
+				+ "Please report that a "+ e.getClass().getSimpleName() +" occured "
+				+ "(https://discord.gg/D5CfFkN))");
 	}
 	
 	public enum ArgumentCategory 	//Argument categories
