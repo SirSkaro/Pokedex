@@ -22,8 +22,10 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedE
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageUpdateEvent;
 import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelJoinEvent;
 import sx.blah.discord.handle.impl.events.shard.ShardReadyEvent;
+import sx.blah.discord.handle.obj.ActivityType;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IVoiceChannel;
+import sx.blah.discord.handle.obj.StatusType;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
@@ -54,16 +56,14 @@ public class DiscordEventHandler
 		statusMessages.add("!commands/!help");
 		statusMessages.add("%commands/%help");
 		statusMessages.add("commands()/help()");
-		statusMessages.add("[NEW] %randpoke");
+		statusMessages.add("%invite");
         
         statusTimer = new Timer();
 		statusTask = new TimerTask() {
             @Override
             public void run() 
             {
-            	discordClient.changePlayingText(statusMessages.get(statusIndex % statusMessages.size()) +
-            			" | "+discordClient.getGuilds().size()+" servers | "+discordClient.getUsers().size() +
-            			" users");
+            	discordClient.changePresence(StatusType.ONLINE, ActivityType.PLAYING, statusMessages.get(statusIndex % statusMessages.size()));
             	statusIndex++;
             }
         };	        

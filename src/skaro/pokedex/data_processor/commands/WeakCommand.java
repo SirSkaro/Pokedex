@@ -1,6 +1,8 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import skaro.pokedex.data_processor.ColorTracker;
@@ -9,10 +11,13 @@ import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Type;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
-import skaro.pokedex.database_resources.DatabaseInterface;
-import skaro.pokedex.database_resources.SimplePokemon;
 import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.PokeFlexException;
+import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.objects.pokemon.Pokemon;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class WeakCommand implements ICommand 
@@ -21,21 +26,23 @@ public class WeakCommand implements ICommand
 	private static Integer[] expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
+	private static PokeFlexFactory factory;
 	
-	private WeakCommand()
+	private WeakCommand(PokeFlexFactory pff)
 	{
 		commandName = "weak".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKE_TYPE_LIST);
 		expectedArgRange = new Integer[]{1,2};
+		factory = pff;
 	}
 	
-	public static ICommand getInstance()
+	public static ICommand getInstance(PokeFlexFactory pff)
 	{
 		if(instance != null)
 			return instance;
 
-		instance = new WeakCommand();
+		instance = new WeakCommand(pff);
 		return instance;
 	}
 	
@@ -83,57 +90,59 @@ public class WeakCommand implements ICommand
 			return reply;
 		
 		//Declare utility variables
-		TypeInteractionWrapper wrapper;
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		EmbedBuilder builder = new EmbedBuilder();
-		Type type1, type2 = null;
-		builder.setLenient(true);
+		Type type1 = null, type2 = null;
+		StringBuilder header = new StringBuilder();
 		
 		//Build reply according to the argument case
 		if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON) //argument is a Pokemon
-		{
-			SimplePokemon poke = dbi.extractSimplePokeFromDB(input.getArg(0).getDB());
-			
-			//If data is null, then an error occurred
-			if(poke.getSpecies() == null)
+		{	
+			//Obtain data
+			Object flexObj;
+			try 
 			{
-				reply.addToReply("A technical error occured (code 1008). Please report this (twitter.com/sirskaro))");
+				flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
+				Pokemon pokemon = Pokemon.class.cast(flexObj);
+				List<skaro.pokeflex.objects.pokemon.Type> types = pokemon.getTypes();
+				type1 = Type.getByName(types.get(0).getType().getName());
+				if(types.size() > 1)
+					type2 = Type.getByName(types.get(1).getType().getName());
+			} 
+			catch (IOException | PokeFlexException e)
+			{ 
+				this.addErrorMessage(reply, "1006", e); 
 				return reply;
 			}
 			
-			type1 = Type.getByName(poke.getType1());
-			if(poke.getType2() != null)
-				type2 = Type.getByName(poke.getType2());
 		}
 		else //argument is a list of Types
 		{
-			if(input.getArgs().size() == 1) // argument is one type
-			{
-				type1 = Type.getByName(input.getArg(0).getDB());
-			}
-			else //argument is two types
-			{
-				type1 = Type.getByName(input.getArg(0).getDB());
+			type1 = Type.getByName(input.getArg(0).getDB());
+			if(input.getArgs().size() > 1)
 				type2 = Type.getByName(input.getArg(1).getDB());
-			}
 		}
 		
-		wrapper = TypeTracker.onDefense(type1, type2);
-		StringBuilder header = new StringBuilder();
 		header.append("**__"+type1.toProperName());
 		header.append(type2 != null ? "/"+type2.toProperName()+"__**" : "__**");
 		reply.addToReply(header.toString());
+		reply.setEmbededReply(formatEmbed(type1, type2));
 		
-		//Format reply
+		return reply;
+	}
+	
+	private EmbedObject formatEmbed(Type type1, Type type2)
+	{
+		EmbedBuilder builder = new EmbedBuilder();
+		TypeInteractionWrapper wrapper = TypeTracker.onDefense(type1, type2);
+		builder.setLenient(true);
+		
 		builder.appendField("Weak:", combineLists(wrapper, 2.0, 4.0), false);
 		builder.appendField("Neutral", getList(wrapper, 1.0), false);
 		builder.appendField("Resist", combineLists(wrapper, 0.5, 0.25), false);
 		builder.appendField("Immune", getList(wrapper, 0.0), false);
-	
-		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
-		reply.setEmbededReply(builder.build());
 		
-		return reply;
+		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
+		
+		return builder.build();
 	}
 	
 	public Response twitchReply(Input input)
