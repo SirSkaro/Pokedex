@@ -56,7 +56,7 @@ public class DiscordEventHandler
 		statusMessages.add("commands()/help()");
 		statusMessages.add("%invite");
         
-        statusTimer = new Timer();
+        statusTimer = new Timer(true);
 		statusTask = new TimerTask() {
             @Override
             public void run() 
