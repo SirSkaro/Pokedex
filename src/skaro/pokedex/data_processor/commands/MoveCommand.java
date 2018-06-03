@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.ColorTracker;
@@ -8,10 +7,9 @@ import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.database_resources.ComplexMove;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseResourcePool;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.move.Move;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
@@ -91,7 +89,7 @@ public class MoveCommand implements ICommand
 			reply.addToReply(("**__"+TextFormatter.flexFormToProper(move.getName())+"__**").intern());
 			reply.setEmbededReply(formatEmbed(move));
 		} 
-		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1006", e); }
+		catch (Exception e) { this.addErrorMessage(reply, "1006", e); }
 		
 		return reply;
 	}
@@ -118,7 +116,8 @@ public class MoveCommand implements ICommand
 			builder.appendField("Z-Effect", move.getZEffect().toString(), true);
 		builder.appendField("Priority", Integer.toString(move.getPriority()), true);
 		builder.appendField("Target", TextFormatter.flexFormToProper(move.getTarget().getName()), true);
-		builder.appendField("Contest Category", TextFormatter.flexFormToProper(move.getContestType().getName()), true);
+		if(move.getContestType() != null)
+			builder.appendField("Contest Category", TextFormatter.flexFormToProper(move.getContestType().getName()), true);
 		builder.appendField("Game Description", move.getSdesc(), false);
 		builder.appendField("Technical Description", move.getLdesc(), false);
 		
@@ -146,7 +145,7 @@ public class MoveCommand implements ICommand
 			return reply;
 		
 		//Extract data from data base
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseResourcePool dbi = DatabaseResourcePool.getInstance();
 		ComplexMove move = dbi.extractComplexMoveFromDB(input.getArg(0).getDB()+"-m");
 		
 		//If data is null, then an error occurred

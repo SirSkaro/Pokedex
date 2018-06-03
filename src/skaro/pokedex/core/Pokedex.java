@@ -18,10 +18,8 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
-import org.jibble.pircbot.IrcException;
 
 import skaro.pokedex.data_processor.DiscordCommandMap;
-import skaro.pokedex.data_processor.TwitchCommandMap;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
 import skaro.pokedex.data_processor.commands.CommandsCommand;
@@ -48,24 +46,38 @@ import sx.blah.discord.util.DiscordException;
 public class Pokedex 
 {	
 	public static void main(String[] args) throws Exception
-	{			
+	{
+		int shardIDToManage = -1;
+		int totalShards = -1;
+		CommandLibrary library;
+		
+		//Parse command line arguments
+		if(args.length != 2)
+		{
+			System.out.println("Usage: <shard ID> <total shards>");
+			System.exit(1);
+		}
+		
+		//Record on command line arguments
+		try
+		{ 
+			shardIDToManage = Integer.parseInt(args[0]);
+			totalShards = Integer.parseInt(args[1]);
+		}
+		catch(NumberFormatException e)
+		{
+			System.out.println("[Pokedex main] Error parsing command line arguments.");
+			System.exit(1);
+		}
+			
 		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
 		Configurator configurator = Configurator.initializeConfigurator(true);
 		
 		//Initialize CommandMaps
 		System.out.println("[Pokedex main] Initializing resources...");
-		InputProcessor ip = new InputProcessor(createCompleteLibrary(new PokeFlexFactory("http://127.0.0.1:5000")));
-		
-		/**
-		 * TWITCH SETUP
-		 */
-		/*
-		System.out.println("[Pokedex main] Logging to the Twitch Chat system.");
-		Optional<String> twitchToken = configurator.getAuthToken("twitch");
-		Optional<String> twitchUsername = configurator.getUsername("twitch");
-		twitchLogin(twitchToken, twitchUsername, ip);
-		*/
+		library = getCompleteLibrary(new PokeFlexFactory("http://127.0.0.1:5000"));
+		InputProcessor ip = new InputProcessor(library);
 		
 		/**
 		 * DISCORD SETUP
@@ -73,28 +85,22 @@ public class Pokedex
 		//Log into Discord and establish a listener
 		System.out.println("[Pokedex main] Logging into Discord");
 		Optional<String> discordToken = configurator.getAuthToken("discord");
-		Optional<IDiscordClient> discordClient = discordLogin(discordToken, ip);
+		Optional<IDiscordClient> discordClient = discordLogin(discordToken, library, ip, shardIDToManage, totalShards);
 		
 		/**
 		 * CARBONITEX SETUP
+		 * Only the process in charge of the 0th shard should send data to Carbonitex
 		 */
-		System.out.println("[Pokedex main] Setting up and scheduling Carbonitex timer");
-		Optional<String> carbonToken = configurator.getAuthToken("carbonitex");
-		carbonitexLogin(carbonToken, discordClient);
+		if(shardIDToManage == 0)
+		{
+			System.out.println("[Pokedex main] Setting up and scheduling Carbonitex timer");
+			Optional<String> carbonToken = configurator.getAuthToken("carbonitex");
+			carbonitexLogin(carbonToken, discordClient);
+		}
+		
 	}
 	
-	private static IDiscordClient getClient(String token) throws DiscordException
-    {
-		IDiscordClient idc = new ClientBuilder()
-				.setMaxMessageCacheCount(50)
-				.withToken(token)
-				.withRecommendedShardCount()
-				.login();
-		
-        return idc;
-    }
-	
-	private static Optional<IDiscordClient> discordLogin(Optional<String> discordToken, InputProcessor ip)
+	private static Optional<IDiscordClient> discordLogin(Optional<String> discordToken, CommandLibrary library, InputProcessor ip, int shardID, int totalShards)
 	{
 		if(!discordToken.isPresent())
 		{
@@ -102,32 +108,26 @@ public class Pokedex
 			return Optional.empty();
 		}
 		
-		
-		IDiscordClient discordClient = getClient(discordToken.get());
-		DiscordCommandMap dcm = new DiscordCommandMap(createDiscordLibrary());
+		IDiscordClient discordClient = getClient(discordToken.get(), shardID, totalShards);
+		DiscordCommandMap dcm = new DiscordCommandMap(library);
 		DiscordEventHandler deh = new DiscordEventHandler(discordClient, dcm, ip);
 		discordClient.getDispatcher().registerListener(deh);
+		discordClient.login();
 		
 		return Optional.of(discordClient);
 	}
 	
-	private static void twitchLogin(Optional<String> twitchToken, Optional<String> twitchUsername, InputProcessor ip)
-	{
-		if(!twitchToken.isPresent() || !twitchUsername.isPresent())
-		{
-			System.out.println("[Pokedex main] No configuration data found for Twitch application.");
-			return;
-		}
+	private static IDiscordClient getClient(String token, int shardID, int totalShards) throws DiscordException
+    {
+		IDiscordClient idc = new ClientBuilder()
+				.setMaxMessageCacheCount(5)
+				.setMaxReconnectAttempts(5)
+				.withToken(token)
+				.setShard(shardID, totalShards)
+				.build();
 		
-		TwitchClient twitchClient = new TwitchClient(twitchToken.get(), twitchUsername.get());
-		twitchClient.assignCommandMap(new TwitchCommandMap(createTwitchLibrary()));
-		twitchClient.assignInputProcessor(ip);
-		try { twitchClient.connectToChannels(); } 
-		catch (IOException | IrcException e) 
-		{
-			System.out.println("[Pokedex main] Could not log into Twitch with error: "+e.getMessage());
-		}
-	}
+        return idc;
+    }
 	
 	private static void carbonitexLogin(Optional<String> carbonToken, Optional<IDiscordClient> discordClient)
 	{
@@ -214,70 +214,13 @@ public class Pokedex
 	}
 	
 	/**
-	 * A helper function to initialize the command library for Discord services
-	 * @return a CommandLibrary of ICommands that are supported for Discord
-	 */
-	private static CommandLibrary createDiscordLibrary()
-	{
-		CommandLibrary lib = new CommandLibrary();
-		
-		lib.addToLibrary(RandpokeCommand.getInstance(null));
-		lib.addToLibrary(StatsCommand.getInstance(null));
-		lib.addToLibrary(DataCommand.getInstance(null));
-		lib.addToLibrary(AbilityCommand.getInstance(null));
-		lib.addToLibrary(ItemCommand.getInstance(null));
-		lib.addToLibrary(MoveCommand.getInstance(null));
-		lib.addToLibrary(LearnCommand.getInstance(null));
-		lib.addToLibrary(WeakCommand.getInstance(null));
-		lib.addToLibrary(CoverageCommand.getInstance(null));
-		lib.addToLibrary(DexCommand.getInstance(null));
-		lib.addToLibrary(SetCommand.getInstance());
-		lib.addToLibrary(LocationCommand.getInstance(null));
-		lib.addToLibrary(AboutCommand.getInstance());
-		lib.addToLibrary(HelpCommand.getInstance());
-		lib.addToLibrary(DonateCommand.getInstance());
-		lib.addToLibrary(InviteCommand.getInstance());
-		//lib.addToLibrary(ShinyCommand.getInstance(null));
-		
-		lib.addToLibrary(CommandsCommand.getInstance(lib.getLibrary()));
-		
-		return lib;
-	}
-	
-	/**
-	 * A helper function to initialize the command library for Twitch services
-	 * @return a CommandLibrary of ICommands that are supported for Twitch
-	 */
-	private static CommandLibrary createTwitchLibrary()
-	{
-		CommandLibrary lib = new CommandLibrary();
-		
-		lib.addToLibrary(RandpokeCommand.getInstance(null));
-		lib.addToLibrary(StatsCommand.getInstance(null));
-		lib.addToLibrary(DataCommand.getInstance(null));
-		lib.addToLibrary(AbilityCommand.getInstance(null));
-		lib.addToLibrary(ItemCommand.getInstance(null));
-		lib.addToLibrary(MoveCommand.getInstance(null));
-		lib.addToLibrary(LearnCommand.getInstance(null));
-		lib.addToLibrary(WeakCommand.getInstance(null));
-		lib.addToLibrary(CoverageCommand.getInstance(null));
-		lib.addToLibrary(DexCommand.getInstance(null));
-		lib.addToLibrary(AboutCommand.getInstance());
-		lib.addToLibrary(HelpCommand.getInstance());
-		
-		lib.addToLibrary(CommandsCommand.getInstance(lib.getLibrary()));
-		
-		return lib;
-	}
-	
-	/**
 	 * A helper function to initialize the command library with all commands.
 	 * This is used for the InputProcessor. Any commands not included here will 
 	 * not be recognized by the input processor, and therefore will not be
 	 * recognized by any command map.
 	 * @return a CommandLibrary of ICommands that are supported for Discord
 	 */
-	private static CommandLibrary createCompleteLibrary(PokeFlexFactory factory)
+	private static CommandLibrary getCompleteLibrary(PokeFlexFactory factory)
 	{
 		CommandLibrary lib = new CommandLibrary();
 		
@@ -303,5 +246,4 @@ public class Pokedex
 		
 		return lib;
 	}
-	
 }

@@ -10,7 +10,7 @@ import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Type;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseResourcePool;
 import skaro.pokedex.database_resources.SimpleMove;
 import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
@@ -184,7 +184,7 @@ public class CoverageCommand implements ICommand
 		
 		//If argument is a move, get the typing
 		SimpleMove move;
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseResourcePool dbi = DatabaseResourcePool.getInstance();
 		TypeInteractionWrapper wrapper;
 		ArrayList<Type> typeList = new ArrayList<Type>();
 		Type currType = null;

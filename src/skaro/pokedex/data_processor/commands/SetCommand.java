@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseResourcePool;
 import skaro.pokedex.database_resources.Set;
 import skaro.pokedex.database_resources.SetGroup;
 import skaro.pokedex.database_resources.SimplePokemon;
@@ -87,7 +87,7 @@ public class SetCommand implements ICommand
 		
 		//Utility variables
 		String temp;
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseResourcePool dbi = DatabaseResourcePool.getInstance();
 		SetGroup sets = dbi.extractSetsFromDB(input.getArg(0).getDB(),
 					input.getArg(1).getDB(), Integer.parseInt(input.getArg(2).getDB()));
 		SimplePokemon poke = dbi.extractSimplePokeFromDB(input.getArg(0).getDB());

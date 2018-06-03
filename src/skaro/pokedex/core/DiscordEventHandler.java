@@ -26,10 +26,8 @@ import sx.blah.discord.handle.obj.ActivityType;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.handle.obj.StatusType;
-import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RateLimitException;
 import sx.blah.discord.util.RequestBuffer;
 import sx.blah.discord.util.audio.AudioPlayer;
 import sx.blah.discord.util.audio.AudioPlayer.Track;
@@ -91,7 +89,7 @@ public class DiscordEventHandler
 		{
 			responseHandler(event);
 		} 
-		catch(RateLimitException | MissingPermissionsException | DiscordException e) 
+		catch(Exception e) 
 		{
 			System.out.println("[DiscordEventHandler] text event error: "+e);
 		}
@@ -104,7 +102,7 @@ public class DiscordEventHandler
     	{
 			responseHandler(event);
 		}
-    	catch(RateLimitException | MissingPermissionsException | DiscordException e) 
+    	catch(Exception e) 
 		{
 			System.out.println("[DiscordEventHandler] update text event error: "+e);
 		}

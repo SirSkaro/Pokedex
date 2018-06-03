@@ -36,7 +36,7 @@ public class ComplexPokemon
 		String temp;
 		try 
 		{
-			DatabaseInterface dbi = DatabaseInterface.getInstance();
+			DatabaseResourcePool dbi = DatabaseResourcePool.getInstance();
 			
 			//Standard Pokemon data
 			basicData.next();

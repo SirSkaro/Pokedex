@@ -8,7 +8,7 @@ import org.jibble.pircbot.IrcException;
 import org.jibble.pircbot.NickAlreadyInUseException;
 
 import skaro.pokedex.data_processor.TwitchCommandMap;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseResourcePool;
 import skaro.pokedex.database_resources.TwitchChannel;
 import skaro.pokedex.database_resources.TwitchChannelGroup;
 import skaro.pokedex.input_processor.InputProcessor;
@@ -25,7 +25,7 @@ public class TwitchClient
 		token = tok;
 		userName = uName;
 		
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseResourcePool dbi = DatabaseResourcePool.getInstance();
 		TwitchChannelGroup allChannels = dbi.extractAllTwitchChannelsFromDB();
 		
 		if(allChannels.getSuccess().isPresent())

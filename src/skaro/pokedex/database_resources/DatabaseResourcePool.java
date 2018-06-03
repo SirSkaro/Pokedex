@@ -18,13 +18,13 @@ import skaro.pokedex.data_processor.ICommand.ArgumentCategory;
  *
  */
 
-public class DatabaseInterface 
+public class DatabaseResourcePool 
 {
-	private static DatabaseInterface instance;
+	private static DatabaseResourcePool instance;
 	private static Connection con;
 	private static ArrayList<String> metas, types, regions, versions;
 	
-	private DatabaseInterface()
+	private DatabaseResourcePool()
 	{
 		try
 		{  
@@ -75,13 +75,13 @@ public class DatabaseInterface
 		versions.add("ultrasun"); versions.add("ultramoon");
 	}
 	
-	public static DatabaseInterface getInstance()
+	public static DatabaseResourcePool getInstance()
 	{
 		if(instance == null)
 		{
 			try 
 			{
-				instance = new DatabaseInterface();
+				instance = new DatabaseResourcePool();
 			} 
 			catch (Exception e) 
 			{
@@ -97,7 +97,6 @@ public class DatabaseInterface
 		Statement stmt;
 		ResultSet rs;
 		
-		//System.out.println(query);
 		try
 		{
 			stmt = con.createStatement();
@@ -110,37 +109,6 @@ public class DatabaseInterface
 		}  
 		
 		return null;
-	}
-	
-	public int resultSetSize(String query)
-	{
-		try
-		{
-			return dbQuery("SELECT COUNT(*) FROM "+query).getInt(1);
-		}
-		catch (SQLException e) 
-		{ 
-			fatalMessage("Unable to execute query ["+query+"]. Exiting...",e,9); 
-			return 0;
-		}
-	}
-	
-	public int resultSetSize(ResultSet rs)
-	{
-		int result = 0;
-		try
-		{
-			rs.last();
-			result = rs.getRow();
-			rs.first();
-			rs.previous();
-			return result;
-		}
-		catch (SQLException e) 
-		{ 
-			fatalMessage("Unable to count size of ResultSet. Exiting...",e,10); 
-			return 0;
-		}
 	}
 	
 	/**
@@ -176,60 +144,44 @@ public class DatabaseInterface
 		}
 	}
 	
-	public boolean isPokemon(String s)
+	private boolean queryNotEmpty(ResultSet rs)
 	{
-		ResultSet rs = dbQuery("SELECT pid FROM Pokemon WHERE pid = '"+s+"';");
+		boolean result;
 		try 
 		{
-			return (rs.next());
+			result = rs.next();
+			rs.close();
+			return result;
 		} 
 		catch (SQLException e) 
 		{
-			fatalMessage("Unable to check Pokemon resource",e,4);
+			fatalMessage("Unable to check resource",e,4);
 			return false;
 		}
+	}
+	
+	public boolean isPokemon(String s)
+	{
+		ResultSet rs = dbQuery("SELECT pid FROM Pokemon WHERE pid = '"+s+"';");
+		return queryNotEmpty(rs);
 	}
 	
 	public boolean isItem(String s)
 	{
 		ResultSet rs = dbQuery("SELECT iid FROM Item WHERE iid = '"+s+"-i';");
-		try 
-		{
-			return (rs.next());
-		} 
-		catch (SQLException e) 
-		{
-			fatalMessage("Unable to check Item resource",e,5);
-			return false;
-		}
+		return queryNotEmpty(rs);
 	}
 	
 	public boolean isAbility(String s)
 	{
 		ResultSet rs = dbQuery("SELECT aid FROM Ability WHERE aid = '"+s+"-a';");
-		try 
-		{
-			return (rs.next());
-		} 
-		catch (SQLException e) 
-		{
-			fatalMessage("Unable to check Ability resource",e,6);
-			return false;
-		}
+		return queryNotEmpty(rs);
 	}
 	
 	public boolean isMove(String s)
 	{
 		ResultSet rs = dbQuery("SELECT mid FROM Move WHERE mid = '"+s+"-m';");
-		try 
-		{
-			return (rs.next());
-		} 
-		catch (SQLException e) 
-		{
-			fatalMessage("Unable to check Move resource",e,7);
-			return false;
-		}
+		return queryNotEmpty(rs);
 	}
 	
 	public boolean isVersion(String s)

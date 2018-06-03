@@ -7,7 +7,7 @@ import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseResourcePool;
 import skaro.pokedex.database_resources.SimplePokemon;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokeflex.api.Endpoint;
@@ -139,7 +139,7 @@ public class StatsCommand implements ICommand
 			return reply;
 		
 		//Extract data from data base
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseResourcePool dbi = DatabaseResourcePool.getInstance();
 		SimplePokemon poke = dbi.extractSimplePokeFromDB(input.getArg(0).getDB());
 		
 		//If data is null, then an error occurred

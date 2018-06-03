@@ -8,7 +8,7 @@ import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.database_resources.ComplexItem;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseResourcePool;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
@@ -131,7 +131,7 @@ public class ItemCommand implements ICommand
 			return reply;
 		
 		//Extract data from data base
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseResourcePool dbi = DatabaseResourcePool.getInstance();
 		ComplexItem item = dbi.extractComplexItemFromDB(input.getArg(0).getDB()+"-i");
 		
 		//If data is null, then an error occurred

@@ -10,7 +10,7 @@ import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.database_resources.ComplexPokemon;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseResourcePool;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
@@ -454,7 +454,7 @@ public class DataCommand implements ICommand
 			return reply;
 		
 		//Extract data from data base
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseResourcePool dbi = DatabaseResourcePool.getInstance();
 		ComplexPokemon poke = dbi.extractComplexPokeFromDB(input.getArg(0).getDB());
 		
 		//If data is null, then an error occured

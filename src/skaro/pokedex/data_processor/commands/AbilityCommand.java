@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.ColorTracker;
@@ -9,11 +8,10 @@ import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.database_resources.ComplexAbility;
 import skaro.pokedex.database_resources.ComplexPokemon;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseResourcePool;
 import skaro.pokedex.database_resources.SimpleAbility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.ability.Ability;
 import skaro.pokeflex.objects.pokemon.Pokemon;
@@ -99,7 +97,7 @@ public class AbilityCommand implements ICommand
 				reply.addToReply(("**__"+TextFormatter.flexFormToProper(abil.getName())+"__**").intern());
 				reply.setEmbededReply(formatEmbed(abil));
 			} 
-			catch (IOException | PokeFlexException e)  { this.addErrorMessage(reply, "1003a", e); }
+			catch (Exception e)  { this.addErrorMessage(reply, "1003a", e); }
 		}
 		else//if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
 		{
@@ -113,7 +111,7 @@ public class AbilityCommand implements ICommand
 				reply.addToReply(("**__"+TextFormatter.flexFormToProper(pokemon.getName())+"__**").intern());
 				reply.setEmbededReply(formatEmbed(pokemon));
 			}
-			catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1003b", e); }
+			catch (Exception e) { this.addErrorMessage(reply, "1003b", e); }
 		}
 		
 		return reply;
@@ -164,7 +162,7 @@ public class AbilityCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 				
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseResourcePool dbi = DatabaseResourcePool.getInstance();
 		
 		//Extract data from data base
 		if(input.getArg(0).getCategory() == ArgumentCategory.ABILITY)

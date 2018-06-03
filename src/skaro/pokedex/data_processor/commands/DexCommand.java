@@ -10,7 +10,7 @@ import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TTSConverter;
 import skaro.pokedex.data_processor.TextFormatter;
-import skaro.pokedex.database_resources.DatabaseInterface;
+import skaro.pokedex.database_resources.DatabaseResourcePool;
 import skaro.pokedex.database_resources.PokedexEntry;
 import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
@@ -169,7 +169,7 @@ public class DexCommand implements ICommand
 			return reply;
 		
 		//Utility variables
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
+		DatabaseResourcePool dbi = DatabaseResourcePool.getInstance();
 		PokedexEntry entry = dbi.extractDexEntryFromDB(input.getArg(0).getDB(), input.getArg(1).getDB());
 		
 		if(entry.getSpecies() == null)
