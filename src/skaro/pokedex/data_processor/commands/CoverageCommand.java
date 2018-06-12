@@ -5,15 +5,13 @@ import java.util.List;
 import java.util.Optional;
 
 import skaro.pokedex.data_processor.ColorTracker;
-import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Type;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
-import skaro.pokedex.database_resources.DatabaseInterface;
-import skaro.pokedex.database_resources.SimpleMove;
-import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -25,7 +23,7 @@ import sx.blah.discord.util.EmbedBuilder;
 public class CoverageCommand implements ICommand 
 {
 	private static CoverageCommand instance;
-	private static Integer[] expectedArgRange;
+	private static ArgumentRange expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
 	private static PokeFlexFactory factory;
@@ -35,7 +33,7 @@ public class CoverageCommand implements ICommand
 		commandName = "coverage".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.MOVE_TYPE_LIST);
-		expectedArgRange = new Integer[]{1,4};
+		expectedArgRange = new ArgumentRange(1,4);
 		factory = pff;
 	}
 	
@@ -48,7 +46,7 @@ public class CoverageCommand implements ICommand
 		return instance;
 	}
 	
-	public Integer[] getExpectedArgNum() { return expectedArgRange; }
+	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	
@@ -63,15 +61,15 @@ public class CoverageCommand implements ICommand
 		{
 			switch(input.getError())
 			{
-				case 1:
+				case ARGUMENT_NUMBER:
 					reply.addToReply("You must specify between 1 to 4 Types or Moves as input for this command "
 							+ "(seperated by commas).");
 				break;
-				case 2:
+				case INVALID_ARGUMENT:
 					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(Argument arg : input.getArgs())
+					for(AbstractArgument arg : input.getArgs())
 						if(!arg.isValid())
-							reply.addToReply("\t\""+arg.getRaw()+"\" is not a recognized Type or Move.");
+							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized Type or Move.");
 					reply.addToReply("\n*top suggestion*: did you include commas between inputs?");
 				break;
 				default:
@@ -99,9 +97,9 @@ public class CoverageCommand implements ICommand
 		for(int i = 0; i < input.getArgs().size(); i++)
 		{
 			if(input.getArg(i).getCategory() == ArgumentCategory.TYPE)
-				typeList.add(Type.getByName(input.getArg(i).getDB()));
+				typeList.add(Type.getByName(input.getArg(i).getDbForm()));
 			else	//Category is ArgumentCategory.MOVE
-				moveNames.add(input.getArg(i).getFlex());
+				moveNames.add(input.getArg(i).getFlexForm());
 		}
 		
 		//If the user included Moves in their input, then request the Move's data from the FlexAPI
@@ -172,54 +170,6 @@ public class CoverageCommand implements ICommand
 		}
 		
 		return factory.createFlexObjects(requests);
-	}
-	
-	public Response twitchReply(Input input)
-	{ 
-		Response reply = new Response();
-		
-		//Check if input is valid
-		if(!inputIsValid(reply, input))
-			return reply;
-		
-		//If argument is a move, get the typing
-		SimpleMove move;
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		TypeInteractionWrapper wrapper;
-		ArrayList<Type> typeList = new ArrayList<Type>();
-		Type currType = null;
-		
-		for(int i = 0; i < input.getArgs().size(); i++)
-		{
-			if(input.getArg(i).getCategory() == ArgumentCategory.TYPE)
-				currType = Type.getByName(input.getArg(i).getDB());
-			else	//Category is ArgumentCategory.MOVE
-			{
-				move = dbi.extractSimpleMoveFromDB(input.getArg(i).getDB()+"-m");
-				
-				//If data is null, then an error occurred
-				if(move.getName() == null)
-				{
-					reply.addToReply("A technical error occured (code 1009). Please report this (twitter.com/sirskaro))");
-					return reply;
-				}
-				
-				currType = Type.getByName(move.getType());
-			}
-			
-			typeList.add(currType);
-		}
-		
-		wrapper = TypeTracker.onOffense(typeList);
-		
-		//Build reply
-		reply.addToReply("*"+wrapper.typesToString()+"*");
-		reply.addToReply("Super Effective:"+getList(wrapper, 2.0));
-		reply.addToReply("Neutral:"+getList(wrapper, 1.0));
-		reply.addToReply("Resistant:"+getList(wrapper, 0.25));
-		reply.addToReply("Immune:"+getList(wrapper, 0.0));
-		
-		return reply;
 	}
 	
 	private String getList(TypeInteractionWrapper wrapper, double mult)

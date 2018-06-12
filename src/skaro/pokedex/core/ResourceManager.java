@@ -1,4 +1,4 @@
-package skaro.pokedex.database_resources;
+package skaro.pokedex.core;
 
 import java.io.InputStream;
 

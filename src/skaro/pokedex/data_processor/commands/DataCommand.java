@@ -6,12 +6,10 @@ import java.util.Collections;
 import java.util.List;
 
 import skaro.pokedex.data_processor.ColorTracker;
-import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
-import skaro.pokedex.database_resources.ComplexPokemon;
-import skaro.pokedex.database_resources.DatabaseInterface;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -25,13 +23,14 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon.Type;
 import skaro.pokeflex.objects.pokemon_species.EggGroup;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
+import skaro.pokeflex.objects.pokemon_species.Variety;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class DataCommand implements ICommand 
 {
 	private static DataCommand instance;
-	private static Integer[] expectedArgRange;
+	private static ArgumentRange expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
 	private static PokeFlexFactory factory;
@@ -41,7 +40,7 @@ public class DataCommand implements ICommand
 		commandName = "data".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
-		expectedArgRange = new Integer[]{1,1};
+		expectedArgRange = new ArgumentRange(1,1);
 		factory = pff;
 	}
 	
@@ -54,7 +53,7 @@ public class DataCommand implements ICommand
 		return instance;
 	}
 	
-	public Integer[] getExpectedArgNum() { return expectedArgRange; }
+	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 
@@ -69,11 +68,11 @@ public class DataCommand implements ICommand
 		{
 			switch(input.getError())
 			{
-				case 1:
+				case ARGUMENT_NUMBER:
 					reply.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
 				break;
-				case 2:
-					reply.addToReply("\""+input.getArg(0).getRaw() +"\" is not a recognized Pokemon.");
+				case INVALID_ARGUMENT:
+					reply.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Pokemon.");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 102)");
@@ -102,16 +101,24 @@ public class DataCommand implements ICommand
 		catch (InterruptedException | PokeFlexException e) 
 		{
 			this.addErrorMessage(reply, "1002a", e);
+			reply.addToReply("Your request may have timed out. Please try again later!");
 			return reply;
 		}
 		
 		//Obtain peripheral data
 		List<Object> peripheralData;
+		PokemonSpecies speciesData;
 		try 
 		{
 			peripheralData = getPeripheralData(pokemon);
+			speciesData = PokemonSpecies.class.cast(getDataOfInstance(peripheralData, PokemonSpecies.class));
 		}
-		catch(Exception e) 
+		catch(PokeFlexException | IOException e)
+		{
+			reply.addToReply("Your request may have timed out. Please try again later!");
+			return reply;
+		}
+		catch(Exception e)
 		{
 			this.addErrorMessage(reply, "1002b", e);
 			return reply;
@@ -120,7 +127,8 @@ public class DataCommand implements ICommand
 		//Format reply
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
-		reply.addToReply("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+"__**");
+		reply.addToReply("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+" | #" + Integer.toString(speciesData.getId()) 
+			+ " | " + TextFormatter.formatGeneration(speciesData.getGeneration().getName()) + "__**");
 		reply.setEmbededReply(formatEmbed(pokemon, peripheralData));
 				
 		return reply;
@@ -135,15 +143,19 @@ public class DataCommand implements ICommand
 		
 		//Format base data - Pokemon
 		builder.appendField("Base Stats", formatBaseStats(extractStats(pokemon)), true);
-		builder.appendField("Typing", listToItemizedDiscordString(extractTyping(pokemon)), true);
-		builder.appendField("Abilities", listToItemizedDiscordString(extractAbilities(pokemon)), true);
-		builder.appendField("National Dex Num", Integer.toString(speciesData.getId()), true);
-		builder.appendField("Height", pokemon.getHeight()/10.0 + " m", true);
-		builder.appendField("Weight", pokemon.getWeight()/10.0 + " kg", true);
+		builder.appendField("Typing", listToItemizedString(extractTyping(pokemon)), true);
+		builder.appendField("Abilities", listToItemizedString(extractAbilities(pokemon)), true);
+		builder.appendField("Height & Weight", pokemon.getHeight()/10.0 + " m*/* " + pokemon.getWeight()/10.0 + " kg", true);
+		builder.appendField("EV Yield", formatEvYield(extractEvYield(pokemon)), true);
 		
 		//Format base data - PokemonSpecies
+		builder.appendField("Growth & Capture Rates", TextFormatter.flexFormToProper(speciesData.getGrowthRate().getName()) 
+				+ "*/* "+ Integer.toString(speciesData.getCaptureRate()), true);
 		builder.appendField("Gender Ratio", formatGenderRatio(speciesData), true);
-		builder.appendField("Egg Groups",listToItemizedDiscordString(formatEggGroup(speciesData)), true);
+		builder.appendField("Egg Groups",listToItemizedString(formatEggGroup(speciesData)), true);
+		builder.appendField("Hatch Time", calcHatchTime(speciesData.getHatchCounter()) + "~ steps" , true);
+		if(hasVarieties(speciesData))
+			builder.appendField("Forms", formatVarieties(speciesData.getVarieties()), true);
 		
 		//Format peripheral data - Evolution Chain
 		if(!isOnlyEvolution(evolutionData))
@@ -193,7 +205,15 @@ public class DataCommand implements ICommand
 		for(Ability ability : abilities)
 			result.add(TextFormatter.flexFormToProper(ability.getAbility().getName()));
 		
+		//Reverse the order
+		Collections.reverse(result);
+		
 		return result;
+	}
+	
+	private int calcHatchTime(int hatchCounter)
+	{
+		return (hatchCounter + 1) * 255;
 	}
 	
 	private String formatBaseStats(int[] stats)
@@ -206,6 +226,23 @@ public class DataCommand implements ICommand
 				+ "\n__`"+ names2+"`__\n`"+stats2+"`";
 		
 		return baseStats;
+	}
+	
+	private String formatEvYield(int[] stats)
+	{
+		String statName[] = {"HP", "Atk", "Def", "Sp.Atk", "Sp.Def", "Spe"}; 
+		StringBuilder builder = new StringBuilder();
+		
+		for(int itr = 0; itr < 6; itr++)
+			if(stats[itr] != 0)
+				builder.append(stats[itr] + " " + statName[itr] + "*/* ");
+		
+		return builder.substring(0, builder.length() - 4);
+	}
+	
+	private boolean hasVarieties(PokemonSpecies speciesData)
+	{
+		return speciesData.getVarieties().size() > 1;
 	}
 	
 	private boolean isOnlyEvolution(EvolutionChain evolutionData)
@@ -309,7 +346,7 @@ public class DataCommand implements ICommand
 			if(detail.isTurnUpsideDown())
 				builder.append("Turn 3DS upside down & ");
 			if(detail.getItem() != null)
-				builder.append("Use "+TextFormatter.flexFormToProper(detail.getItem().getName()) +" & ");
+				builder.append(TextFormatter.flexFormToProper(detail.getItem().getName()) +" & ");
 			if(detail.getKnownMoveType() != null)
 				builder.append("Know "+ TextFormatter.flexFormToProper(detail.getKnownMoveType().getName()) +"-type move & ");
 			if(detail.getMinAffection() != 0)
@@ -335,6 +372,16 @@ public class DataCommand implements ICommand
 		}
 		
 		return builder.toString();
+	}
+	
+	private String formatVarieties(List<Variety> varieties)
+	{
+		List<String> resultList = new ArrayList<String>();
+		
+		for(Variety variety : varieties)
+			resultList.add(TextFormatter.flexFormToProper(variety.getPokemon().getName()));
+		
+		return listToItemizedString(resultList);
 	}
 	
 	private List<EvolutionDetail> extractEvolutionDetailsRecursive(List<EvolvesTo> evoTo, String thisPokemon, List<EvolutionDetail> result)
@@ -429,7 +476,6 @@ public class DataCommand implements ICommand
 	{
 		List<Request> requests = new ArrayList<Request>();
 		requests.add(new Request(Endpoint.POKEMON, urlParameters));
-		requests.add(new Request(Endpoint.POKEMON_FORM, urlParameters));
 		
 		return factory.createFlexObjects(requests);
 	}
@@ -444,47 +490,13 @@ public class DataCommand implements ICommand
 		return stats;
 	}
 	
-	@Override
-	public Response twitchReply(Input input) 
+	private int[] extractEvYield(Pokemon pokemon)
 	{
-		Response reply = new Response();
-		
-		//Check if input is valid
-		if(!inputIsValid(reply, input))
-			return reply;
-		
-		//Extract data from data base
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		ComplexPokemon poke = dbi.extractComplexPokeFromDB(input.getArg(0).getDB());
-		
-		//If data is null, then an error occured
-		if(poke.getSpecies() == null)
-		{
-			reply.addToReply("A technical error occured (code 1002). Please report this (twitter.com/sirskaro))");
-			return reply;
-		}
-		
-		int stats[] = poke.getStats();
-		
-		//Organize the data and add it to the reply
-		reply.addToReply("*"+poke.getSpecies()+"*");
-		
-		reply.addToReply("Base Stats:"+stats[0]+"/"+stats[1]+"/" +stats[2]+"/"+stats[3]+"/"
-				+stats[4]+"/"+stats[5]);
-		reply.addToReply("Abilities:"+listToItemizedTwitchString(poke.getAbilities()));
-		reply.addToReply("Dex Num:"+poke.getDexNum());
-		reply.addToReply("Typing:"+ 
-				(poke.getType2() == null ? poke.getType1() : poke.getType1()+"/"+poke.getType2()));
-		reply.addToReply("Height:"+poke.getHeight() + "m");
-		reply.addToReply("Weight:"+poke.getWeight() + "kg");
-		reply.addToReply("Gender Ratio:" + poke.getTwitchGenderRatio());
-		reply.addToReply("Egg Groups:"+ listToItemizedTwitchString(poke.getEggGroups()));
-		if(poke.getEvolutions() != null)
-		{
-			reply.addToReply("Evolutions:"+ listToItemizedTwitchString(poke.getEvolutions()));
-			reply.addToReply("Evolution Level:"+poke.getEvoLevel());
-		}
+		int[] stats = new int[6];
 				
-		return reply;
+		for(int i = 0; i < 6; i++)
+			stats[5-i] = pokemon.getStats().get(i).getEffort();
+		
+		return stats;
 	}
 }

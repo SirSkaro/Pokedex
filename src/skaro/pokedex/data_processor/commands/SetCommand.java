@@ -1,46 +1,52 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Optional;
 
-import skaro.pokedex.data_processor.ColorTracker;
-import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.database_resources.DatabaseInterface;
-import skaro.pokedex.database_resources.Set;
-import skaro.pokedex.database_resources.SetGroup;
-import skaro.pokedex.database_resources.SimplePokemon;
-import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.PokeFlexException;
+import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.objects.set.Evs;
+import skaro.pokeflex.objects.set.Ivs;
+import skaro.pokeflex.objects.set.Set;
+import skaro.pokeflex.objects.set.Set_;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class SetCommand implements ICommand 
 {
-
 	private static SetCommand instance;
-	private static Integer[] expectedArgRange;
+	private static ArgumentRange expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
+	private static PokeFlexFactory factory;
 	
-	private SetCommand()
+	private SetCommand(PokeFlexFactory pff)
 	{
 		commandName = "set".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.META);
 		argCats.add(ArgumentCategory.GEN);
-		expectedArgRange = new Integer[]{3,3};
+		expectedArgRange = new ArgumentRange(3,3);
+		factory = pff;
 	}
 	
-	public static ICommand getInstance()
+	public static ICommand getInstance(PokeFlexFactory pff)
 	{
 		if(instance != null)
 			return instance;
 
-		instance = new SetCommand();
+		instance = new SetCommand(pff);
 		return instance;
 	}
 	
-	public Integer[] getExpectedArgNum() { return expectedArgRange; }
+	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	
@@ -55,15 +61,15 @@ public class SetCommand implements ICommand
 		{
 			switch(input.getError())
 			{
-				case 1:
+				case ARGUMENT_NUMBER:
 					reply.addToReply("You must specify a Pokemon, a Meta, and a Generation as input for this command "
 							+ "(seperated by commas).");
 				break;
-				case 2:
+				case INVALID_ARGUMENT:
 					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(Argument arg : input.getArgs())
+					for(AbstractArgument arg : input.getArgs())
 						if(!arg.isValid())
-							reply.addToReply("\t\""+arg.getRaw()+"\" is not a recognized "+ arg.getCategory());
+							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
 					reply.addToReply("\n*top suggestion*: Only Smogon and VGC metas are supported, and not updated for gen 7. "
 							+ "Try an official tier or gens 1-6?");
 				break;
@@ -85,67 +91,111 @@ public class SetCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 		
-		//Utility variables
-		String temp;
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		SetGroup sets = dbi.extractSetsFromDB(input.getArg(0).getDB(),
-					input.getArg(1).getDB(), Integer.parseInt(input.getArg(2).getDB()));
-		SimplePokemon poke = dbi.extractSimplePokeFromDB(input.getArg(0).getDB());
-		EmbedBuilder eBuilder = new EmbedBuilder();	
-		StringBuilder sBuilder;
-		eBuilder.setLenient(true);
-		
-		
-		if(sets.getSets().isEmpty())
+		//Obtain data
+		try 
 		{
-			reply.addToReply(sets.getSpecies()+" does not have a standard moveset in "
-					+ input.getArg(1).getRaw()+" in Gen " +input.getArg(2).getRaw());
-			return reply;
-		}
-		
-		//Populate reply
-		reply.addToReply("__**"+sets.getTier()+"** sets for **"+sets.getSpecies()+"** "
-				+ "in Generation **"+sets.getGen()+"**__");
-	
-		for(Set currSet : sets.getSets())
-		{
-			sBuilder = new StringBuilder();
-			sBuilder.append(sets.getSpecies() 					//Name and Item
-						+ (currSet.getItem() != null ? " @ "+ currSet.getItem() : "" )
-						+ "\n");
-			if(currSet.getAbility() != null)					//Ability
-				sBuilder.append("Ability: "+currSet.getAbility() + "\n"); 
+			Object flexObj = factory.createFlexObject(Endpoint.SET, input.argsAsList());
+			Set sets = Set.class.cast(flexObj);
 			
-			if((temp = currSet.evsToString()) != null)			//EVs
-				sBuilder.append("EVs: "+temp + "\n");
-			
-			if(currSet.getNature() != null)						//Nature
-				sBuilder.append(currSet.getNature()+" Nature\n");
-			
-			if((temp = currSet.ivsToString()) != null)			//IVs
-				sBuilder.append("IVs: "+temp+"\n");
-			
-			sBuilder.append("- "+currSet.getMove1()+"\n");			//Moves
-			if(currSet.getMove2() != null)
-				sBuilder.append("- "+currSet.getMove2()+"\n");
-			if(currSet.getMove3() != null)
-				sBuilder.append("- "+currSet.getMove3()+"\n");
-			if(currSet.getMove4() != null)
-				sBuilder.append("- "+currSet.getMove4()+"\n");
-			
-			eBuilder.appendField("\"*"+currSet.getTitle()+"*\"", sBuilder.toString(), true);
-			
-		}
-		
-		eBuilder.withColor(ColorTracker.getColorForType(poke.getType1()));
-		eBuilder.withFooterText("You can learn more about these sets at Smogon's competitive Pokedex:\n"+sets.getURL());
-		reply.setEmbededReply(eBuilder.build());
+			//Format reply
+			reply.addToReply(("__**"+sets.getTier()+"** sets for **"+sets.getName()+"** from Generation **"+sets.getGen()+"**__").intern());
+			reply.setEmbededReply(formatEmbed(sets));
+		} 
+		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1007", e); }
 		
 		return reply;
 	}
 	
-	public Response twitchReply(Input input)
-	{ 
-		return null;
+	private EmbedObject formatEmbed(Set sets)
+	{
+		EmbedBuilder builder = new EmbedBuilder();
+		builder.setLenient(true);
+		
+		for(Set_ set : sets.getSets())
+			builder.appendField(set.getTitle(), setToString(sets.getName(), set), true);
+		
+		builder.withFooterText("You can learn more about these sets at Smogon's competitive Pokedex: "+sets.getUrl());
+		
+		return builder.build();
+	}
+	
+	private String setToString(String name, Set_ set)
+	{
+		StringBuilder builder = new StringBuilder();
+		Optional<String> evs = evsToString(set.getEvs());
+		Optional<String> ivs = ivsToString(set.getIvs());
+		
+		builder.append(name);
+		if(set.getItem() != null)
+			builder.append(" @ "+set.getItem());
+		
+		if(set.getAbility() != null)
+			builder.append("\nAbility: "+set.getAbility());
+		
+		if(evs.isPresent())
+			builder.append("\nEVs: "+evs.get());
+		
+		if(set.getNature() != null)
+			builder.append("\n"+ set.getNature() +" Nature");
+		
+		if(ivs.isPresent())
+			builder.append("\nIVs: "+ivs.get());
+		
+		for(String move : set.getMoves())
+			builder.append("\n- "+move);
+		
+		
+		return builder.toString();
+	}
+	
+	private Optional<String> evsToString(Evs evs)
+	{
+		StringBuilder builder = new StringBuilder();
+		
+		if(evs.getHp() != 0)
+			builder.append(evs.getHp() + " HP/ ");
+		if(evs.getAtk() != 0)
+			builder.append(evs.getAtk() + " Atk/ ");
+		if(evs.getDef() != 0)
+			builder.append(evs.getDef() + " Def/ ");
+		if(evs.getSpatk() != 0)
+			builder.append(evs.getSpatk() + " SpA/ ");
+		if(evs.getSpdef() != 0)
+			builder.append(evs.getSpdef() + " SpD/ ");
+		if(evs.getSpd() != 0)
+			builder.append(evs.getSpd() + " Spe/ ");
+		
+		if(builder.length() == 0)
+			return Optional.empty();
+		
+		return Optional.of(builder.substring(0, builder.length() - 2));
+	}
+	
+	private Optional<String> ivsToString(Ivs ivs)
+	{
+		StringBuilder builder = new StringBuilder();
+		
+		if(ivs.getHp() == 0 && ivs.getAtk() == 0
+				&& ivs.getDef() == 0 && ivs.getSpatk() == 0
+				&& ivs.getSpdef() == 0 && ivs.getSpd() == 0)
+			return Optional.empty();
+		
+		if(ivs.getHp() != 31)
+			builder.append(ivs.getHp() + " HP/ ");
+		if(ivs.getAtk() != 31)
+			builder.append(ivs.getAtk() + " Atk/ ");
+		if(ivs.getDef() != 31)
+			builder.append(ivs.getDef() + " Def/ ");
+		if(ivs.getSpatk() != 31)
+			builder.append(ivs.getSpatk() + " SpA/ ");
+		if(ivs.getSpdef() != 31)
+			builder.append(ivs.getSpdef() + " SpD/ ");
+		if(ivs.getSpd() != 31)
+			builder.append(ivs.getSpd() + " Spe/ ");
+		
+		if(builder.length() == 0)
+			return Optional.empty();
+		
+		return Optional.of(builder.substring(0, builder.length() - 2));
 	}
 }

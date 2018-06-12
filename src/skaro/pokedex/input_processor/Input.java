@@ -2,50 +2,48 @@ package skaro.pokedex.input_processor;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
+
+import skaro.pokedex.input_processor.arguments.AbstractArgument;
 
 public class Input 
 {
-	private ArrayList<Argument> args;
+	private List<AbstractArgument> args;
 	private String function;
-	private boolean valid;
-	private int errorCode;	//0 = no error, 1 = mismatch argument number, 2 = some invalid argument
+	private InputErrorStatus errorStatus;	//0 = no error, 1 = mismatch argument number, 2 = some invalid argument
 	
 	public Input(String func)
 	{
-		args = new ArrayList<Argument>();
-		valid = true;		//assumed input is valid until proven false
+		args = new ArrayList<AbstractArgument>();
 		function = func;
-		errorCode = 0;
+		errorStatus = InputErrorStatus.NO_ERROR;
 	}
 	
 	//Get and Set methods
-	public ArrayList<Argument> getArgs() { return args; }
+	public List<AbstractArgument> getArgs() { return args; }
 	public String getFunction() { return function; }
-	public boolean isValid() { return valid; }
-	public int getError() { return errorCode; }
+	public boolean isValid() { return errorStatus == InputErrorStatus.NO_ERROR; }
+	public InputErrorStatus getError() { return errorStatus; }
 	
 	public void setFunction(String function) { this.function = function; }
-	public void setValid(boolean b) { this.valid = b; }
-	public void setError(int i) {this.errorCode = i; }
+	public void setErrorStatus(InputErrorStatus status) {this.errorStatus = status; }
 	
-	//Utility methods
-	public void addArg(Argument arg)
+	//Utility methods	
+	public void addArgs(List<AbstractArgument> list)
 	{
-		args.add(arg);
+		args.addAll(list);
 	}
 	
-	public Argument getArg(int index)
+	public AbstractArgument getArg(int index)
 	{
-		if(index > -1 && index < args.size())
-			return args.get(index);
-		return null;
+		return args.get(index);
 	}
 	
 	public LinkedList<String> argsAsList()
 	{
 		LinkedList<String> list = new LinkedList<String>();
-		for(Argument arg : args)
-			list.add(arg.getFlex());
+		for(AbstractArgument arg : args)
+			list.add(arg.getFlexForm());
 		
 		return list;
 	}
