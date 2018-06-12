@@ -6,14 +6,11 @@ import java.util.List;
 import java.util.Optional;
 
 import skaro.pokedex.data_processor.ColorTracker;
-import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
-import skaro.pokedex.database_resources.DatabaseResourcePool;
-import skaro.pokedex.database_resources.SimpleMove;
-import skaro.pokedex.database_resources.SimplePokemon;
-import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -26,7 +23,7 @@ import sx.blah.discord.util.EmbedBuilder;
 public class LearnCommand implements ICommand 
 {
 	private static LearnCommand instance;
-	private static Integer[] expectedArgRange;
+	private static ArgumentRange expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
 	private static PokeFlexFactory factory;
@@ -37,7 +34,7 @@ public class LearnCommand implements ICommand
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.MOVE_LIST);
-		expectedArgRange = new Integer[]{2,21};
+		expectedArgRange = new ArgumentRange(2,21);
 		factory = pff;
 	}
 	
@@ -50,7 +47,7 @@ public class LearnCommand implements ICommand
 		return instance;
 	}
 	
-	public Integer[] getExpectedArgNum() { return expectedArgRange; }
+	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	
@@ -59,13 +56,14 @@ public class LearnCommand implements ICommand
 		return "[pokemon name], [move,move,...,move]";
 	}
 	
+	@SuppressWarnings("incomplete-switch")
 	public boolean inputIsValid(Response reply, Input input)
 	{
 		if(!input.isValid())
 		{
 			switch(input.getError())
 			{
-				case 1:
+				case ARGUMENT_NUMBER:
 					reply.addToReply("You must specify 1 Pokemon and 1 to 20 Moves as input for this command "
 							+ "(seperated by commas).");
 				return false;	
@@ -75,7 +73,7 @@ public class LearnCommand implements ICommand
 			//the Pokemon is valid but allow other arguments to go unchecked
 			if(!input.getArg(0).isValid())
 			{
-				reply.addToReply("\""+input.getArg(0).getRaw()+"\" is not a recognized Pokemon.");
+				reply.addToReply("\""+input.getArg(0).getRawInput()+"\" is not a recognized Pokemon.");
 				return false;
 			}
 		}
@@ -93,10 +91,10 @@ public class LearnCommand implements ICommand
 		
 		//Organize input
 		List<String> urlParams = new ArrayList<String>();
-		urlParams.add(input.getArg(0).getFlex());
+		urlParams.add(input.getArg(0).getFlexForm());
 		
-		List<String> moves = new ArrayList<String>();
-		moves.addAll(input.argsAsList());
+		List<AbstractArgument> moves = new ArrayList<AbstractArgument>();
+		moves.addAll(input.getArgs());
 		moves.remove(0);	//remove the name of the Pokemon
 		
 		//Obtain data
@@ -114,19 +112,26 @@ public class LearnCommand implements ICommand
 		return reply;
 	}
 	
-	private EmbedObject formatEmbed(Pokemon pokemon, List<String> movesToCheckFor)
+	private EmbedObject formatEmbed(Pokemon pokemon, List<AbstractArgument> movesToCheckFor)
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setLenient(true);
 		List<Move> allLearnableMoves = pokemon.getMoves();
 		
-		for(String move : movesToCheckFor)
+		for(AbstractArgument moveToCheck : movesToCheckFor)
 		{
-			Optional<Move> moveCheck = getMove(allLearnableMoves, move);
+			if(moveToCheck.getFlexForm() == null)
+			{
+				builder.appendField(TextFormatter.flexFormToProper(moveToCheck.getRawInput()), 
+						"not recognized", true);
+				continue;
+			}
+			
+			Optional<Move> moveCheck = getMove(allLearnableMoves, moveToCheck.getFlexForm());
 			
 			if(!moveCheck.isPresent())
 			{
-				builder.appendField(TextFormatter.flexFormToProper(move), 
+				builder.appendField(TextFormatter.flexFormToProper(moveToCheck.getFlexForm()), 
 						"*not able*", true);
 			}
 			else
@@ -171,47 +176,5 @@ public class LearnCommand implements ICommand
 				return Optional.of(move);
 		
 		return Optional.empty();
-	}
-	
-	public Response twitchReply(Input input)
-	{ 
-		Response reply = new Response();
-		
-		//Check if input is valid
-		if(!inputIsValid(reply, input))
-			return reply;
-		
-		DatabaseResourcePool dbi = DatabaseResourcePool.getInstance();
-		SimplePokemon poke = dbi.extractSimplePokeFromDB(input.getArg(0).getDB());
-		
-		//If data is null, then an error occurred
-		if(poke.getSpecies() == null)
-		{
-			reply.addToReply("A technical error occured (code 1007). Please report this (twitter.com/sirskaro))");
-			return reply;
-		}
-		
-		Argument moveArg;
-		String dbMove;
-		SimpleMove sMove;
-		
-		reply.addToReply("*"+poke.getSpecies()+"*");
-		for(int i = 1; i < input.getArgs().size(); i++)
-		{
-			moveArg = input.getArg(i);
-			if(moveArg.isValid())
-			{
-				dbMove = moveArg.getDB()+"-m";
-				sMove = dbi.extractSimpleMoveFromDB(dbMove);
-				reply.addToReply(sMove.getName()+":"
-						+(dbi.inMoveSet(dbMove, input.getArg(0).getDB()) ? "able" : "not able"));
-			}
-			else
-			{
-				reply.addToReply(moveArg.getRaw()+ ":not recognized");
-			}
-		}
-		
-		return reply;
 	}
 }

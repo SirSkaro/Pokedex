@@ -6,13 +6,13 @@ import java.util.List;
 import java.util.Optional;
 
 import skaro.pokedex.data_processor.ColorTracker;
-import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Type;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
-import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -23,7 +23,7 @@ import sx.blah.discord.util.EmbedBuilder;
 public class WeakCommand implements ICommand 
 {
 	private static WeakCommand instance;
-	private static Integer[] expectedArgRange;
+	private static ArgumentRange expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
 	private static PokeFlexFactory factory;
@@ -33,7 +33,7 @@ public class WeakCommand implements ICommand
 		commandName = "weak".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKE_TYPE_LIST);
-		expectedArgRange = new Integer[]{1,2};
+		expectedArgRange = new ArgumentRange(1,2);
 		factory = pff;
 	}
 	
@@ -46,7 +46,7 @@ public class WeakCommand implements ICommand
 		return instance;
 	}
 	
-	public Integer[] getExpectedArgNum() { return expectedArgRange; }
+	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	
@@ -61,15 +61,15 @@ public class WeakCommand implements ICommand
 		{
 			switch(input.getError())
 			{
-				case 1:
+				case ARGUMENT_NUMBER:
 					reply.addToReply("You must specify 1 Pokemon or between 1 and 2 Types (seperated by commas) "
 							+ "as input for this command.");
 				break;
-				case 2:
+				case INVALID_ARGUMENT:
 					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(Argument arg : input.getArgs())
+					for(AbstractArgument arg : input.getArgs())
 						if(!arg.isValid())
-							reply.addToReply("\t\""+arg.getRaw()+"\" is not a recognized "+ arg.getCategory());
+							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
 					reply.addToReply("\n*top suggestion*: did you include commas between inputs?");
 				break;
 				default:
@@ -116,9 +116,9 @@ public class WeakCommand implements ICommand
 		}
 		else //argument is a list of Types
 		{
-			type1 = Type.getByName(input.getArg(0).getDB());
+			type1 = Type.getByName(input.getArg(0).getDbForm());
 			if(input.getArgs().size() > 1)
-				type2 = Type.getByName(input.getArg(1).getDB());
+				type2 = Type.getByName(input.getArg(1).getDbForm());
 		}
 		
 		header.append("**__"+type1.toProperName());

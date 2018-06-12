@@ -8,7 +8,7 @@ import java.sql.Statement;
 import java.util.Optional;
 
 import skaro.pokedex.core.Configurator;
-import skaro.pokedex.data_processor.ICommand.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 
 public class MySQLManager 
 {

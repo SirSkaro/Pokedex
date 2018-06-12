@@ -8,11 +8,11 @@ import java.util.Optional;
 import java.util.Set;
 
 import skaro.pokedex.data_processor.ColorTracker;
-import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
-import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -28,7 +28,7 @@ import sx.blah.discord.util.EmbedBuilder;
 public class LocationCommand implements ICommand 
 {
 	private static LocationCommand instance;
-	private static Integer[] expectedArgRange;
+	private static ArgumentRange expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
 	private static PokeFlexFactory factory;
@@ -39,7 +39,7 @@ public class LocationCommand implements ICommand
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.VERSION);
-		expectedArgRange = new Integer[]{2,2};
+		expectedArgRange = new ArgumentRange(2,2);
 		factory = pff;
 	}
 	
@@ -52,7 +52,7 @@ public class LocationCommand implements ICommand
 		return instance;
 	}
 	
-	public Integer[] getExpectedArgNum() { return expectedArgRange; }
+	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	
@@ -67,15 +67,15 @@ public class LocationCommand implements ICommand
 		{
 			switch(input.getError())
 			{
-				case 1:
+				case ARGUMENT_NUMBER:
 					reply.addToReply("You must specify a Pokemon and a Version as input for this command "
 							+ "(seperated by commas).");
 				break;
-				case 2:
+				case INVALID_ARGUMENT:
 					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(Argument arg : input.getArgs())
+					for(AbstractArgument arg : input.getArgs())
 						if(!arg.isValid())
-							reply.addToReply("\t\""+arg.getRaw()+"\" is not a recognized "+ arg.getCategory());
+							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
 					reply.addToReply("\n*top suggestion*: Not updated for gen7. Try versions from gens 1-6?");
 				break;
 				default:
@@ -103,7 +103,7 @@ public class LocationCommand implements ICommand
 		{
 			//Obtain Pokemon data
 			List<String> urlParams = new ArrayList<String>();
-			urlParams.add(input.getArg(0).getFlex());
+			urlParams.add(input.getArg(0).getFlexForm());
 			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, urlParams);
 			pokemon = Pokemon.class.cast(flexObj);
 			
@@ -121,13 +121,13 @@ public class LocationCommand implements ICommand
 		}
 		
 		//Get encounter data from particular version
-		String versionDBForm = input.getArg(1).getDB();
+		String versionDBForm = input.getArg(1).getDbForm();
 		List<EncounterPotential> encounterDataFromVersion = getEncounterDataFromVersion(encounterData, versionDBForm);
 		
 		if(encounterDataFromVersion.isEmpty())
 		{
 			reply.addToReply(TextFormatter.flexFormToProper(pokemon.getName())+" cannot be found by means of a normal encounter in "
-					+ TextFormatter.flexFormToProper(input.getArg(1).getRaw())+" version");
+					+ TextFormatter.flexFormToProper(input.getArg(1).getRawInput())+" version");
 			return reply;
 		}
 		
@@ -219,10 +219,4 @@ public class LocationCommand implements ICommand
 		
 		return Optional.empty();
 	}
-
-	public Response twitchReply(Input input)
-	{ 
-		return null;
-	}
-	
 }

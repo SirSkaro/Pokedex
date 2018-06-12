@@ -138,7 +138,7 @@ public class Pokedex
 		}
 		
 		//Create timer and task
-    	Timer carbonTimer = new Timer();
+    	Timer carbonTimer = new Timer(true);
 		TimerTask carbonTask = createCarbonTask(carbonToken.get(), discordClient.get());
         
         //Schedule task for every hour, starting in one hour
@@ -234,7 +234,7 @@ public class Pokedex
 		lib.addToLibrary(WeakCommand.getInstance(factory));
 		lib.addToLibrary(CoverageCommand.getInstance(factory));
 		lib.addToLibrary(DexCommand.getInstance(factory));
-		lib.addToLibrary(SetCommand.getInstance());
+		lib.addToLibrary(SetCommand.getInstance(factory));
 		lib.addToLibrary(LocationCommand.getInstance(factory));
 		lib.addToLibrary(AboutCommand.getInstance());
 		lib.addToLibrary(HelpCommand.getInstance());
