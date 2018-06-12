@@ -101,6 +101,7 @@ public class DataCommand implements ICommand
 		catch (InterruptedException | PokeFlexException e) 
 		{
 			this.addErrorMessage(reply, "1002a", e);
+			reply.addToReply("Your request may have timed out. Please try again later!");
 			return reply;
 		}
 		
