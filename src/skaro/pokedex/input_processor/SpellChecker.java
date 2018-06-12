@@ -9,8 +9,8 @@ import com.swabunga.spell.engine.SpellDictionary;
 import com.swabunga.spell.engine.SpellDictionaryHashMap;
 import com.swabunga.spell.engine.Word;
 
-import skaro.pokedex.data_processor.ICommand.ArgumentCategory;
-import skaro.pokedex.database_resources.ResourceManager;
+import skaro.pokedex.core.ResourceManager;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 
 public class SpellChecker 
 {
@@ -21,8 +21,9 @@ public class SpellChecker
 	private SpellDictionary moveDict;
 	private SpellDictionary versionDict;
 	private SpellDictionary regionDict;
+	private static SpellChecker instance;
 	
-	public SpellChecker() throws IOException
+	private SpellChecker() throws IOException
 	{
 		pokeDict = new SpellDictionaryHashMap();
 		itemDict = new SpellDictionaryHashMap();
@@ -39,6 +40,19 @@ public class SpellChecker
 		populateDict(moveDict, "moves.txt");
 		populateDict(versionDict, "versions.txt");
 		populateDict(regionDict, "regions.txt");
+	}
+	
+	public static SpellChecker getInstance()
+	{
+		if(instance == null)
+			try { instance = new SpellChecker(); }
+			catch(IOException e)
+			{
+				System.out.println("[SpellChecker] Unable to create instance of SpellChecker");
+				System.exit(1);
+			}
+		
+		return instance;
 	}
 	
 	/**
@@ -80,7 +94,7 @@ public class SpellChecker
 	}
 	
 	//Spell checks a Pokemon
-	private String spellCheckPokemon(String poke)
+	public String spellCheckPokemon(String poke)
 	{
 		poke = poke.toLowerCase();
 		String[] temp = null;
@@ -155,7 +169,7 @@ public class SpellChecker
 	}
 	
 	//Spell checks abilities
-	private String spellCheckAbility(String abil)
+	public String spellCheckAbility(String abil)
 	{
 		abil = abil.toLowerCase();
 		String[] temp = abil.split(" ");
@@ -167,7 +181,7 @@ public class SpellChecker
 	}
 	
 	//Spell checks items
-	private String spellCheckItem(String item)
+	public String spellCheckItem(String item)
 	{
 		item = item.toLowerCase();
 		String[] temp = item.split(" ");
@@ -179,7 +193,7 @@ public class SpellChecker
 	}
 	
 	//Spell checks moves
-	private String spellCheckMove(String move)
+	public String spellCheckMove(String move)
 	{
 		move = move.toLowerCase();
 		String[] temp = move.split(" ");
@@ -191,7 +205,7 @@ public class SpellChecker
 	}
 	
 	//Spell checks types
-	private String spellCheckType(String type)
+	public String spellCheckType(String type)
 	{
 		type = type.toLowerCase();
 		String[] temp = type.split(" ");
@@ -204,14 +218,14 @@ public class SpellChecker
 	
 	//Spell checks region
 	@SuppressWarnings("unused")
-	private String spellCheckRegion(String reg)
+	public String spellCheckRegion(String reg)
 	{
 		reg = reg.toLowerCase();
 		return getBestSuggestion(regionDict, reg);
 	}
 	
 	//Spell checks artist
-	private String spellCheckVersion(String ver)
+	public String spellCheckVersion(String ver)
 	{
 		StringBuilder version = new StringBuilder(ver.toLowerCase());
 		int index;

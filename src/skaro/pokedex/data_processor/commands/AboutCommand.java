@@ -4,18 +4,18 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 import skaro.pokedex.core.Configurator;
-import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class AboutCommand implements ICommand 
 {
 	private static AboutCommand instance;
-	private static Integer[] expectedArgRange;
+	private static ArgumentRange expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
-	private static Response staticDiscordReply, staticTwitchReply;
+	private static Response staticDiscordReply;
 	
 	private AboutCommand()
 	{
@@ -30,9 +30,8 @@ public class AboutCommand implements ICommand
 		commandName = "about".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.NONE);
-		expectedArgRange = new Integer[]{0,0};
+		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
-		staticTwitchReply = new Response();
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
@@ -48,14 +47,6 @@ public class AboutCommand implements ICommand
 		builder.withFooterText("If you like the bot, please consider donating! Use the donate command for a link.");
 		
 		staticDiscordReply.setEmbededReply(builder.build());
-		
-		staticTwitchReply.addToReply("*Pokedex version "+version+"*");
-		staticTwitchReply.addToReply("Created by Benjamin \"Sir Skaro\" Churchill");
-		staticTwitchReply.addToReply("\thttps://twitter.com/sirskaro");
-		staticTwitchReply.addToReply("Availlable in Discord! https://goo.gl/Mm5pU7");
-		staticTwitchReply.addToReply("Contact me if you want this bot in your own Twitch chat.");
-		staticTwitchReply.addToReply("\tIf you like the bot, please consider donating!");
-		staticTwitchReply.addToReply("\t\thttps://goo.gl/HlrFrD");
 	}
 	
 	public static ICommand getInstance()
@@ -67,7 +58,7 @@ public class AboutCommand implements ICommand
 		return instance;
 	}
 	
-	public Integer[] getExpectedArgNum() { return expectedArgRange; }
+	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	
@@ -84,10 +75,5 @@ public class AboutCommand implements ICommand
 	public Response discordReply(Input input)
 	{ 
 		return staticDiscordReply;
-	}
-	
-	public Response twitchReply(Input input)
-	{ 
-		return staticTwitchReply;
 	}
 }

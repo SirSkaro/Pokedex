@@ -3,27 +3,26 @@ package skaro.pokedex.data_processor.commands;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class DonateCommand implements ICommand 
 {
 	private static DonateCommand instance;
-	private static Integer[] expectedArgRange;
+	private static ArgumentRange expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
-	private static Response staticDiscordReply, staticTwitchReply;
+	private static Response staticDiscordReply;
 	
 	private DonateCommand()
 	{
 		commandName = "donate".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.NONE);
-		expectedArgRange = new Integer[]{0,0};
+		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
-		staticTwitchReply = new Response();
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
@@ -34,10 +33,6 @@ public class DonateCommand implements ICommand
 		builder.appendField("Donation link (PayPal)", "[donate here](https://goo.gl/HlrFrD)", false);
 		
 		staticDiscordReply.setEmbededReply(builder.build());
-		
-		
-		staticTwitchReply.addToReply("If you'd like to support the bot, please consider donating! "
-				+ "All donations go toward renting server space for the bot to be up 24/7!");
 	}
 	
 	public static ICommand getInstance()
@@ -49,7 +44,7 @@ public class DonateCommand implements ICommand
 		return instance;
 	}
 	
-	public Integer[] getExpectedArgNum() { return expectedArgRange; }
+	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	
@@ -66,10 +61,5 @@ public class DonateCommand implements ICommand
 	public Response discordReply(Input input)
 	{ 
 		return staticDiscordReply;
-	}
-	
-	public Response twitchReply(Input input)
-	{ 
-		return staticTwitchReply;
 	}
 }

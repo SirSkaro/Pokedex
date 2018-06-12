@@ -7,6 +7,7 @@ import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 
 import skaro.pokedex.core.CommandLibrary;
+import skaro.pokedex.data_processor.commands.ICommand;
 
 public class DiscordCommandMap 
 {
@@ -34,7 +35,7 @@ public class DiscordCommandMap
 	
 	private void initializeCache(CommandLibrary lib)
 	{		
-		for(ICommand icmd : lib.getLibrary())
+		for(ICommand icmd : lib.getLibrary().values())
 			discordCommandCache.put(icmd.getCommandName(), icmd);
 	}
 }

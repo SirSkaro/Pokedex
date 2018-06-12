@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.ColorTracker;
-import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -18,7 +18,7 @@ import sx.blah.discord.util.EmbedBuilder;
 public class ShinyCommand implements ICommand
 {
 	private static ShinyCommand instance;
-	private static Integer[] expectedArgRange;
+	private static ArgumentRange expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
 	private static PokeFlexFactory factory;
@@ -28,7 +28,7 @@ public class ShinyCommand implements ICommand
 		commandName = "shiny".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
-		expectedArgRange = new Integer[]{1,1};
+		expectedArgRange = new ArgumentRange(1,1);
 		factory = pff;
 	}
 	
@@ -41,7 +41,7 @@ public class ShinyCommand implements ICommand
 		return instance;
 	}
 
-	public Integer[] getExpectedArgNum() { return expectedArgRange; }
+	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	
@@ -56,11 +56,11 @@ public class ShinyCommand implements ICommand
 		{
 			switch(input.getError())
 			{
-				case 1:
+				case ARGUMENT_NUMBER:
 					reply.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
 				break;
-				case 2:
-					reply.addToReply("\""+input.getArg(0).getRaw() +"\" is not a recognized Pokemon.");
+				case INVALID_ARGUMENT:
+					reply.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Pokemon.");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 112)");
@@ -105,11 +105,5 @@ public class ShinyCommand implements ICommand
 		builder.withColor(ColorTracker.getColorForType(type));
 		
 		return builder.build();
-	}
-
-	@Override
-	public Response twitchReply(Input input) 
-	{
-		return null;
 	}
 }

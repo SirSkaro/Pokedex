@@ -6,14 +6,12 @@ import java.util.List;
 import java.util.Optional;
 
 import skaro.pokedex.data_processor.ColorTracker;
-import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TTSConverter;
 import skaro.pokedex.data_processor.TextFormatter;
-import skaro.pokedex.database_resources.DatabaseInterface;
-import skaro.pokedex.database_resources.PokedexEntry;
-import skaro.pokedex.input_processor.Argument;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -26,7 +24,7 @@ import sx.blah.discord.util.EmbedBuilder;
 public class DexCommand implements ICommand
 {
 	private static DexCommand instance;
-	private static Integer[] expectedArgRange;
+	private static ArgumentRange expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
 	private TTSConverter tts;
@@ -38,7 +36,7 @@ public class DexCommand implements ICommand
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.VERSION);
-		expectedArgRange = new Integer[]{2,2};
+		expectedArgRange = new ArgumentRange(2,2);
 		tts = new TTSConverter();
 		factory = pff;
 	}
@@ -52,7 +50,7 @@ public class DexCommand implements ICommand
 		return instance;
 	}
 	
-	public Integer[] getExpectedArgNum() { return expectedArgRange; }
+	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	
@@ -67,15 +65,15 @@ public class DexCommand implements ICommand
 		{
 			switch(input.getError())
 			{
-				case 1:
+				case ARGUMENT_NUMBER:
 					reply.addToReply("You must specify a Pokemon and a Version as input for this command "
 							+ "(seperated by commas).");
 				break;
-				case 2:
+				case INVALID_ARGUMENT:
 					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(Argument arg : input.getArgs())
+					for(AbstractArgument arg : input.getArgs())
 						if(!arg.isValid())
-							reply.addToReply("\t\""+arg.getRaw()+"\" is not a recognized "+ arg.getCategory());
+							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
 					reply.addToReply("\n*top suggestion*: Not updated for gen 7. Try gens 1-6?");
 				break;
 				default:
@@ -101,7 +99,7 @@ public class DexCommand implements ICommand
 		try 
 		{
 			List<String> urlParams = new ArrayList<String>();
-			urlParams.add(input.getArg(0).getFlex());//Pokemon name
+			urlParams.add(input.getArg(0).getFlexForm());//Pokemon name
 			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, urlParams);
 			pokemon = Pokemon.class.cast(flexObj);
 			
@@ -113,12 +111,12 @@ public class DexCommand implements ICommand
 		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1010", e); }
 		
 		//Check if the Pokemon has a Pokedex entry that meets the user criteria
-		Optional<FlavorTextEntry> entry = getEntry(speciesData, input.getArg(1).getDB());
+		Optional<FlavorTextEntry> entry = getEntry(speciesData, input.getArg(1).getDbForm());
 		
 		if(!entry.isPresent())
 		{
 			reply.addToReply(TextFormatter.flexFormToProper(speciesData.getName())+" does not have a Pokedex entry in "
-							+TextFormatter.flexFormToProper(input.getArg(1).getRaw()) + " version");
+							+TextFormatter.flexFormToProper(input.getArg(1).getRawInput()) + " version");
 			return reply;
 		}
 		
@@ -132,7 +130,7 @@ public class DexCommand implements ICommand
 				+TextFormatter.flexFormToProper(entry.get().getVersion().getName())+"**:");
 		
 		builder.withDescription(replyContent);
-		builder.withColor(ColorTracker.getColorForVersion(input.getArg(1).getDB()));
+		builder.withColor(ColorTracker.getColorForVersion(input.getArg(1).getDbForm()));
 		reply.setEmbededReply(builder.build());
 		
 		//Add audio reply
@@ -158,37 +156,5 @@ public class DexCommand implements ICommand
 				return genera.getGenus();
 		
 		throw new IllegalStateException("No genera could be found!");
-	}
-	
-	public Response twitchReply(Input input)
-	{ 
-		Response reply = new Response();
-		
-		//Check if input is valid
-		if(!inputIsValid(reply, input))
-			return reply;
-		
-		//Utility variables
-		DatabaseInterface dbi = DatabaseInterface.getInstance();
-		PokedexEntry entry = dbi.extractDexEntryFromDB(input.getArg(0).getDB(), input.getArg(1).getDB());
-		
-		if(entry.getSpecies() == null)
-		{
-			reply.addToReply("A technical error occured (code 1010). Please report this (twitter.com/sirskaro))");
-			return reply;
-		}
-				
-		if(entry.getEntry() == null)
-		{
-			reply.addToReply(entry.getSpecies()+" does not have a pokedex entry in "
-							+input.getArg(1).getRaw());
-			return reply;
-		}
-		
-		reply.addToReply("Pokedex entry for "+entry.getSpecies()+" from " 
-						+entry.getVersion()+":");
-		reply.addToReply(entry.getEntry());
-		
-		return reply;
 	}
 }

@@ -1,6 +1,6 @@
 package skaro.pokedex.input_processor;
 
-import skaro.pokedex.data_processor.ICommand.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 
 public class Argument 
 {

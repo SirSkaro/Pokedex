@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import skaro.pokedex.data_processor.ICommand.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 
 public class Validator 
 {
@@ -27,7 +27,7 @@ public class Validator
 		types.add("ground"); types.add("rock"); types.add("bug"); types.add("water");
 		types.add("ghost"); types.add("steel"); types.add("fire"); types.add("electric");
 		types.add("grass"); types.add("psychic"); types.add("ice"); types.add("dragon");
-		types.add("dark"); types.add("fairy"); types.add("bird");
+		types.add("dark"); types.add("fairy");
 		
 		regions = new ArrayList<String>();
 		regions.add("kanto"); regions.add("johto"); regions.add("hoenn"); regions.add("sinnoh");

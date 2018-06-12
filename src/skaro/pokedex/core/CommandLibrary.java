@@ -1,25 +1,34 @@
 package skaro.pokedex.core;
 
-import java.util.HashSet;
+import java.util.HashMap;
 
-import skaro.pokedex.data_processor.ICommand;
+import skaro.pokedex.data_processor.commands.ICommand;
 
 public class CommandLibrary 
 {
-	private HashSet<ICommand> library;
+	private HashMap<String, ICommand> library;
 	
 	public CommandLibrary()
 	{
-		library = new HashSet<ICommand>();
+		library = new HashMap<String, ICommand>();
 	}
 	
 	public void addToLibrary(ICommand cmd)
 	{
-		if(library != null)
-			library.add(cmd);
+		library.put(cmd.getCommandName(), cmd);
 	}
 	
-	public HashSet<ICommand> getLibrary()
+	public boolean hasCommand(String cmd)
+	{
+		return library.containsKey(cmd);
+	}
+	
+	public ICommand getCommand(String cmd)
+	{
+		return library.get(cmd);
+	}
+	
+	public HashMap<String, ICommand> getLibrary()
 	{
 		return library;
 	}

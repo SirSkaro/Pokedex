@@ -3,15 +3,15 @@ package skaro.pokedex.data_processor.commands;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class InviteCommand implements ICommand 
 {
 	private static InviteCommand instance;
-	private static Integer[] expectedArgRange;
+	private static ArgumentRange expectedArgRange;
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
 	private static Response staticDiscordReply;
@@ -21,7 +21,7 @@ public class InviteCommand implements ICommand
 		commandName = "invite".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.NONE);
-		expectedArgRange = new Integer[]{0,0};
+		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
 		
 		EmbedBuilder builder = new EmbedBuilder();	
@@ -43,7 +43,7 @@ public class InviteCommand implements ICommand
 		return instance;
 	}
 	
-	public Integer[] getExpectedArgNum() { return expectedArgRange; }
+	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	
@@ -60,10 +60,5 @@ public class InviteCommand implements ICommand
 	public Response discordReply(Input input)
 	{ 
 		return staticDiscordReply;
-	}
-	
-	public Response twitchReply(Input input)
-	{ 
-		return null;
 	}
 }

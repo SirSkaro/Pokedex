@@ -8,8 +8,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import skaro.pokedex.data_processor.DiscordCommandMap;
-import skaro.pokedex.data_processor.ICommand;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.commands.ICommand;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.InputProcessor;
 import sx.blah.discord.api.IDiscordClient;
@@ -26,10 +26,8 @@ import sx.blah.discord.handle.obj.ActivityType;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.handle.obj.StatusType;
-import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RateLimitException;
 import sx.blah.discord.util.RequestBuffer;
 import sx.blah.discord.util.audio.AudioPlayer;
 import sx.blah.discord.util.audio.AudioPlayer.Track;
@@ -41,7 +39,7 @@ public class DiscordEventHandler
 	private DiscordCommandMap commandMap;		//Contains the 'cache' of commands
 	private Timer statusTimer;					//Timers for special purposes
 	private TimerTask statusTask;				//tasks for timers
-	private int statusIndex;				//count for booting tracking, statusIndex to iterate through status messages
+	private int statusIndex;					//count for booting tracking, statusIndex to iterate through status messages
 	private ArrayList<String> statusMessages;	//all status messages to be displayed
 	private InputProcessor processor;
 
@@ -58,7 +56,7 @@ public class DiscordEventHandler
 		statusMessages.add("commands()/help()");
 		statusMessages.add("%invite");
         
-        statusTimer = new Timer();
+        statusTimer = new Timer(true);
 		statusTask = new TimerTask() {
             @Override
             public void run() 
@@ -88,26 +86,19 @@ public class DiscordEventHandler
     public void onTextMessageEvent(MessageReceivedEvent event) 
     {
 		try
-		{
-			responseHandler(event);
-		} 
-		catch(RateLimitException | MissingPermissionsException | DiscordException e) 
-		{
-			System.out.println("[DiscordEventHandler] text event error: "+e);
-		}
+		{ handleTextResponse(event); } 
+		catch(Exception e) 
+		{ System.out.println("[DiscordEventHandler] text event error: "+e); 
+		e.printStackTrace();}
     }
     
     @EventSubscriber
     public void onTextMessageUpdateEvent(MessageUpdateEvent event)
     {
     	try 
-    	{
-			responseHandler(event);
-		}
-    	catch(RateLimitException | MissingPermissionsException | DiscordException e) 
-		{
-			System.out.println("[DiscordEventHandler] update text event error: "+e);
-		}
+    	{ handleTextResponse(event); }
+    	catch(Exception e) 
+		{ System.out.println("[DiscordEventHandler] update text event error: "+e); }
     }
     
     @EventSubscriber
@@ -116,7 +107,7 @@ public class DiscordEventHandler
     	event.getPlayer().getGuild().getConnectedVoiceChannel().leave();
     }
     
-    public void responseHandler(Event event)
+    public void handleTextResponse(Event event)
     {
     	//Initial utility variable
 		IMessage input;
@@ -136,14 +127,16 @@ public class DiscordEventHandler
 		Response response;
 		ICommand command;
 		long channelID;
+		Optional<Input> parseTest;
 		Input userInput;
 		
-        userInput = processor.processInput(input.getContent());
+		parseTest = processor.processInput(input.getContent());
         
-        if(userInput == null) //if the command doesn't exist, return
+        if(!parseTest.isPresent()) //if the command doesn't exist, return
         	return;
         
         //If the message follows the syntax, find it in the command map
+        userInput = parseTest.get();
         command = commandMap.get(userInput.getFunction());
         
         if(command == null) //if the command isn't supported, return
@@ -157,7 +150,6 @@ public class DiscordEventHandler
         
         //Send the textual reply to the user
         channelID = input.getChannel().getLongID();
-    	
     	sendResponse(input, response);
         
         //If there is an image portion, send it
