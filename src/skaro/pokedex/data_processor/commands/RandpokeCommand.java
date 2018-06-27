@@ -15,6 +15,7 @@ import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class RandpokeCommand implements ICommand
@@ -58,7 +59,7 @@ public class RandpokeCommand implements ICommand
 	}
 
 	@Override
-	public Response discordReply(Input input) 
+	public Response discordReply(Input input, IUser requester)
 	{
 		//Set up utility variables
 		Response reply = new Response();

@@ -17,6 +17,7 @@ import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class ShinyCommand implements ICommand
@@ -28,7 +29,7 @@ public class ShinyCommand implements ICommand
 	private static PokeFlexFactory factory;
 	
 	private static String baseModelPath;
-	private static 
+	//private static 
 	
 	private ShinyCommand(PokeFlexFactory pff)
 	{
@@ -79,7 +80,7 @@ public class ShinyCommand implements ICommand
 	}
 
 	@Override
-	public Response discordReply(Input input) 
+	public Response discordReply(Input input, IUser requester) 
 	{
 		//Set up utility variables
 		Response reply = new Response();

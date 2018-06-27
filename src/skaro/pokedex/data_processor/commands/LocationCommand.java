@@ -23,6 +23,7 @@ import skaro.pokeflex.objects.encounter.EncounterPotential;
 import skaro.pokeflex.objects.encounter.VersionDetail;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class LocationCommand implements ICommand 
@@ -88,7 +89,7 @@ public class LocationCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input)
+	public Response discordReply(Input input, IUser requester)
 	{ 
 		Response reply = new Response();
 		
