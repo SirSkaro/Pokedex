@@ -1,8 +1,11 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
+import skaro.pokedex.core.Configurator;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
@@ -12,6 +15,7 @@ import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
+import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.util.EmbedBuilder;
 
@@ -23,6 +27,9 @@ public class ShinyCommand implements ICommand
 	private static ArrayList<ArgumentCategory> argCats;
 	private static PokeFlexFactory factory;
 	
+	private static String baseModelPath;
+	private static 
+	
 	private ShinyCommand(PokeFlexFactory pff)
 	{
 		commandName = "shiny".intern();
@@ -30,6 +37,7 @@ public class ShinyCommand implements ICommand
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
 		factory = pff;
+		baseModelPath = Configurator.getInstance().get().getModelBasePath();
 	}
 	
 	public static ICommand getInstance(PokeFlexFactory pff)
@@ -75,30 +83,48 @@ public class ShinyCommand implements ICommand
 	{
 		//Set up utility variables
 		Response reply = new Response();
+		List<String> urlParameters = new ArrayList<String>();
+		String path;
+		File image;
 		
+		//Check if input is valid
+		if(!inputIsValid(reply, input))
+			return reply;
+				
 		//Obtain data
 		try 
 		{
 			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
 			Pokemon pokemon = Pokemon.class.cast(flexObj);
 			
+			urlParameters.add(pokemon.getSpecies().getName());
+			flexObj = factory.createFlexObject(Endpoint.POKEMON_SPECIES, input.argsAsList());
+			PokemonSpecies speciesData = PokemonSpecies.class.cast(flexObj);
+			
 			//Format reply
-			reply.setEmbededReply(formatEmbed(pokemon));
+			reply.addToReply("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+" | #" + Integer.toString(speciesData.getId()) 
+				+ " | " + TextFormatter.formatGeneration(speciesData.getGeneration().getName()) + "__**");
+			
+			
+			//Upload local file
+			path = baseModelPath + "/" + pokemon.getName() + ".gif";
+			image = new File(path);
+			reply.addImage(new File(path));
+			
+			reply.setEmbededReply(formatEmbed(pokemon, image));
 		} 
 		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1012", e); }
 				
 		return reply;
 	}
 	
-	private EmbedObject formatEmbed(Pokemon pokemon)
+	private EmbedObject formatEmbed(Pokemon pokemon, File image) throws IOException
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setLenient(true);
 		
-		builder.withTitle(TextFormatter.flexFormToProper(pokemon.getName()).intern() + " | #" + Integer.toString(pokemon.getId()));
-		
 		//Add images
-		builder.withImage(pokemon.getShinyModel().getUrl());
+		builder.withImage("attachment://"+image.getName());
 		
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list

@@ -35,6 +35,7 @@ import skaro.pokedex.data_processor.commands.LocationCommand;
 import skaro.pokedex.data_processor.commands.MoveCommand;
 import skaro.pokedex.data_processor.commands.RandpokeCommand;
 import skaro.pokedex.data_processor.commands.SetCommand;
+import skaro.pokedex.data_processor.commands.ShinyCommand;
 import skaro.pokedex.data_processor.commands.StatsCommand;
 import skaro.pokedex.data_processor.commands.WeakCommand;
 import skaro.pokedex.input_processor.InputProcessor;
@@ -240,7 +241,7 @@ public class Pokedex
 		lib.addToLibrary(HelpCommand.getInstance());
 		lib.addToLibrary(DonateCommand.getInstance());
 		lib.addToLibrary(InviteCommand.getInstance());
-		//lib.addToLibrary(ShinyCommand.getInstance(factory));
+		lib.addToLibrary(ShinyCommand.getInstance(factory));
 		
 		lib.addToLibrary(CommandsCommand.getInstance(lib.getLibrary()));
 		

@@ -6,6 +6,7 @@ import java.util.List;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import sx.blah.discord.handle.obj.IUser;
 
 /**
  * An interface for all Command objects. These objects format replies for users.
@@ -20,14 +21,14 @@ public interface ICommand
 	public ArrayList<ArgumentCategory> getArgumentCats();	//The categories of the expected argument(s)
 	
 	//Response functions
-	public Response discordReply(Input input);	//Format a reply for Discord
+	public Response discordReply(Input input, IUser requester);	//Format a reply
 	public String getArguments();				//Get the arguments in a response-friendly form
 	public boolean inputIsValid(Response reply, Input input);	//Check if user input is valid
 	
 	public default String listToItemizedString(List<?> list)
 	{
 		if(list.isEmpty())
-			return "None";
+			return "None".intern();
 		
 		StringBuilder result = new StringBuilder();
 		int i;

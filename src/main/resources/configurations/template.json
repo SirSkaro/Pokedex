@@ -34,5 +34,10 @@
 		"database": "",
 		"password": "",
 		"uri": ""
+	},
+	
+	"model_path": {
+		"debug": "",
+		"production": ""
 	}
 }

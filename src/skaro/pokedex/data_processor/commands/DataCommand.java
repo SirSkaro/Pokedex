@@ -25,6 +25,7 @@ import skaro.pokeflex.objects.pokemon_species.EggGroup;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.pokemon_species.Variety;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class DataCommand implements ICommand 
@@ -82,7 +83,7 @@ public class DataCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input) 
+	public Response discordReply(Input input, IUser requester)
 	{
 		Response reply = new Response();
 		

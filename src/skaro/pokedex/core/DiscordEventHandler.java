@@ -1,6 +1,7 @@
 package skaro.pokedex.core;
 
-import java.io.InputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -109,28 +110,26 @@ public class DiscordEventHandler
     
     public void handleTextResponse(Event event)
     {
-    	//Initial utility variable
-		IMessage input;
-	
-		//check the type of event
-		if(event instanceof MessageReceivedEvent)
-			input = ((MessageReceivedEvent) event).getMessage();
-		else if(event instanceof MessageUpdateEvent)
-			input = ((MessageUpdateEvent) event).getNewMessage();
-		else
-		{
-			System.out.println("[DiscordEventHandler] Event not supported.");
-			return;
-		}
-        
-		//Declare variables
+    	//Utility variable
+		IMessage userMsg;
 		Response response;
 		ICommand command;
 		long channelID;
 		Optional<Input> parseTest;
 		Input userInput;
+	
+		//check the type of event
+		if(event instanceof MessageReceivedEvent)
+			userMsg = ((MessageReceivedEvent) event).getMessage();
+		else if(event instanceof MessageUpdateEvent)
+			userMsg = ((MessageUpdateEvent) event).getNewMessage();
+		else
+		{
+			System.out.println("[DiscordEventHandler] Event not supported.");
+			return;
+		}
 		
-		parseTest = processor.processInput(input.getContent());
+		parseTest = processor.processInput(userMsg.getContent());
         
         if(!parseTest.isPresent()) //if the command doesn't exist, return
         	return;
@@ -141,48 +140,42 @@ public class DiscordEventHandler
         
         if(command == null) //if the command isn't supported, return
         	return;
-       
-        //Get the reply of the command.
-        response = command.discordReply(userInput);
+
+        System.out.println("[DiscordEventHandler] "
+				+userMsg.getAuthor().getName() + ": " + userMsg.getContent());
         
-        System.out.println("[DiscordEventHandler][DISCORD "+input.getShard().getInfo()[0]+"] "
-        					+input.getAuthor().getName() + ": " + input.getContent());
+        //Get the reply of the command.
+        response = command.discordReply(userInput, userMsg.getAuthor());
         
         //Send the textual reply to the user
-        channelID = input.getChannel().getLongID();
-    	sendResponse(input, response);
-        
-        //If there is an image portion, send it
-        if(response.getImageReply() != null)
-        {
-        	sendImages(channelID, response.getImageReply());
-        }
+        channelID = userMsg.getChannel().getLongID();
+    	sendResponse(userMsg, response);
         
         //If there is an audio portion, send it
         if(response.getAudioReply() != null)
         {
         	//Send the audio to the voice channel a user is in. If they are not in a voice channel,
         	//then tell user to join an accessible voice channel
-        	if(input.getAuthor().getVoiceStateForGuild(input.getGuild()).getChannel() == null)
+        	if(userMsg.getAuthor().getVoiceStateForGuild(userMsg.getGuild()).getChannel() == null)
         	{
-        		sendMessage(channelID, input.getAuthor().mention() +
+        		sendMessage(channelID, userMsg.getAuthor().mention() +
         				", please connect to a voice channel to listen to this Pokedex entry!");
         		return;
         	}
         	
         	//If dex is already in a voice channel in the guild where the request is from, drop this request
-        	List<IVoiceChannel> guildChannels = input.getGuild().getVoiceChannels();
+        	List<IVoiceChannel> guildChannels = userMsg.getGuild().getVoiceChannels();
         	for(IVoiceChannel vc : guildChannels)
             	if(discordClient.getConnectedVoiceChannels().contains(vc))
             	{
-            		sendMessage(channelID, input.getAuthor().mention() +
+            		sendMessage(channelID, userMsg.getAuthor().mention() +
             				", I am currently speaking a dex entry in this server."
             				+ " If you want to hear your entry spoken then please try again.");
             		return;
             	}
         	
-        	playDexEntry(input.getAuthor().getVoiceStateForGuild(input.getGuild()).getChannel(), AudioPlayer.getAudioPlayerForGuild(input.getGuild()), new AudioPlayer.Track(response.getAudioReply()),
-        			channelID, input.getAuthor().mention());
+        	playDexEntry(userMsg.getAuthor().getVoiceStateForGuild(userMsg.getGuild()).getChannel(), AudioPlayer.getAudioPlayerForGuild(userMsg.getGuild()), new AudioPlayer.Track(response.getAudioReply()),
+        			channelID, userMsg.getAuthor().mention());
         }
     }
     
@@ -217,12 +210,18 @@ public class DiscordEventHandler
     {
     	//Utility variables
     	MessageBuilder reply = new MessageBuilder(discordClient);
-    	Optional<EmbedObject> eo = response.getEmbedObject();
+    	Optional<EmbedObject> embed = response.getEmbedObject();
+    	Optional<File> image = response.getImage();
     	
     	//Set up basic reply
     	reply.withContent(response.getDiscordTextReply());
-    	if(eo.isPresent())
-    		reply.withEmbed(eo.get());
+    	if(embed.isPresent())
+    		reply.withEmbed(embed.get());
+    	if(image.isPresent())
+    	{
+    		try { reply.withFile(image.get()); } 
+    		catch (FileNotFoundException e1) { response.addToReply("Could not attach the image you requested!"); }
+    	}
     	
     	//Buffer the reply
     	RequestBuffer.request(() -> 
@@ -269,23 +268,4 @@ public class DiscordEventHandler
             }
         });
     }
-    
-    private void sendImages(long ChannelID, ArrayList<InputStream> imgs)
-    {
-    	RequestBuffer.request(() -> 
-    	{
-            try
-            {
-            	for(InputStream img : imgs)
-            		discordClient.getChannelByID(ChannelID).sendFile("", false, img, "model.gif");
-            	System.out.println("\t[DiscordEventHandler] Image response sent");
-            } 
-            catch (Exception e)
-            {
-            	System.err.println("[DiscordEventHandler] Images could not be sent with error: "+ e.getClass().getSimpleName());
-            	throw e;
-            }
-        });
-    }
-    
 }

@@ -19,6 +19,7 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.FlavorTextEntry;
 import skaro.pokeflex.objects.pokemon_species.Genera;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class DexCommand implements ICommand
@@ -85,7 +86,7 @@ public class DexCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input)
+	public Response discordReply(Input input, IUser requester)
 	{ 
 		Response reply = new Response();
 		

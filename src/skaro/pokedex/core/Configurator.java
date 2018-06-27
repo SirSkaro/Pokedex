@@ -93,4 +93,13 @@ public class Configurator
 		
 		return credentials;
 	}
+	
+	public String getModelBasePath()
+	{
+		JsonNode dataNode = rootNode.get("model_path");
+		if(dataNode == null)
+			throw new IllegalStateException("No database congifuration data could be found.");
+		
+		return dataNode.get(dataKey).asText();
+	}
 }
