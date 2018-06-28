@@ -42,7 +42,6 @@ import skaro.pokedex.input_processor.InputProcessor;
 import skaro.pokeflex.api.PokeFlexFactory;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.util.DiscordException;
 
 public class Pokedex 
 {	
@@ -51,6 +50,12 @@ public class Pokedex
 		int shardIDToManage = -1;
 		int totalShards = -1;
 		CommandLibrary library;
+		IDiscordClient discordClient;
+		Optional<String> discordToken;
+		Configurator configurator;
+		InputProcessor ip;
+		DiscordCommandMap dcm;
+		DiscordEventHandler deh;
 		
 		//Parse command line arguments
 		if(args.length != 2)
@@ -73,20 +78,26 @@ public class Pokedex
 			
 		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
-		Configurator configurator = Configurator.initializeConfigurator(true);
-		
-		//Initialize CommandMaps
-		System.out.println("[Pokedex main] Initializing resources...");
-		library = getCompleteLibrary(new PokeFlexFactory("http://127.0.0.1:5000"));
-		InputProcessor ip = new InputProcessor(library);
+		configurator = Configurator.initializeConfigurator(true);
 		
 		/**
 		 * DISCORD SETUP
 		 */
-		//Log into Discord and establish a listener
+		//Log into Discord
+		System.out.println("[Pokedex main] Establishing Discord client");
+		discordToken = configurator.getAuthToken("discord");
+		discordClient = initClient(discordToken, shardIDToManage, totalShards);
+		
+		//Initialize other resources
+		library = getCompleteLibrary(new PokeFlexFactory("http://127.0.0.1:5000"), discordClient);
+		ip = new InputProcessor(library);
+		dcm = new DiscordCommandMap(library);
+		deh = new DiscordEventHandler(discordClient, dcm, ip);
+		discordClient.getDispatcher().registerListener(deh);
+		
+		//Login
 		System.out.println("[Pokedex main] Logging into Discord");
-		Optional<String> discordToken = configurator.getAuthToken("discord");
-		Optional<IDiscordClient> discordClient = discordLogin(discordToken, library, ip, shardIDToManage, totalShards);
+		discordClient.login();
 		
 		/**
 		 * CARBONITEX SETUP
@@ -101,38 +112,28 @@ public class Pokedex
 		
 	}
 	
-	private static Optional<IDiscordClient> discordLogin(Optional<String> discordToken, CommandLibrary library, InputProcessor ip, int shardID, int totalShards)
+	private static IDiscordClient initClient(Optional<String> discordToken, int shardID, int totalShards)
 	{
 		if(!discordToken.isPresent())
 		{
 			System.out.println("[Pokedex main] No configuration data found for Discord application.");
-			return Optional.empty();
+			System.exit(1);
 		}
 		
-		IDiscordClient discordClient = getClient(discordToken.get(), shardID, totalShards);
-		DiscordCommandMap dcm = new DiscordCommandMap(library);
-		DiscordEventHandler deh = new DiscordEventHandler(discordClient, dcm, ip);
-		discordClient.getDispatcher().registerListener(deh);
-		discordClient.login();
-		
-		return Optional.of(discordClient);
-	}
-	
-	private static IDiscordClient getClient(String token, int shardID, int totalShards) throws DiscordException
-    {
 		IDiscordClient idc = new ClientBuilder()
 				.setMaxMessageCacheCount(5)
 				.setMaxReconnectAttempts(5)
-				.withToken(token)
+				.withToken(discordToken.get())
 				.setShard(shardID, totalShards)
 				.build();
 		
-        return idc;
-    }
+		
+		return idc;
+	}
 	
-	private static void carbonitexLogin(Optional<String> carbonToken, Optional<IDiscordClient> discordClient)
+	private static void carbonitexLogin(Optional<String> carbonToken, IDiscordClient discordClient)
 	{
-		if(!carbonToken.isPresent() || !discordClient.isPresent())
+		if(!carbonToken.isPresent())
 		{
 			System.out.println("[Pokedex main] No configuration data found for Carbonitex Communication.");
 			return;
@@ -140,7 +141,7 @@ public class Pokedex
 		
 		//Create timer and task
     	Timer carbonTimer = new Timer(true);
-		TimerTask carbonTask = createCarbonTask(carbonToken.get(), discordClient.get());
+		TimerTask carbonTask = createCarbonTask(carbonToken.get(), discordClient);
         
         //Schedule task for every hour, starting in one hour
         carbonTimer.scheduleAtFixedRate(carbonTask, 1 * 60 * 60 * 1000, 1 * 60 * 60 * 1000); //1 hour
@@ -221,9 +222,10 @@ public class Pokedex
 	 * recognized by any command map.
 	 * @return a CommandLibrary of ICommands that are supported for Discord
 	 */
-	private static CommandLibrary getCompleteLibrary(PokeFlexFactory factory)
+	private static CommandLibrary getCompleteLibrary(PokeFlexFactory factory, IDiscordClient client)
 	{
 		CommandLibrary lib = new CommandLibrary();
+		PrivilegeChecker checker = new PrivilegeChecker(client);
 		
 		lib.addToLibrary(RandpokeCommand.getInstance(factory));
 		lib.addToLibrary(StatsCommand.getInstance(factory));
@@ -241,7 +243,7 @@ public class Pokedex
 		lib.addToLibrary(HelpCommand.getInstance());
 		lib.addToLibrary(DonateCommand.getInstance());
 		lib.addToLibrary(InviteCommand.getInstance());
-		lib.addToLibrary(ShinyCommand.getInstance(factory));
+		lib.addToLibrary(ShinyCommand.getInstance(factory, checker));
 		
 		lib.addToLibrary(CommandsCommand.getInstance(lib.getLibrary()));
 		

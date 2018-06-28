@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import skaro.pokedex.core.Configurator;
+import skaro.pokedex.core.PrivilegeChecker;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
@@ -27,11 +28,10 @@ public class ShinyCommand implements ICommand
 	private static String commandName;
 	private static ArrayList<ArgumentCategory> argCats;
 	private static PokeFlexFactory factory;
-	
 	private static String baseModelPath;
-	//private static 
+	private static PrivilegeChecker checker;
 	
-	private ShinyCommand(PokeFlexFactory pff)
+	private ShinyCommand(PokeFlexFactory pff, PrivilegeChecker pc)
 	{
 		commandName = "shiny".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -39,14 +39,15 @@ public class ShinyCommand implements ICommand
 		expectedArgRange = new ArgumentRange(1,1);
 		factory = pff;
 		baseModelPath = Configurator.getInstance().get().getModelBasePath();
+		checker = pc;
 	}
 	
-	public static ICommand getInstance(PokeFlexFactory pff)
+	public static ICommand getInstance(PokeFlexFactory pff, PrivilegeChecker pc)
 	{
 		if(instance != null)
 			return instance;
 
-		instance = new ShinyCommand(pff);
+		instance = new ShinyCommand(pff, pc);
 		return instance;
 	}
 
@@ -117,6 +118,11 @@ public class ShinyCommand implements ICommand
 		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1012", e); }
 				
 		return reply;
+	}
+	
+	private Response privilegedReply()
+	{
+		return null;
 	}
 	
 	private EmbedObject formatEmbed(Pokemon pokemon, File image) throws IOException
