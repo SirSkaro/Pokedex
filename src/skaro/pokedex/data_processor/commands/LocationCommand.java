@@ -54,6 +54,7 @@ public class LocationCommand implements ICommand
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return true; }
 	
 	public String getArguments()
 	{

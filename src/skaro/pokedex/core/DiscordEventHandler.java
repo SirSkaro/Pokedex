@@ -15,7 +15,6 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.InputProcessor;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.IShard;
-import sx.blah.discord.api.events.Event;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
@@ -91,7 +90,7 @@ public class DiscordEventHandler
 		try
 		{ handleTextResponse(event.getMessage()); }
 		catch(Exception e) 
-		{ System.out.println("[DiscordEventHandler] text event error: "+e); 
+		{ System.out.println("[DiscordEventHandler] text event error: "+e.getClass().getName()); 
 		e.printStackTrace();}
     }
     
@@ -101,7 +100,7 @@ public class DiscordEventHandler
     	try 
     	{ handleTextResponse(event.getNewMessage()); }
     	catch(Exception e) 
-		{ System.out.println("[DiscordEventHandler] update text event error: "+e); }
+		{ System.out.println("[DiscordEventHandler] update text event error: "+e.getClass().getName()); }
     }
     
     @EventSubscriber
@@ -115,22 +114,24 @@ public class DiscordEventHandler
     	//Utility variable
 		Response response;
 		ICommand command;
-		long channelID;
 		Optional<Input> parseTest;
 		Input userInput;
+		Optional<IMessage> ackMsg = Optional.empty();
 		
 		parseTest = processor.processInput(userMsg.getContent());
-        
         if(!parseTest.isPresent()) //if the command doesn't exist, return
         	return;
         
         //If the message follows the syntax, find it in the command map
         userInput = parseTest.get();
         command = commandMap.get(userInput.getFunction());
-        
         if(command == null) //if the command isn't supported, return
         	return;
 
+        //Send initial message to alert the user their response is being processed if a Web
+        if(command.makesWebRequest())
+        	ackMsg = sendAcknowledgement(userMsg);
+        
         System.out.println("[DiscordEventHandler] "
 				+userMsg.getAuthor().getName() + ": " + userMsg.getContent());
         
@@ -138,35 +139,51 @@ public class DiscordEventHandler
         response = command.discordReply(userInput, userMsg.getAuthor());
         
         //Send the textual reply to the user
-        channelID = userMsg.getChannel().getLongID();
-    	sendResponse(userMsg, response);
+        if(ackMsg.isPresent())
+        	ackMsg.get().delete();
+       	sendResponse(userMsg, response);
         
         //If there is an audio portion, send it
         if(response.getAudioReply() != null)
         {
-        	//Send the audio to the voice channel a user is in. If they are not in a voice channel,
-        	//then tell user to join an accessible voice channel
-        	if(userMsg.getAuthor().getVoiceStateForGuild(userMsg.getGuild()).getChannel() == null)
-        	{
-        		sendMessage(channelID, userMsg.getAuthor().mention() +
-        				", please connect to a voice channel to listen to this Pokedex entry!");
-        		return;
-        	}
-        	
-        	//If dex is already in a voice channel in the guild where the request is from, drop this request
-        	List<IVoiceChannel> guildChannels = userMsg.getGuild().getVoiceChannels();
-        	for(IVoiceChannel vc : guildChannels)
-            	if(discordClient.getConnectedVoiceChannels().contains(vc))
-            	{
-            		sendMessage(channelID, userMsg.getAuthor().mention() +
-            				", I am currently speaking a dex entry in this server."
-            				+ " If you want to hear your entry spoken then please try again.");
-            		return;
-            	}
-        	
-        	playDexEntry(userMsg.getAuthor().getVoiceStateForGuild(userMsg.getGuild()).getChannel(), AudioPlayer.getAudioPlayerForGuild(userMsg.getGuild()), new AudioPlayer.Track(response.getAudioReply()),
-        			channelID, userMsg.getAuthor().mention());
+        	if(connectToVoiceChannel(userMsg))
+	        	playDexEntry(userMsg.getAuthor().getVoiceStateForGuild(userMsg.getGuild()).getChannel(), 
+	        			AudioPlayer.getAudioPlayerForGuild(userMsg.getGuild()), new AudioPlayer.Track(response.getAudioReply()),
+	        			userMsg.getChannel().getLongID(), userMsg.getAuthor().mention());
         }
+    }
+    
+    private Optional<IMessage> sendAcknowledgement(IMessage userMsg)
+    {
+    	MessageBuilder reply = new MessageBuilder(discordClient);
+    	reply.withChannel(userMsg.getChannel());
+    	reply.withContent(userMsg.getAuthor().getName() + ", gathering data for your request...");
+    	return Optional.of(reply.send());
+    }
+    
+    private boolean connectToVoiceChannel(IMessage userMsg)
+    {
+    	//Send the audio to the voice channel a user is in. If they are not in a voice channel,
+    	//then tell user to join an accessible voice channel
+    	if(userMsg.getAuthor().getVoiceStateForGuild(userMsg.getGuild()).getChannel() == null)
+    	{
+    		sendMessage(userMsg.getChannel().getLongID(), userMsg.getAuthor().getName() +
+    				", connect to a voice channel to listen to this Pokedex entry!");
+    		return false;
+    	}
+    	
+    	//If dex is already in a voice channel in the guild where the request is from, drop this request
+    	List<IVoiceChannel> guildChannels = userMsg.getGuild().getVoiceChannels();
+    	for(IVoiceChannel vc : guildChannels)
+        	if(discordClient.getConnectedVoiceChannels().contains(vc))
+        	{
+        		sendMessage(userMsg.getChannel().getLongID(), userMsg.getAuthor().mention() +
+        				", I am currently speaking a dex entry in this server."
+        				+ " If you want to hear your entry spoken then please try again.");
+        		return false;
+        	}
+    	
+    	return true;
     }
     
     private void playDexEntry(IVoiceChannel channel, AudioPlayer player, Track audioTrack, long channelID, String user)
@@ -203,7 +220,7 @@ public class DiscordEventHandler
     	Optional<EmbedObject> embed = response.getEmbedObject();
     	Optional<File> image = response.getImage();
     	
-    	//Set up basic reply
+    	//Set up reply
     	reply.withContent(response.getDiscordTextReply());
     	if(embed.isPresent())
     		reply.withEmbed(embed.get());
@@ -221,8 +238,6 @@ public class DiscordEventHandler
 	    		if(response.isPrivateMessage())
 	    		{
 	    			reply.withChannel(discordClient.getOrCreatePMChannel(userMsg.getAuthor()));
-	    			reply.appendContent("**Join the Pokedex's Home Server!**\n"
-	            			+ "https://discord.gg/D5CfFkN".intern());
 	    			reply.send();
 	    			userMsg.getChannel().sendMessage("Sent to your inbox!".intern());
 	    			System.out.println("\t[DiscordEventHandler] PM sent.");

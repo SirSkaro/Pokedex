@@ -20,6 +20,7 @@ public interface ICommand
 	public ArgumentRange getExpectedArgumentRange();	//The min and max number of arguments expected (size always 2)
 	public String getCommandName();			//The name of the command
 	public ArrayList<ArgumentCategory> getArgumentCats();	//The categories of the expected argument(s)
+	public boolean makesWebRequest();
 	
 	//Response functions
 	public Response discordReply(Input input, IUser requester);	//Format a reply

@@ -67,6 +67,7 @@ public class AboutCommand implements ICommand
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return false; }
 	
 	public String getArguments()
 	{
