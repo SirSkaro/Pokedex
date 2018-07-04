@@ -53,7 +53,9 @@ public class DiscordEventHandler
 		
 		statusMessages = new ArrayList<String>();
 		statusMessages.add("!commands/!help");
+		statusMessages.add("[NEW] %shiny");
 		statusMessages.add("%commands/%help");
+		statusMessages.add("[NEW] %patreon");
 		statusMessages.add("commands()/help()");
 		statusMessages.add("%invite");
         
@@ -87,7 +89,7 @@ public class DiscordEventHandler
     public void onTextMessageEvent(MessageReceivedEvent event) 
     {
 		try
-		{ handleTextResponse(event); } 
+		{ handleTextResponse(event.getMessage()); }
 		catch(Exception e) 
 		{ System.out.println("[DiscordEventHandler] text event error: "+e); 
 		e.printStackTrace();}
@@ -97,7 +99,7 @@ public class DiscordEventHandler
     public void onTextMessageUpdateEvent(MessageUpdateEvent event)
     {
     	try 
-    	{ handleTextResponse(event); }
+    	{ handleTextResponse(event.getNewMessage()); }
     	catch(Exception e) 
 		{ System.out.println("[DiscordEventHandler] update text event error: "+e); }
     }
@@ -108,26 +110,14 @@ public class DiscordEventHandler
     	event.getPlayer().getGuild().getConnectedVoiceChannel().leave();
     }
     
-    public void handleTextResponse(Event event)
+    public void handleTextResponse(IMessage userMsg)
     {
     	//Utility variable
-		IMessage userMsg;
 		Response response;
 		ICommand command;
 		long channelID;
 		Optional<Input> parseTest;
 		Input userInput;
-	
-		//check the type of event
-		if(event instanceof MessageReceivedEvent)
-			userMsg = ((MessageReceivedEvent) event).getMessage();
-		else if(event instanceof MessageUpdateEvent)
-			userMsg = ((MessageUpdateEvent) event).getNewMessage();
-		else
-		{
-			System.out.println("[DiscordEventHandler] Event not supported.");
-			return;
-		}
 		
 		parseTest = processor.processInput(userMsg.getContent());
         

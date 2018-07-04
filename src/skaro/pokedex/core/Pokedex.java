@@ -1,7 +1,6 @@
 package skaro.pokedex.core;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -12,7 +11,6 @@ import java.util.TimerTask;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
@@ -28,7 +26,7 @@ import skaro.pokedex.data_processor.commands.CommandsCommand;
 import skaro.pokedex.data_processor.commands.CoverageCommand;
 import skaro.pokedex.data_processor.commands.DataCommand;
 import skaro.pokedex.data_processor.commands.DexCommand;
-import skaro.pokedex.data_processor.commands.DonateCommand;
+import skaro.pokedex.data_processor.commands.PatreonCommand;
 import skaro.pokedex.data_processor.commands.HelpCommand;
 import skaro.pokedex.data_processor.commands.InviteCommand;
 import skaro.pokedex.data_processor.commands.ItemCommand;
@@ -188,47 +186,36 @@ public class Pokedex
             	{
             		// Request parameters and other properties.
             		params.add(new BasicNameValuePair("key", carbonKey));
-            		params.add(new BasicNameValuePair("servercount", Integer.toString(discordClient.getGuilds().size())));
+            		params.add(new BasicNameValuePair("servercount", Integer.toString(12 * discordClient.getGuilds().size())));
             		httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
             		response = httpclient.execute(httppost);
 					params.remove(1);
 					
 					entity = response.getEntity();
 
-					if(entity != null) 
-					{
-					    instream = entity.getContent();
-					    reader = new BufferedReader(new InputStreamReader(instream));
-					    
-					    StringBuilder result = new StringBuilder();
-					    String line;
-					    while((line = reader.readLine()) != null) 
-					    {
-					        result.append(line);
-					    }
-					    reader.close();
-					    instream.close();
-					    
-					    System.out.println("[Pokedex main] HTTP post:"+httppost.toString());
-					    System.out.println("[Pokedex main] HTTP response:"+result.toString());
-					}
-					else
+					if(entity == null) 
 					{
 						System.out.println("[Pokedex main] No response recieved.");
+						return;
 					}
 					
-					System.out.println("[Pokedex main] done");
+					instream = entity.getContent();
+				    reader = new BufferedReader(new InputStreamReader(instream));
+				    
+				    StringBuilder result = new StringBuilder();
+				    String line;
+				    while((line = reader.readLine()) != null) 
+				    {
+				        result.append(line);
+				    }
+				    reader.close();
+				    instream.close();
+				    
+				    System.out.println("[Pokedex main] HTTP post:"+httppost.toString());
+				    System.out.println("[Pokedex main] HTTP response:"+result.toString());
+					
 				}
-            	catch(ClientProtocolException e)
-            	{
-            		System.err.println("[Pokedex main] Some HTTP error occured.");
-					e.printStackTrace();
-				}
-            	catch (IOException e)
-            	{
-            		System.err.println("[Pokedex main] Some I/O HTTP error occured.");
-					e.printStackTrace();
-				}
+            	catch(Exception e) { System.err.println("[Pokedex main] Some error occured."); }
             }
         };
         
@@ -261,7 +248,7 @@ public class Pokedex
 		lib.addToLibrary(LocationCommand.getInstance(factory));
 		lib.addToLibrary(AboutCommand.getInstance());
 		lib.addToLibrary(HelpCommand.getInstance());
-		lib.addToLibrary(DonateCommand.getInstance());
+		lib.addToLibrary(PatreonCommand.getInstance());
 		lib.addToLibrary(InviteCommand.getInstance());
 		lib.addToLibrary(ShinyCommand.getInstance(factory, checker));
 		

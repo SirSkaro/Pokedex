@@ -86,6 +86,7 @@ public class RandpokeCommand implements ICommand
 		builder.setLenient(true);
 		
 		builder.withTitle(TextFormatter.flexFormToProper(pokemon.getName()).intern() + " | #" + Integer.toString(pokemon.getId()));
+		builder.withFooterText("[Update] Shiny Pokemon have returned! Try the %shiny command!");
 		
 		//Add images
 		builder.withImage(pokemon.getModel().getUrl());

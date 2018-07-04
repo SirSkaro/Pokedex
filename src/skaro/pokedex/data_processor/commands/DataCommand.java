@@ -91,7 +91,7 @@ public class DataCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 		
-		//Obtain base Pokemon data
+		//Obtain Pokemon data
 		List<Object> baseData;
 		Pokemon pokemon = null;
 		List<Object> peripheralData;
@@ -159,7 +159,7 @@ public class DataCommand implements ICommand
 		}
 		
 		//Footer data
-		builder.withFooterText("Note: Shiny Pokemon will return soon!");
+		builder.withFooterText("[Update] Shiny Pokemon have returned! Try the %shiny command!");
 		
 		//Add images
 		builder.withImage(pokemon.getModel().getUrl());
