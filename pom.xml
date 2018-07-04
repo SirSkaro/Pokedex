@@ -103,6 +103,12 @@
       <artifactId>PokeFlex-API</artifactId>
       <version>1.1.1</version>
     </dependency>
+    <!-- Patreon-Java -->
+    <dependency>
+      <groupId>com.patreon</groupId>
+      <artifactId>patreon</artifactId>
+      <version>0.4.0</version>
+    </dependency>
   </dependencies>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

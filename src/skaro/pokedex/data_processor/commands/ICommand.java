@@ -7,6 +7,7 @@ import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.util.EmbedBuilder;
 
 /**
  * An interface for all Command objects. These objects format replies for users.
@@ -45,9 +46,21 @@ public interface ICommand
 	
 	public default void addErrorMessage(Response reply, String errCode, Exception e)
 	{
-		reply.addToReply("A technical error occured ("+errCode+"). "
-				+ "Please report that a "+ e.getClass().getSimpleName() +" occured "
+		reply.addToReply("I wasn't able to get the data you requested (error "+errCode+"). My "
+				+ "external API may not have the data or may be down. Please report that a "+ e.getClass().getSimpleName() +" occured "
 				+ "(https://discord.gg/D5CfFkN))");
+	}
+	
+	public default void addErrorMessage(Response reply, Input input, String errCode, Exception e)
+	{
+		EmbedBuilder builder = new EmbedBuilder();
+		builder.setLenient(true);
+		
+		builder.withTitle("I wasn't able to get the data you requested. My external API may not have the data or may be down. Please try again later. If you think "
+				+ "this is a bug, please screenshot this and report it to the Pokedex Support Server!");
+		builder.appendField("Error Code", errCode, true);
+		builder.appendField("Technical Error", e.getClass().getSimpleName(), true);
+		
 	}
 }
 

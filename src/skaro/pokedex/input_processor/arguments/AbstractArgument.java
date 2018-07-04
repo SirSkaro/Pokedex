@@ -20,4 +20,9 @@ public abstract class AbstractArgument
 	public boolean isValid() { return valid; }
 	public boolean isSpellChecked() { return spellChecked; }
 	public ArgumentCategory getCategory() { return cat; }
+	
+	public String toString()
+	{
+		return dbForm;
+	}
 }

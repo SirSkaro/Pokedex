@@ -19,6 +19,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 
+import com.patreon.PatreonAPI;
+
 import skaro.pokedex.data_processor.DiscordCommandMap;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
@@ -49,13 +51,17 @@ public class Pokedex
 	{
 		int shardIDToManage = -1;
 		int totalShards = -1;
-		CommandLibrary library;
-		IDiscordClient discordClient;
-		Optional<String> discordToken;
+		
+		Optional<String> discordToken, patreonAccessToken;
 		Configurator configurator;
+		
+		CommandLibrary library;
 		InputProcessor ip;
 		DiscordCommandMap dcm;
 		DiscordEventHandler deh;
+		
+		IDiscordClient discordClient;
+		PatreonAPI patreonClient;
 		
 		//Parse command line arguments
 		if(args.length != 2)
@@ -81,6 +87,20 @@ public class Pokedex
 		configurator = Configurator.initializeConfigurator(true);
 		
 		/**
+		 * Patreon SETUP
+		 */
+		System.out.println("[Pokedex main] Establishing Patreon client");
+		patreonAccessToken = configurator.getConfigData("access_token", "patreon");
+		
+		if(!patreonAccessToken.isPresent())
+		{
+			System.out.println("[Pokedex main] No configuration data found for Patreon authentication.");
+			return;
+		}
+		
+		patreonClient = new PatreonAPI(patreonAccessToken.get());
+		
+		/**
 		 * DISCORD SETUP
 		 */
 		//Log into Discord
@@ -89,7 +109,7 @@ public class Pokedex
 		discordClient = initClient(discordToken, shardIDToManage, totalShards);
 		
 		//Initialize other resources
-		library = getCompleteLibrary(new PokeFlexFactory("http://127.0.0.1:5000"), discordClient);
+		library = getCompleteLibrary(new PokeFlexFactory("http://127.0.0.1:5000"), patreonClient);
 		ip = new InputProcessor(library);
 		dcm = new DiscordCommandMap(library);
 		deh = new DiscordEventHandler(discordClient, dcm, ip);
@@ -222,10 +242,10 @@ public class Pokedex
 	 * recognized by any command map.
 	 * @return a CommandLibrary of ICommands that are supported for Discord
 	 */
-	private static CommandLibrary getCompleteLibrary(PokeFlexFactory factory, IDiscordClient client)
+	private static CommandLibrary getCompleteLibrary(PokeFlexFactory factory, PatreonAPI patreonClient)
 	{
 		CommandLibrary lib = new CommandLibrary();
-		PrivilegeChecker checker = new PrivilegeChecker(client);
+		PrivilegeChecker checker = new PrivilegeChecker(patreonClient);
 		
 		lib.addToLibrary(RandpokeCommand.getInstance(factory));
 		lib.addToLibrary(StatsCommand.getInstance(factory));

@@ -126,4 +126,16 @@ public class MySQLManager
 			return Optional.empty();
 		return getFlexForm(dataCheck.get());
 	}
+	
+	public boolean userIsDiscordVIP(long id)
+	{
+		Optional<ResultSet> dataCheck = dbQuery("SELECT user_id FROM DiscordVIP WHERE user_id = "+id+";");
+		
+		//If some error occurs, assume the data does not exist
+		if(!dataCheck.isPresent())
+			return false;
+		
+		try { return dataCheck.get().next(); } 
+		catch (SQLException e) { return false; }
+	}
 }

@@ -10,13 +10,23 @@
 		}
 	},
 
-	"twitch": {
-		"token": {
+	"patreon": {
+		"client_id": {
 			"debug": "",
 			"production": ""
 		},
 		
-		"username": {
+		"client_secret": {
+			"debug": "",
+			"production": ""
+		},
+		
+		"access_token": {
+			"debug": "",
+			"production": ""
+		},
+		
+		"redirect_uri": {
 			"debug": "",
 			"production": ""
 		}

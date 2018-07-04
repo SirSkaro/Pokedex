@@ -13,7 +13,6 @@ import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
@@ -85,14 +84,49 @@ public class ShinyCommand implements ICommand
 	{
 		//Set up utility variables
 		Response reply = new Response();
-		List<String> urlParameters = new ArrayList<String>();
-		String path;
-		File image;
 		
 		//Check if input is valid
 		if(!inputIsValid(reply, input))
 			return reply;
 				
+		if(checker.userIsPrivileged(requester))
+			formatPrivilegedReply(reply, input);
+		else
+			formatNonPrivilegedReply(reply);
+				
+		return reply;
+	}
+	
+	private void formatNonPrivilegedReply(Response reply)
+	{
+		String path;
+		EmbedBuilder builder = new EmbedBuilder();
+		builder.setLenient(true);
+		
+		try
+		{
+			//format embed
+			builder.withImage("attachment://jirachi.gif");
+			builder.withColor(ColorTracker.getColorForType("psychic"));
+			
+			//specify file path
+			path = baseModelPath + "/jirachi.gif";
+			
+			//format reply
+			reply.addToReply("This is a Patreon-only command that shows shiny HD models of Pokemon");
+			builder.appendField("Patreon link", "[Gain access to all shiny Pokemon by pledging $1/month!](https://www.patreon.com/sirskaro)", false);
+			reply.addImage(new File(path));
+			reply.setEmbededReply(builder.build());
+		}
+		catch (Exception e) { this.addErrorMessage(reply, "1012a", e); }
+	}
+	
+	private void formatPrivilegedReply(Response reply, Input input)
+	{
+		List<String> urlParameters = new ArrayList<String>();
+		String path;
+		File image;
+		
 		//Obtain data
 		try 
 		{
@@ -100,7 +134,7 @@ public class ShinyCommand implements ICommand
 			Pokemon pokemon = Pokemon.class.cast(flexObj);
 			
 			urlParameters.add(pokemon.getSpecies().getName());
-			flexObj = factory.createFlexObject(Endpoint.POKEMON_SPECIES, input.argsAsList());
+			flexObj = factory.createFlexObject(Endpoint.POKEMON_SPECIES, urlParameters);
 			PokemonSpecies speciesData = PokemonSpecies.class.cast(flexObj);
 			
 			//Format reply
@@ -111,18 +145,11 @@ public class ShinyCommand implements ICommand
 			//Upload local file
 			path = baseModelPath + "/" + pokemon.getName() + ".gif";
 			image = new File(path);
-			reply.addImage(new File(path));
+			reply.addImage(image);
 			
 			reply.setEmbededReply(formatEmbed(pokemon, image));
 		} 
-		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1012", e); }
-				
-		return reply;
-	}
-	
-	private Response privilegedReply()
-	{
-		return null;
+		catch (Exception e) { this.addErrorMessage(reply, "1012b", e); }
 	}
 	
 	private EmbedObject formatEmbed(Pokemon pokemon, File image) throws IOException
