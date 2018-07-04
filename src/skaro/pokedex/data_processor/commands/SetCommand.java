@@ -52,7 +52,7 @@ public class SetCommand implements ICommand
 	
 	public String getArguments()
 	{
-		return "[pokemon name], [meta game], [generation] (not updated for gen 7)";
+		return "<pokemon>, <meta>, <generation> (not updated for gen 7)";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input)

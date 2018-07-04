@@ -47,7 +47,7 @@ public class MoveCommand implements ICommand
 	
 	public String getArguments()
 	{
-		return "[move name]";
+		return "<move>";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input)

@@ -58,7 +58,7 @@ public class LocationCommand implements ICommand
 	
 	public String getArguments()
 	{
-		return "[pokemon name], [version] (not updated for gen 7)";
+		return "<pokemon>, <version>";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input)

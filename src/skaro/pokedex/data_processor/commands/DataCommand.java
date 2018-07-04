@@ -61,7 +61,7 @@ public class DataCommand implements ICommand
 
 	public String getArguments()
 	{
-		return "[pokemon name]";
+		return "<pokemon>";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input) 

@@ -52,7 +52,7 @@ public class WeakCommand implements ICommand
 	
 	public String getArguments()
 	{
-		return "[pokemon name] or [type] or [type, type]";
+		return "<pokemon> or <type> or <type>, <type>";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input)

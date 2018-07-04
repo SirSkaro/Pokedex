@@ -53,7 +53,7 @@ public class LearnCommand implements ICommand
 	
 	public String getArguments()
 	{
-		return "[pokemon name], [move,move,...,move]";
+		return "<pokemon>, <move>,...,<move>";
 	}
 	
 	@SuppressWarnings("incomplete-switch")

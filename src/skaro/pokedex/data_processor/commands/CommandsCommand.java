@@ -29,16 +29,19 @@ public class CommandsCommand implements ICommand
 		builder.setLenient(true);
 		
 		staticDiscordReply.setPrivate(true);
-		staticDiscordReply.addToReply("**__Pokedex Commands__**");
+		staticDiscordReply.addToReply("Join the Pokedex Support Server!");
+		staticDiscordReply.addToReply("https://discord.gg/D5CfFkN");
 		builder.withColor(255, 255, 255);
 		builder.appendField("Prefixes", "!command or %command", true);
 		builder.appendField("Postfix", "command(input)", true);
-		builder.appendField("Hints","Use `%help` for examples. __Don't forget your commas!__", false);
+		builder.appendField("Hints",":small_blue_diamond:Use `%help` for examples.\n"
+				+ ":small_blue_diamond:__Don't forget your commas!__\n"
+				+ ":small_blue_diamond:You don't need to include '[' or '<' characters.", false);
 		
 		for(ICommand entry : library.values())
-			builder.appendField("`"+entry.getCommandName()+"`", ("input: "+ entry.getArguments()).intern(), false);
+			builder.appendField(":small_orange_diamond:"+entry.getCommandName(), ("%"+entry.getCommandName() + " ["+ entry.getArguments()).intern() + "]", true);
 		
-		builder.withFooterText("If you like the bot, please consider donating! Use the donate command for a link.");
+		builder.withFooterText("If you like the bot, consider becoming a Patron! Use the %patreon command for more info.");
 		
 		staticDiscordReply.setEmbededReply(builder.build());
 	}

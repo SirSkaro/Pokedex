@@ -48,7 +48,7 @@ public class AbilityCommand implements ICommand
 	
 	public String getArguments()
 	{
-		return "[pokemon name] or [ability name]";
+		return "<pokemon> or <ability>";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input)

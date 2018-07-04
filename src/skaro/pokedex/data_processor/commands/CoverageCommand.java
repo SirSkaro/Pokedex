@@ -54,7 +54,7 @@ public class CoverageCommand implements ICommand
 	
 	public String getArguments()
 	{
-		return "[type/move,...,type/move]";
+		return "<type/move>,...,<type/move>";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input)

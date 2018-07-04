@@ -47,7 +47,7 @@ public class ItemCommand implements ICommand
 	
 	public String getArguments()
 	{
-		return "[item name]";
+		return "<item>";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input)
