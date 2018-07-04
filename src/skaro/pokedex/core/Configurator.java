@@ -102,4 +102,22 @@ public class Configurator
 		
 		return dataNode.get(dataKey).asText();
 	}
+	
+	public String getDebugLevel()
+	{
+		JsonNode dataNode = rootNode.get("debug_level");
+		if(dataNode == null)
+			throw new IllegalStateException("No database congifuration data could be found.");
+		
+		return dataNode.get(dataKey).asText();
+	}
+	
+	public String getPokeFlexURL()
+	{
+		JsonNode dataNode = rootNode.get("pokeflex_url");
+		if(dataNode == null)
+			throw new IllegalStateException("No database congifuration data could be found.");
+		
+		return dataNode.get(dataKey).asText();
+	}
 }

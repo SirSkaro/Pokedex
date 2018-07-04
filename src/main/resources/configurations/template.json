@@ -1,7 +1,7 @@
 {
-	"_comment": "this is the template for the configuration of the Pokedex. After filling out the data, rename this file to config.json",
+	"_readme": "this is the template for the configuration of the Pokedex. After filling out the data, rename this file to config.json",
 	
-	"version": "X",
+	"version": "",
 
 	"discord": {
 		"token": {
@@ -47,6 +47,16 @@
 	},
 	
 	"model_path": {
+		"debug": "",
+		"production": ""
+	},
+	
+	"debug_level": {
+		"debug": "",
+		"production": ""
+	},
+	
+	"pokeflex_url": {
 		"debug": "",
 		"production": ""
 	}

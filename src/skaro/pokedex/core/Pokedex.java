@@ -16,6 +16,8 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import com.patreon.PatreonAPI;
 
@@ -26,13 +28,13 @@ import skaro.pokedex.data_processor.commands.CommandsCommand;
 import skaro.pokedex.data_processor.commands.CoverageCommand;
 import skaro.pokedex.data_processor.commands.DataCommand;
 import skaro.pokedex.data_processor.commands.DexCommand;
-import skaro.pokedex.data_processor.commands.PatreonCommand;
 import skaro.pokedex.data_processor.commands.HelpCommand;
 import skaro.pokedex.data_processor.commands.InviteCommand;
 import skaro.pokedex.data_processor.commands.ItemCommand;
 import skaro.pokedex.data_processor.commands.LearnCommand;
 import skaro.pokedex.data_processor.commands.LocationCommand;
 import skaro.pokedex.data_processor.commands.MoveCommand;
+import skaro.pokedex.data_processor.commands.PatreonCommand;
 import skaro.pokedex.data_processor.commands.RandpokeCommand;
 import skaro.pokedex.data_processor.commands.SetCommand;
 import skaro.pokedex.data_processor.commands.ShinyCommand;
@@ -79,11 +81,15 @@ public class Pokedex
 			System.out.println("[Pokedex main] Error parsing command line arguments.");
 			System.exit(1);
 		}
-			
+
 		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
 		configurator = Configurator.initializeConfigurator(true);
 		
+		//Set logging level
+		Logger logger4j = org.apache.log4j.Logger.getRootLogger();
+		logger4j.setLevel(Level.toLevel(configurator.getDebugLevel()));
+			
 		/**
 		 * Patreon SETUP
 		 */
@@ -107,13 +113,13 @@ public class Pokedex
 		discordClient = initClient(discordToken, shardIDToManage, totalShards);
 		
 		//Initialize other resources
-		library = getCompleteLibrary(new PokeFlexFactory("http://127.0.0.1:5000"), patreonClient);
+		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), patreonClient);
 		ip = new InputProcessor(library);
 		dcm = new DiscordCommandMap(library);
 		deh = new DiscordEventHandler(discordClient, dcm, ip);
 		discordClient.getDispatcher().registerListener(deh);
 		
-		//Login
+		//Login to Discord
 		System.out.println("[Pokedex main] Logging into Discord");
 		discordClient.login();
 		
@@ -144,7 +150,6 @@ public class Pokedex
 				.withToken(discordToken.get())
 				.setShard(shardID, totalShards)
 				.build();
-		
 		
 		return idc;
 	}
@@ -229,7 +234,7 @@ public class Pokedex
 	 * recognized by any command map.
 	 * @return a CommandLibrary of ICommands that are supported for Discord
 	 */
-	private static CommandLibrary getCompleteLibrary(PokeFlexFactory factory, PatreonAPI patreonClient)
+	private static CommandLibrary initCompleteLibrary(PokeFlexFactory factory, PatreonAPI patreonClient)
 	{
 		CommandLibrary lib = new CommandLibrary();
 		PrivilegeChecker checker = new PrivilegeChecker(patreonClient);
