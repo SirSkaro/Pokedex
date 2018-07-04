@@ -7,17 +7,17 @@ import skaro.pokedex.core.Configurator;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class AboutCommand implements ICommand 
 {
-	private static AboutCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static Response staticDiscordReply;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private Response staticDiscordReply;
 	
-	private AboutCommand()
+	public AboutCommand()
 	{
 		Optional<Configurator> configurator = Configurator.getInstance();
 		String version;
@@ -36,31 +36,28 @@ public class AboutCommand implements ICommand
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
 		builder.withColor(255, 255, 255);
-		builder.withAuthorName("Pokedex version "+version);
-		builder.appendField("Creator", "Benjamin \"Sir Skaro\" Churchill", true);
-		builder.appendField("Twitter","[Follow me on Twitter!](https://twitter.com/sirskaro)",true);
-		builder.appendField("Icon Artist", "Domenic \"Jabberjock\" Serena", true);
-		builder.appendField("Twitter","[Check out Jabberjock!](https://twitter.com/domenicserena)",true);
-		builder.appendField("Libraries", "Discord4j, MaryTTS, MySQL, EHCache, Jazzy", false);
+		builder.withAuthorName("Pokedex "+version);
+		builder.appendField("Creator", "[Benjamin \"Sir Skaro\" Churchill](https://twitter.com/sirskaro)", true);
+		builder.appendField("Icon Artist", "[Domenic \"Jabberjock\" Serena](https://twitter.com/domenicserena)", true);
+		builder.appendField("License","[Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/)",true);
+		builder.appendField("Recognitions", "Data provided by PokeAPI and Pokemon Showdown", true);
+		builder.appendField("Github", "[Pokedex is open source!](https://github.com/SirSkaro/Pokedex)", true);
+		builder.appendField("Libraries/Services", "Discord4J, MaryTTS, MySQL, EHCache, Jazzy, PokeAPI", false);
+		builder.appendField("Donate", "[Support Pokedex!](https://goo.gl/HlrFrD)", true);
 		builder.appendField("Special Thanks", "PokeaimMD, Honko, the Pokemon Showdown Dev Team, "
 				+ "and the Bulbapedia Community", false);
-		builder.withFooterText("If you like the bot, please consider donating! Use the donate command for a link.");
+		builder.withFooterText("Pokémon © 2002-2018 Pokémon. © 1995-2018 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. " + 
+				"No copyright or trademark infringement is intended.");
+		
+		builder.withThumbnail("https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png");
 		
 		staticDiscordReply.setEmbededReply(builder.build());
-	}
-	
-	public static ICommand getInstance()
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new AboutCommand();
-		return instance;
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return false; }
 	
 	public String getArguments()
 	{
@@ -72,7 +69,7 @@ public class AboutCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input)
+	public Response discordReply(Input input, IUser requester)
 	{ 
 		return staticDiscordReply;
 	}

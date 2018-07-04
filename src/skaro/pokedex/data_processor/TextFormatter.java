@@ -30,7 +30,7 @@ public class TextFormatter
 	
 	public static String formatGeneration(String string)
 	{
-		if(string.contains("sun"));
+		if(string.contains("sun"))
 			string = "generation-vii";
 		String[] words = string.split("-");
 		return (WordUtils.capitalize(words[0]) + " " + words[1].toUpperCase()).intern();

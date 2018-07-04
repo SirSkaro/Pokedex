@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -11,21 +10,20 @@ import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class RandpokeCommand implements ICommand
 {
-	private static RandpokeCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private RandpokeCommand(PokeFlexFactory pff)
+	public RandpokeCommand(PokeFlexFactory pff)
 	{
 		commandName = "randpoke".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -34,18 +32,10 @@ public class RandpokeCommand implements ICommand
 		factory = pff;
 	}
 	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new RandpokeCommand(pff);
-		return instance;
-	}
-
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return true; }
 	
 	public String getArguments()
 	{
@@ -58,7 +48,7 @@ public class RandpokeCommand implements ICommand
 	}
 
 	@Override
-	public Response discordReply(Input input) 
+	public Response discordReply(Input input, IUser requester)
 	{
 		//Set up utility variables
 		Response reply = new Response();
@@ -76,7 +66,7 @@ public class RandpokeCommand implements ICommand
 			//Format reply
 			reply.setEmbededReply(formatEmbed(pokemon));
 		} 
-		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1002", e); }
+		catch (Exception e) { this.addErrorMessage(reply, input, "1002", e); }
 				
 		return reply;
 	}
@@ -87,6 +77,7 @@ public class RandpokeCommand implements ICommand
 		builder.setLenient(true);
 		
 		builder.withTitle(TextFormatter.flexFormToProper(pokemon.getName()).intern() + " | #" + Integer.toString(pokemon.getId()));
+		builder.withFooterText("[Update] Shiny Pokemon have returned! Try the %shiny command!");
 		
 		//Add images
 		builder.withImage(pokemon.getModel().getUrl());

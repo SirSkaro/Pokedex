@@ -11,17 +11,17 @@ import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.move.Move;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class MoveCommand implements ICommand 
 {
-	private static MoveCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private MoveCommand(PokeFlexFactory pff)
+	public MoveCommand(PokeFlexFactory pff)
 	{
 		commandName = "move".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -30,22 +30,14 @@ public class MoveCommand implements ICommand
 		factory = pff;
 	}
 	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new MoveCommand(pff);
-		return instance;
-	}
-	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return true; }
 	
 	public String getArguments()
 	{
-		return "[move name]";
+		return "<move>";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input)
@@ -69,7 +61,7 @@ public class MoveCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input)
+	public Response discordReply(Input input, IUser requester)
 	{ 
 		Response reply = new Response();
 		
@@ -87,7 +79,7 @@ public class MoveCommand implements ICommand
 			reply.addToReply(("**__"+TextFormatter.flexFormToProper(move.getName())+"__**").intern());
 			reply.setEmbededReply(formatEmbed(move));
 		} 
-		catch (Exception e) { this.addErrorMessage(reply, "1006", e); }
+		catch (Exception e) { this.addErrorMessage(reply, input, "1006", e); }
 		
 		return reply;
 	}

@@ -1,9 +1,6 @@
 package skaro.pokedex.data_processor;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
+import java.io.File;
 import java.util.Optional;
 
 import javax.sound.sampled.AudioInputStream;
@@ -12,18 +9,18 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 
 public class Response
 {
-	private StringBuilder textReply;
-	private AudioInputStream audioReply;		//Discord Specific
-	private ArrayList<InputStream> imageReply;	//Discord Specific
-	private EmbedObject embededReply;			//Discord Specific
+	private StringBuilder text;
+	private AudioInputStream audio;	
+	private File image;				
+	private EmbedObject embed;			
 	private boolean privateMessage;
 	
 	public Response()
 	{
-		textReply = new StringBuilder();
-		audioReply = null;
-		imageReply = null;
-		embededReply = null;
+		text = new StringBuilder();
+		audio = null;
+		image = null;
+		embed = null;
 		privateMessage = false;
 	}
 	
@@ -32,12 +29,12 @@ public class Response
 	 */
 	public void setPlayBack(AudioInputStream ais)
 	{
-		audioReply = ais;
+		audio = ais;
 	}
 	
 	public void setEmbededReply(EmbedObject eo)
 	{
-		embededReply = eo;
+		embed = eo;
 	}
 	
 	public void setPrivate(boolean b)
@@ -45,56 +42,39 @@ public class Response
 		privateMessage = b;
 	}
 	
-	public void addImage(String imagePath)
+	public void addImage(File file)
 	{
-		URL url;
-		HttpURLConnection httpCon;
-		
-		if(imageReply == null)
-			imageReply = new ArrayList<InputStream>();
-		
-		try 
-		{
-			url = new URL(imagePath);
-			httpCon = (HttpURLConnection) url.openConnection(); 
-			httpCon.addRequestProperty("User-Agent", "Mozilla/4.76"); 
-		    imageReply.add(httpCon.getInputStream());
-		}
-		catch (Exception e) 
-		{
-			System.out.println("[Response] Error getting image:"+e);
-			imageReply = null;
-		}
+		image = file;
 	}
 	
 	public void addToReply(String s)
 	{
-		textReply.append(s+"<>");
+		text.append(s+"<>");
 	}
 	
 	public String getDiscordTextReply()
 	{	
-		return textReply.toString().replace("<>", "\n");
+		return text.toString().replace("<>", "\n");
 	}
 	
 	public String getTwitchTextReply()
 	{
-		return textReply.toString().replace("<>", " | ");
+		return text.toString().replace("<>", " | ");
 	}
 	
 	public AudioInputStream getAudioReply()
 	{
-		return audioReply;
+		return audio;
 	}
 	
-	public ArrayList<InputStream> getImageReply()
+	public Optional<File> getImage()
 	{
-		return imageReply;
+		return Optional.ofNullable(image);
 	}
 	
 	public Optional<EmbedObject> getEmbedObject()
 	{
-		return Optional.ofNullable(embededReply);
+		return Optional.ofNullable(embed);
 	}
 	
 	public boolean isPrivateMessage()

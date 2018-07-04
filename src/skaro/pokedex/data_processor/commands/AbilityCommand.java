@@ -12,17 +12,17 @@ import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.ability.Ability;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class AbilityCommand implements ICommand 
 {
-	private static AbilityCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private AbilityCommand(PokeFlexFactory pff)
+	public AbilityCommand(PokeFlexFactory pff)
 	{
 		commandName = "ability".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -31,22 +31,14 @@ public class AbilityCommand implements ICommand
 		factory = pff;
 	}
 	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new AbilityCommand(pff);
-		return instance;
-	}
-	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return true; }
 	
 	public String getArguments()
 	{
-		return "[pokemon name] or [ability name]";
+		return "<pokemon> or <ability>";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input)
@@ -70,7 +62,7 @@ public class AbilityCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input)
+	public Response discordReply(Input input, IUser requester)
 	{ 
 		Response reply = new Response();
 		
@@ -93,7 +85,7 @@ public class AbilityCommand implements ICommand
 				reply.addToReply(("**__"+TextFormatter.flexFormToProper(abil.getName())+"__**").intern());
 				reply.setEmbededReply(formatEmbed(abil));
 			} 
-			catch (Exception e)  { this.addErrorMessage(reply, "1003a", e); }
+			catch (Exception e)  { this.addErrorMessage(reply, input, "1003a", e); }
 		}
 		else//if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
 		{
@@ -107,7 +99,7 @@ public class AbilityCommand implements ICommand
 				reply.addToReply(("**__"+TextFormatter.flexFormToProper(pokemon.getName())+"__**").intern());
 				reply.setEmbededReply(formatEmbed(pokemon));
 			}
-			catch (Exception e) { this.addErrorMessage(reply, "1003b", e); }
+			catch (Exception e) { this.addErrorMessage(reply, input, "1003b", e); }
 		}
 		
 		return reply;

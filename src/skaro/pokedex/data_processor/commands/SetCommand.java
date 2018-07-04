@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -9,24 +8,23 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.AbstractArgument;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.set.Evs;
 import skaro.pokeflex.objects.set.Ivs;
 import skaro.pokeflex.objects.set.Set;
 import skaro.pokeflex.objects.set.Set_;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class SetCommand implements ICommand 
 {
-	private static SetCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private SetCommand(PokeFlexFactory pff)
+	public SetCommand(PokeFlexFactory pff)
 	{
 		commandName = "set".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -37,22 +35,14 @@ public class SetCommand implements ICommand
 		factory = pff;
 	}
 	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new SetCommand(pff);
-		return instance;
-	}
-	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return false; }
 	
 	public String getArguments()
 	{
-		return "[pokemon name], [meta game], [generation] (not updated for gen 7)";
+		return "<pokemon>, <meta>, <generation> (not updated for gen 7)";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input)
@@ -83,7 +73,7 @@ public class SetCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input)
+	public Response discordReply(Input input, IUser requester)
 	{ 
 		Response reply = new Response();
 		
@@ -101,7 +91,7 @@ public class SetCommand implements ICommand
 			reply.addToReply(("__**"+sets.getTier()+"** sets for **"+sets.getName()+"** from Generation **"+sets.getGen()+"**__").intern());
 			reply.setEmbededReply(formatEmbed(sets));
 		} 
-		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1007", e); }
+		catch (Exception e) { this.addErrorMessage(reply, input, "1007", e); }
 		
 		return reply;
 	}
