@@ -22,14 +22,13 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class DexCommand implements ICommand
 {
-	private static DexCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
 	private TTSConverter tts;
-	private static PokeFlexFactory factory;
+	private PokeFlexFactory factory;
 	
-	private DexCommand(PokeFlexFactory pff)
+	public DexCommand(PokeFlexFactory pff)
 	{
 		commandName = "dex".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -38,15 +37,6 @@ public class DexCommand implements ICommand
 		expectedArgRange = new ArgumentRange(2,2);
 		tts = new TTSConverter();
 		factory = pff;
-	}
-	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new DexCommand(pff);
-		return instance;
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }

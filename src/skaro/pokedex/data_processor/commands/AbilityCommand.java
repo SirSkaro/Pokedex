@@ -17,28 +17,18 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class AbilityCommand implements ICommand 
 {
-	private static AbilityCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private AbilityCommand(PokeFlexFactory pff)
+	public AbilityCommand(PokeFlexFactory pff)
 	{
 		commandName = "ability".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKE_ABIL);
 		expectedArgRange = new ArgumentRange(1,1);
 		factory = pff;
-	}
-	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new AbilityCommand(pff);
-		return instance;
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }

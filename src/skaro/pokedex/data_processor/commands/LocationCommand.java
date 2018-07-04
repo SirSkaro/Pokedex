@@ -26,13 +26,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class LocationCommand implements ICommand 
 {
-	private static LocationCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private LocationCommand(PokeFlexFactory pff)
+	public LocationCommand(PokeFlexFactory pff)
 	{
 		commandName = "location".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -40,15 +39,6 @@ public class LocationCommand implements ICommand
 		argCats.add(ArgumentCategory.VERSION);
 		expectedArgRange = new ArgumentRange(2,2);
 		factory = pff;
-	}
-	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new LocationCommand(pff);
-		return instance;
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }

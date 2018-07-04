@@ -30,13 +30,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class DataCommand implements ICommand 
 {
-	private static DataCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private DataCommand(PokeFlexFactory pff)
+	public DataCommand(PokeFlexFactory pff)
 	{
 		commandName = "data".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -44,16 +43,7 @@ public class DataCommand implements ICommand
 		expectedArgRange = new ArgumentRange(1,1);
 		factory = pff;
 	}
-	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
 
-		instance = new DataCommand(pff);
-		return instance;
-	}
-	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }

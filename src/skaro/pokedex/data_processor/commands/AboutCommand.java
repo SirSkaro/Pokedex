@@ -12,13 +12,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class AboutCommand implements ICommand 
 {
-	private static AboutCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static Response staticDiscordReply;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private Response staticDiscordReply;
 	
-	private AboutCommand()
+	public AboutCommand()
 	{
 		Optional<Configurator> configurator = Configurator.getInstance();
 		String version;
@@ -53,15 +52,6 @@ public class AboutCommand implements ICommand
 		builder.withThumbnail("https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png");
 		
 		staticDiscordReply.setEmbededReply(builder.build());
-	}
-	
-	public static ICommand getInstance()
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new AboutCommand();
-		return instance;
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }

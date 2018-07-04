@@ -18,13 +18,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class RandpokeCommand implements ICommand
 {
-	private static RandpokeCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private RandpokeCommand(PokeFlexFactory pff)
+	public RandpokeCommand(PokeFlexFactory pff)
 	{
 		commandName = "randpoke".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -33,15 +32,6 @@ public class RandpokeCommand implements ICommand
 		factory = pff;
 	}
 	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new RandpokeCommand(pff);
-		return instance;
-	}
-
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }

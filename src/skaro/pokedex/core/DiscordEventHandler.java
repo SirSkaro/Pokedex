@@ -128,7 +128,7 @@ public class DiscordEventHandler
         if(command == null) //if the command isn't supported, return
         	return;
 
-        //Send initial message to alert the user their response is being processed if a Web
+        //Send acknowledgement message to alert the user their response is being processed if a web request is being made
         if(command.makesWebRequest())
         	ackMsg = sendAcknowledgement(userMsg);
         

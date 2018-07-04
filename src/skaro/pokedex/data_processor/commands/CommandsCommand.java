@@ -11,13 +11,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class CommandsCommand implements ICommand 
 {
-	private static CommandsCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static Response staticDiscordReply;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private Response staticDiscordReply;
 	
-	private CommandsCommand(HashMap<String, ICommand> library)
+	public CommandsCommand(HashMap<String, ICommand> library)
 	{
 		commandName = "commands".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -44,18 +43,6 @@ public class CommandsCommand implements ICommand
 		builder.withFooterText("If you like the bot, consider becoming a Patron! Use the %patreon command for more info.");
 		
 		staticDiscordReply.setEmbededReply(builder.build());
-	}
-	
-	public static ICommand getInstance(HashMap<String, ICommand> library)
-	{
-		if(instance != null)
-			return instance;
-
-		if(library == null || library.isEmpty())
-			throw new IllegalArgumentException("CommandsCommand needs a set of commands!");
-		
-		instance = new CommandsCommand(library);
-		return instance;
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }

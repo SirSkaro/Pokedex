@@ -11,13 +11,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class PatreonCommand implements ICommand 
 {
-	private static PatreonCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static Response staticDiscordReply;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private Response staticDiscordReply;
 	
-	private PatreonCommand()
+	public PatreonCommand()
 	{
 		commandName = "patreon".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -33,15 +32,6 @@ public class PatreonCommand implements ICommand
 		builder.appendField("Patreon Link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);
 		
 		staticDiscordReply.setEmbededReply(builder.build());
-	}
-	
-	public static ICommand getInstance()
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new PatreonCommand();
-		return instance;
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }

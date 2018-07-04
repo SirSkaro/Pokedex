@@ -22,15 +22,14 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class ShinyCommand implements ICommand
 {
-	private static ShinyCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
-	private static String baseModelPath;
-	private static PrivilegeChecker checker;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
+	private String baseModelPath;
+	private PrivilegeChecker checker;
 	
-	private ShinyCommand(PokeFlexFactory pff, PrivilegeChecker pc)
+	public ShinyCommand(PokeFlexFactory pff, PrivilegeChecker pc)
 	{
 		commandName = "shiny".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -39,15 +38,6 @@ public class ShinyCommand implements ICommand
 		factory = pff;
 		baseModelPath = Configurator.getInstance().get().getModelBasePath();
 		checker = pc;
-	}
-	
-	public static ICommand getInstance(PokeFlexFactory pff, PrivilegeChecker pc)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new ShinyCommand(pff, pc);
-		return instance;
 	}
 
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }

@@ -19,13 +19,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class SetCommand implements ICommand 
 {
-	private static SetCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private SetCommand(PokeFlexFactory pff)
+	public SetCommand(PokeFlexFactory pff)
 	{
 		commandName = "set".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -34,15 +33,6 @@ public class SetCommand implements ICommand
 		argCats.add(ArgumentCategory.GEN);
 		expectedArgRange = new ArgumentRange(3,3);
 		factory = pff;
-	}
-	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new SetCommand(pff);
-		return instance;
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }

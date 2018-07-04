@@ -21,13 +21,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class LearnCommand implements ICommand 
 {
-	private static LearnCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private LearnCommand(PokeFlexFactory pff)
+	public LearnCommand(PokeFlexFactory pff)
 	{
 		commandName = "learn".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -35,15 +34,6 @@ public class LearnCommand implements ICommand
 		argCats.add(ArgumentCategory.MOVE_LIST);
 		expectedArgRange = new ArgumentRange(2,21);
 		factory = pff;
-	}
-	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new LearnCommand(pff);
-		return instance;
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }

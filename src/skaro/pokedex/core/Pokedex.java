@@ -234,25 +234,25 @@ public class Pokedex
 		CommandLibrary lib = new CommandLibrary();
 		PrivilegeChecker checker = new PrivilegeChecker(patreonClient);
 		
-		lib.addToLibrary(RandpokeCommand.getInstance(factory));
-		lib.addToLibrary(StatsCommand.getInstance(factory));
-		lib.addToLibrary(DataCommand.getInstance(factory));
-		lib.addToLibrary(AbilityCommand.getInstance(factory));
-		lib.addToLibrary(ItemCommand.getInstance(factory));
-		lib.addToLibrary(MoveCommand.getInstance(factory));
-		lib.addToLibrary(LearnCommand.getInstance(factory));
-		lib.addToLibrary(WeakCommand.getInstance(factory));
-		lib.addToLibrary(CoverageCommand.getInstance(factory));
-		lib.addToLibrary(DexCommand.getInstance(factory));
-		lib.addToLibrary(SetCommand.getInstance(factory));
-		lib.addToLibrary(LocationCommand.getInstance(factory));
-		lib.addToLibrary(AboutCommand.getInstance());
-		lib.addToLibrary(HelpCommand.getInstance());
-		lib.addToLibrary(PatreonCommand.getInstance());
-		lib.addToLibrary(InviteCommand.getInstance());
-		lib.addToLibrary(ShinyCommand.getInstance(factory, checker));
+		lib.addToLibrary(new RandpokeCommand(factory));
+		lib.addToLibrary(new StatsCommand(factory));
+		lib.addToLibrary(new DataCommand(factory));
+		lib.addToLibrary(new AbilityCommand(factory));
+		lib.addToLibrary(new ItemCommand(factory));
+		lib.addToLibrary(new MoveCommand(factory));
+		lib.addToLibrary(new LearnCommand(factory));
+		lib.addToLibrary(new WeakCommand(factory));
+		lib.addToLibrary(new CoverageCommand(factory));
+		lib.addToLibrary(new DexCommand(factory));
+		lib.addToLibrary(new SetCommand(factory));
+		lib.addToLibrary(new LocationCommand(factory));
+		lib.addToLibrary(new AboutCommand());
+		lib.addToLibrary(new HelpCommand());
+		lib.addToLibrary(new PatreonCommand());
+		lib.addToLibrary(new InviteCommand());
+		lib.addToLibrary(new ShinyCommand(factory, checker));
 		
-		lib.addToLibrary(CommandsCommand.getInstance(lib.getLibrary()));
+		lib.addToLibrary(new CommandsCommand(lib.getLibrary()));
 		
 		return lib;
 	}

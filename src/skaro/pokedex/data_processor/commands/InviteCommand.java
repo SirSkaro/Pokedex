@@ -11,13 +11,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class InviteCommand implements ICommand 
 {
-	private static InviteCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static Response staticDiscordReply;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private Response staticDiscordReply;
 	
-	private InviteCommand()
+	public InviteCommand()
 	{
 		commandName = "invite".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -33,15 +32,6 @@ public class InviteCommand implements ICommand
 		builder.appendField("Join Pokedex's home server!", "[Click to join Pokedex's server](https://discord.gg/D5CfFkN)", false);
 		
 		staticDiscordReply.setEmbededReply(builder.build());
-	}
-	
-	public static ICommand getInstance()
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new InviteCommand();
-		return instance;
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
