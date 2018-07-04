@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +12,6 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.AbstractArgument;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.FlavorTextEntry;
@@ -109,7 +107,7 @@ public class DexCommand implements ICommand
 			flexObj = factory.createFlexObject(Endpoint.POKEMON_SPECIES, urlParams);
 			speciesData = PokemonSpecies.class.cast(flexObj);
 		} 
-		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1010", e); }
+		catch(Exception e) { this.addErrorMessage(reply, input, "1010", e); }
 		
 		//Check if the Pokemon has a Pokedex entry that meets the user criteria
 		Optional<FlavorTextEntry> entry = getEntry(speciesData, input.getArg(1).getDbForm());

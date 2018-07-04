@@ -92,12 +92,12 @@ public class ShinyCommand implements ICommand
 		if(checker.userIsPrivileged(requester))
 			formatPrivilegedReply(reply, input);
 		else
-			formatNonPrivilegedReply(reply);
+			formatNonPrivilegedReply(reply, input);
 				
 		return reply;
 	}
 	
-	private void formatNonPrivilegedReply(Response reply)
+	private void formatNonPrivilegedReply(Response reply, Input input)
 	{
 		String path;
 		EmbedBuilder builder = new EmbedBuilder();
@@ -118,7 +118,7 @@ public class ShinyCommand implements ICommand
 			reply.addImage(new File(path));
 			reply.setEmbededReply(builder.build());
 		}
-		catch (Exception e) { this.addErrorMessage(reply, "1012a", e); }
+		catch (Exception e) { this.addErrorMessage(reply, input, "1012a", e); }
 	}
 	
 	private void formatPrivilegedReply(Response reply, Input input)
@@ -149,7 +149,7 @@ public class ShinyCommand implements ICommand
 			
 			reply.setEmbededReply(formatEmbed(pokemon, image));
 		} 
-		catch (Exception e) { this.addErrorMessage(reply, "1012b", e); }
+		catch (Exception e) { this.addErrorMessage(reply, input, "1012b", e); }
 	}
 	
 	private EmbedObject formatEmbed(Pokemon pokemon, File image) throws IOException

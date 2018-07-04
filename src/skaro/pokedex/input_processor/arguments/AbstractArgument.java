@@ -23,6 +23,6 @@ public abstract class AbstractArgument
 	
 	public String toString()
 	{
-		return dbForm;
+		return rawInput;
 	}
 }

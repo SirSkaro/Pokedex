@@ -112,9 +112,9 @@ public class CoverageCommand implements ICommand
 				List<Type> typesFromMoves = getMoveTypes(moveNames);
 				typeList.addAll(typesFromMoves);
 			}
-			catch(InterruptedException | PokeFlexException e)
+			catch(Exception e)
 			{
-				this.addErrorMessage(reply, "1009", e);
+				this.addErrorMessage(reply, input, "1009", e);
 				return reply;
 			}
 		}

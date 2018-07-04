@@ -94,7 +94,7 @@ public class AbilityCommand implements ICommand
 				reply.addToReply(("**__"+TextFormatter.flexFormToProper(abil.getName())+"__**").intern());
 				reply.setEmbededReply(formatEmbed(abil));
 			} 
-			catch (Exception e)  { this.addErrorMessage(reply, "1003a", e); }
+			catch (Exception e)  { this.addErrorMessage(reply, input, "1003a", e); }
 		}
 		else//if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
 		{
@@ -108,7 +108,7 @@ public class AbilityCommand implements ICommand
 				reply.addToReply(("**__"+TextFormatter.flexFormToProper(pokemon.getName())+"__**").intern());
 				reply.setEmbededReply(formatEmbed(pokemon));
 			}
-			catch (Exception e) { this.addErrorMessage(reply, "1003b", e); }
+			catch (Exception e) { this.addErrorMessage(reply, input, "1003b", e); }
 		}
 		
 		return reply;

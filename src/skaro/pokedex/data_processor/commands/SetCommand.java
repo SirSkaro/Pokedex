@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -9,7 +8,6 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.AbstractArgument;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.set.Evs;
 import skaro.pokeflex.objects.set.Ivs;
@@ -102,7 +100,7 @@ public class SetCommand implements ICommand
 			reply.addToReply(("__**"+sets.getTier()+"** sets for **"+sets.getName()+"** from Generation **"+sets.getGen()+"**__").intern());
 			reply.setEmbededReply(formatEmbed(sets));
 		} 
-		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1007", e); }
+		catch (Exception e) { this.addErrorMessage(reply, input, "1007", e); }
 		
 		return reply;
 	}

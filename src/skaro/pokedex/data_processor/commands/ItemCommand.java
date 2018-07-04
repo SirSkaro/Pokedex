@@ -1,7 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
 import java.awt.Color;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.Response;
@@ -9,7 +8,6 @@ import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.item.Item;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
@@ -90,7 +88,7 @@ public class ItemCommand implements ICommand
 			reply.addToReply(("**__"+TextFormatter.flexFormToProper(item.getName())+"__**").intern());
 			reply.setEmbededReply(formatEmbed(item));
 		} 
-		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1004", e); }
+		catch (Exception e) { this.addErrorMessage(reply, input, "1004", e); }
 		
 		return reply;
 	}

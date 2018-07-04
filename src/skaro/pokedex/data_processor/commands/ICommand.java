@@ -44,23 +44,20 @@ public interface ICommand
 		return result.toString();
 	}
 	
-	public default void addErrorMessage(Response reply, String errCode, Exception e)
-	{
-		reply.addToReply("I wasn't able to get the data you requested (error "+errCode+"). My "
-				+ "external API may not have the data or may be down. Please report that a "+ e.getClass().getSimpleName() +" occured "
-				+ "(https://discord.gg/D5CfFkN))");
-	}
-	
 	public default void addErrorMessage(Response reply, Input input, String errCode, Exception e)
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setLenient(true);
 		
-		builder.withTitle("I wasn't able to get the data you requested. My external API may not have the data or may be down. Please try again later. If you think "
-				+ "this is a bug, please screenshot this and report it to the Pokedex Support Server!");
+		reply.addToReply("**Error Report**");
+		builder.withDesc("Could not get requested data. My external API may be down or may not have your data. Please try again later.\n\n"
+				+ "If you think this is a bug, please __screenshot this report__ and post it in the Support Server!");
 		builder.appendField("Error Code", errCode, true);
 		builder.appendField("Technical Error", e.getClass().getSimpleName(), true);
+		builder.appendField("User Input", input.argsToString(), true);
+		builder.appendField("Link to Support Server", "[Click here to report](https://discord.gg/D5CfFkN)", true);
 		
+		reply.setEmbededReply(builder.build());
 	}
 }
 

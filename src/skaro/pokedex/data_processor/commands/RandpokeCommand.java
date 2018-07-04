@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -11,7 +10,6 @@ import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
@@ -77,7 +75,7 @@ public class RandpokeCommand implements ICommand
 			//Format reply
 			reply.setEmbededReply(formatEmbed(pokemon));
 		} 
-		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1002", e); }
+		catch (Exception e) { this.addErrorMessage(reply, input, "1002", e); }
 				
 		return reply;
 	}

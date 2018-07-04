@@ -88,7 +88,7 @@ public class MoveCommand implements ICommand
 			reply.addToReply(("**__"+TextFormatter.flexFormToProper(move.getName())+"__**").intern());
 			reply.setEmbededReply(formatEmbed(move));
 		} 
-		catch (Exception e) { this.addErrorMessage(reply, "1006", e); }
+		catch (Exception e) { this.addErrorMessage(reply, input, "1006", e); }
 		
 		return reply;
 	}

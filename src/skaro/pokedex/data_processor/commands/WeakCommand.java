@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +13,6 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.AbstractArgument;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
@@ -108,9 +106,9 @@ public class WeakCommand implements ICommand
 				if(types.size() > 1)
 					type2 = Type.getByName(types.get(1).getType().getName());
 			} 
-			catch (IOException | PokeFlexException e)
+			catch(Exception e)
 			{ 
-				this.addErrorMessage(reply, "1006", e); 
+				this.addErrorMessage(reply, input, "1006", e); 
 				return reply;
 			}
 			

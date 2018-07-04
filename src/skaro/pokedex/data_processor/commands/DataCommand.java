@@ -94,43 +94,36 @@ public class DataCommand implements ICommand
 		//Obtain base Pokemon data
 		List<Object> baseData;
 		Pokemon pokemon = null;
+		List<Object> peripheralData;
+		PokemonSpecies speciesData;
+		EmbedBuilder builder;
 		try 
 		{
 			baseData = getBaseData(input.argsAsList());
 			pokemon = Pokemon.class.cast(getDataOfInstance(baseData, Pokemon.class));
-		}
-		catch (InterruptedException | PokeFlexException e) 
-		{
-			this.addErrorMessage(reply, "1002a", e);
-			reply.addToReply("Your request may have timed out. Please try again later!");
-			return reply;
-		}
-		
-		//Obtain peripheral data
-		List<Object> peripheralData;
-		PokemonSpecies speciesData;
-		try 
-		{
 			peripheralData = getPeripheralData(pokemon);
 			speciesData = PokemonSpecies.class.cast(getDataOfInstance(peripheralData, PokemonSpecies.class));
 		}
-		catch(PokeFlexException | IOException e)
+		catch (Exception e) 
 		{
-			reply.addToReply("Your request may have timed out. Please try again later!");
-			return reply;
-		}
-		catch(Exception e)
-		{
-			this.addErrorMessage(reply, "1002b", e);
+			this.addErrorMessage(reply, input, "1002a", e);
 			return reply;
 		}
 		
 		//Format reply
-		EmbedBuilder builder = new EmbedBuilder();	
+		builder = new EmbedBuilder();	
 		builder.setLenient(true);
-		reply.addToReply("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+" | #" + Integer.toString(speciesData.getId()) 
-			+ " | " + TextFormatter.formatGeneration(speciesData.getGeneration().getName()) + "__**");
-		reply.setEmbededReply(formatEmbed(pokemon, peripheralData));
+		try
+		{
+			reply.addToReply("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+" | #" + Integer.toString(speciesData.getId()) 
+				+ " | " + TextFormatter.formatGeneration(speciesData.getGeneration().getName()) + "__**");
+			reply.setEmbededReply(formatEmbed(pokemon, peripheralData));
+		}
+		catch (Exception e)
+		{
+			this.addErrorMessage(reply, input, "1002b", e);
+			return reply;
+		}
 				
 		return reply;
 	}

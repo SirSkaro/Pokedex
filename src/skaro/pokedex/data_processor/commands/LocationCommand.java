@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -14,7 +13,6 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.AbstractArgument;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.encounter.ConditionValue;
 import skaro.pokeflex.objects.encounter.Encounter;
@@ -115,9 +113,9 @@ public class LocationCommand implements ICommand
 			flexObj = factory.createFlexObject(Endpoint.ENCOUNTER, urlParams);
 			encounterData = Encounter.class.cast(flexObj);
 		} 
-		catch(IOException | PokeFlexException e)
+		catch(Exception e)
 		{ 
-			this.addErrorMessage(reply, "1011", e); 
+			this.addErrorMessage(reply, input, "1011", e); 
 			return reply;
 		}
 		
