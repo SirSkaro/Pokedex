@@ -6,19 +6,19 @@ import java.util.ArrayList;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class DonateCommand implements ICommand 
+public class PatreonCommand implements ICommand 
 {
-	private static DonateCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static Response staticDiscordReply;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private Response staticDiscordReply;
 	
-	private DonateCommand()
+	public PatreonCommand()
 	{
-		commandName = "donate".intern();
+		commandName = "patreon".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
@@ -26,27 +26,18 @@ public class DonateCommand implements ICommand
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
-		builder.withColor(new Color(255,255,255));
+		builder.withColor(new Color(0xF96854));
 		
-		builder.appendField("Call for Donations!", "Every little bit helps! _All donations go "
-				+ "toward paying for the server space!_", false);
-		builder.appendField("Donation link (PayPal)", "[donate here](https://goo.gl/HlrFrD)", false);
+		builder.appendField("Become a Patron!", "Pledging is the best way to maximize your experience (*perks*) and involvement (*support*) with Pokedex!", false);
+		builder.appendField("Patreon Link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);
 		
 		staticDiscordReply.setEmbededReply(builder.build());
-	}
-	
-	public static ICommand getInstance()
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new DonateCommand();
-		return instance;
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return false; }
 	
 	public String getArguments()
 	{
@@ -58,7 +49,7 @@ public class DonateCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input)
+	public Response discordReply(Input input, IUser requester)
 	{ 
 		return staticDiscordReply;
 	}

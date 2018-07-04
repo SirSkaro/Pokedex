@@ -47,4 +47,14 @@ public class Input
 		
 		return list;
 	}
+	
+	public String argsToString()
+	{
+		StringBuilder builder = new StringBuilder();
+		
+		for(AbstractArgument arg : args)
+			builder.append(arg.toString() + ", ");
+		
+		return builder.substring(0, builder.length() - 2);
+	}
 }

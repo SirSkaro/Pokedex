@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -12,23 +11,22 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.AbstractArgument;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Move;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon.VersionGroupDetail;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class LearnCommand implements ICommand 
 {
-	private static LearnCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private LearnCommand(PokeFlexFactory pff)
+	public LearnCommand(PokeFlexFactory pff)
 	{
 		commandName = "learn".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -38,22 +36,14 @@ public class LearnCommand implements ICommand
 		factory = pff;
 	}
 	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new LearnCommand(pff);
-		return instance;
-	}
-	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return true; }
 	
 	public String getArguments()
 	{
-		return "[pokemon name], [move,move,...,move]";
+		return "<pokemon>, <move>,...,<move>";
 	}
 	
 	@SuppressWarnings("incomplete-switch")
@@ -81,7 +71,7 @@ public class LearnCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input)
+	public Response discordReply(Input input, IUser requester)
 	{ 
 		Response reply = new Response();
 		
@@ -107,7 +97,7 @@ public class LearnCommand implements ICommand
 			reply.addToReply(("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+"__**").intern());
 			reply.setEmbededReply(formatEmbed(pokemon, moves));
 		} 
-		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1007", e); }
+		catch (Exception e) { this.addErrorMessage(reply, input, "1007", e); }
 		
 		return reply;
 	}

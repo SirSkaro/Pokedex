@@ -25,17 +25,17 @@ import skaro.pokeflex.objects.pokemon_species.EggGroup;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.pokemon_species.Variety;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class DataCommand implements ICommand 
 {
-	private static DataCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private DataCommand(PokeFlexFactory pff)
+	public DataCommand(PokeFlexFactory pff)
 	{
 		commandName = "data".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -43,23 +43,15 @@ public class DataCommand implements ICommand
 		expectedArgRange = new ArgumentRange(1,1);
 		factory = pff;
 	}
-	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
 
-		instance = new DataCommand(pff);
-		return instance;
-	}
-	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return true; }
 
 	public String getArguments()
 	{
-		return "[pokemon name]";
+		return "<pokemon>";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input) 
@@ -82,7 +74,7 @@ public class DataCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input) 
+	public Response discordReply(Input input, IUser requester)
 	{
 		Response reply = new Response();
 		
@@ -90,46 +82,39 @@ public class DataCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 		
-		//Obtain base Pokemon data
+		//Obtain Pokemon data
 		List<Object> baseData;
 		Pokemon pokemon = null;
+		List<Object> peripheralData;
+		PokemonSpecies speciesData;
+		EmbedBuilder builder;
 		try 
 		{
 			baseData = getBaseData(input.argsAsList());
 			pokemon = Pokemon.class.cast(getDataOfInstance(baseData, Pokemon.class));
-		}
-		catch (InterruptedException | PokeFlexException e) 
-		{
-			this.addErrorMessage(reply, "1002a", e);
-			reply.addToReply("Your request may have timed out. Please try again later!");
-			return reply;
-		}
-		
-		//Obtain peripheral data
-		List<Object> peripheralData;
-		PokemonSpecies speciesData;
-		try 
-		{
 			peripheralData = getPeripheralData(pokemon);
 			speciesData = PokemonSpecies.class.cast(getDataOfInstance(peripheralData, PokemonSpecies.class));
 		}
-		catch(PokeFlexException | IOException e)
+		catch (Exception e) 
 		{
-			reply.addToReply("Your request may have timed out. Please try again later!");
-			return reply;
-		}
-		catch(Exception e)
-		{
-			this.addErrorMessage(reply, "1002b", e);
+			this.addErrorMessage(reply, input, "1002a", e);
 			return reply;
 		}
 		
 		//Format reply
-		EmbedBuilder builder = new EmbedBuilder();	
+		builder = new EmbedBuilder();	
 		builder.setLenient(true);
-		reply.addToReply("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+" | #" + Integer.toString(speciesData.getId()) 
-			+ " | " + TextFormatter.formatGeneration(speciesData.getGeneration().getName()) + "__**");
-		reply.setEmbededReply(formatEmbed(pokemon, peripheralData));
+		try
+		{
+			reply.addToReply("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+" | #" + Integer.toString(speciesData.getId()) 
+				+ " | " + TextFormatter.formatGeneration(speciesData.getGeneration().getName()) + "__**");
+			reply.setEmbededReply(formatEmbed(pokemon, peripheralData));
+		}
+		catch (Exception e)
+		{
+			this.addErrorMessage(reply, input, "1002b", e);
+			return reply;
+		}
 				
 		return reply;
 	}
@@ -165,7 +150,7 @@ public class DataCommand implements ICommand
 		}
 		
 		//Footer data
-		builder.withFooterText("Note: Shiny Pokemon will return soon!");
+		builder.withFooterText("[Update] Shiny Pokemon have returned! Try the %shiny command!");
 		
 		//Add images
 		builder.withImage(pokemon.getModel().getUrl());

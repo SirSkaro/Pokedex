@@ -6,17 +6,17 @@ import java.util.ArrayList;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class HelpCommand implements ICommand 
 {
-	private static HelpCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static Response staticDiscordReply;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private Response staticDiscordReply;
 	
-	private HelpCommand()
+	public HelpCommand()
 	{
 		commandName = "help".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -34,18 +34,10 @@ public class HelpCommand implements ICommand
 		staticDiscordReply.setEmbededReply(builder.build());
 	}
 	
-	public static ICommand getInstance()
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new HelpCommand();
-		return instance;
-	}
-	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return false; }
 	
 	public String getArguments()
 	{
@@ -57,7 +49,7 @@ public class HelpCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input)
+	public Response discordReply(Input input, IUser requester)
 	{ 
 		return staticDiscordReply;
 	}

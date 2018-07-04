@@ -18,17 +18,17 @@ import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.move.Move;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class CoverageCommand implements ICommand 
 {
-	private static CoverageCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private CoverageCommand(PokeFlexFactory pff)
+	public CoverageCommand(PokeFlexFactory pff)
 	{
 		commandName = "coverage".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -37,22 +37,14 @@ public class CoverageCommand implements ICommand
 		factory = pff;
 	}
 	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new CoverageCommand(pff);
-		return instance;
-	}
-	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return true; }
 	
 	public String getArguments()
 	{
-		return "[type/move,...,type/move]";
+		return "<type/move>,...,<type/move>";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input)
@@ -81,7 +73,7 @@ public class CoverageCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input)
+	public Response discordReply(Input input, IUser requester)
 	{ 
 		Response reply = new Response();
 		
@@ -111,9 +103,9 @@ public class CoverageCommand implements ICommand
 				List<Type> typesFromMoves = getMoveTypes(moveNames);
 				typeList.addAll(typesFromMoves);
 			}
-			catch(InterruptedException | PokeFlexException e)
+			catch(Exception e)
 			{
-				this.addErrorMessage(reply, "1009", e);
+				this.addErrorMessage(reply, input, "1009", e);
 				return reply;
 			}
 		}

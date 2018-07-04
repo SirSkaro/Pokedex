@@ -1,7 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
 import java.awt.Color;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.Response;
@@ -9,21 +8,20 @@ import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.item.Item;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class ItemCommand implements ICommand 
 {
-	private static ItemCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private ItemCommand(PokeFlexFactory pff)
+	public ItemCommand(PokeFlexFactory pff)
 	{
 		commandName = "item".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -32,22 +30,14 @@ public class ItemCommand implements ICommand
 		factory = pff;
 	}
 	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new ItemCommand(pff);
-		return instance;
-	}
-	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return true; }
 	
 	public String getArguments()
 	{
-		return "[item name]";
+		return "<item>";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input)
@@ -71,7 +61,7 @@ public class ItemCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input)
+	public Response discordReply(Input input, IUser requester)
 	{ 
 		Response reply = new Response();
 		
@@ -89,7 +79,7 @@ public class ItemCommand implements ICommand
 			reply.addToReply(("**__"+TextFormatter.flexFormToProper(item.getName())+"__**").intern());
 			reply.setEmbededReply(formatEmbed(item));
 		} 
-		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1004", e); }
+		catch (Exception e) { this.addErrorMessage(reply, input, "1004", e); }
 		
 		return reply;
 	}

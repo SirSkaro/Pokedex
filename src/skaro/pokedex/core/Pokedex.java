@@ -1,7 +1,6 @@
 package skaro.pokedex.core;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -12,12 +11,15 @@ import java.util.TimerTask;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
+import com.patreon.PatreonAPI;
 
 import skaro.pokedex.data_processor.DiscordCommandMap;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
@@ -26,22 +28,22 @@ import skaro.pokedex.data_processor.commands.CommandsCommand;
 import skaro.pokedex.data_processor.commands.CoverageCommand;
 import skaro.pokedex.data_processor.commands.DataCommand;
 import skaro.pokedex.data_processor.commands.DexCommand;
-import skaro.pokedex.data_processor.commands.DonateCommand;
 import skaro.pokedex.data_processor.commands.HelpCommand;
 import skaro.pokedex.data_processor.commands.InviteCommand;
 import skaro.pokedex.data_processor.commands.ItemCommand;
 import skaro.pokedex.data_processor.commands.LearnCommand;
 import skaro.pokedex.data_processor.commands.LocationCommand;
 import skaro.pokedex.data_processor.commands.MoveCommand;
+import skaro.pokedex.data_processor.commands.PatreonCommand;
 import skaro.pokedex.data_processor.commands.RandpokeCommand;
 import skaro.pokedex.data_processor.commands.SetCommand;
+import skaro.pokedex.data_processor.commands.ShinyCommand;
 import skaro.pokedex.data_processor.commands.StatsCommand;
 import skaro.pokedex.data_processor.commands.WeakCommand;
 import skaro.pokedex.input_processor.InputProcessor;
 import skaro.pokeflex.api.PokeFlexFactory;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.util.DiscordException;
 
 public class Pokedex 
 {	
@@ -49,7 +51,17 @@ public class Pokedex
 	{
 		int shardIDToManage = -1;
 		int totalShards = -1;
+		
+		Optional<String> discordToken, patreonAccessToken;
+		Configurator configurator;
+		
 		CommandLibrary library;
+		InputProcessor ip;
+		DiscordCommandMap dcm;
+		DiscordEventHandler deh;
+		
+		IDiscordClient discordClient;
+		PatreonAPI patreonClient;
 		
 		//Parse command line arguments
 		if(args.length != 2)
@@ -69,23 +81,47 @@ public class Pokedex
 			System.out.println("[Pokedex main] Error parsing command line arguments.");
 			System.exit(1);
 		}
-			
+
 		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
-		Configurator configurator = Configurator.initializeConfigurator(false);
+		configurator = Configurator.initializeConfigurator(false);
 		
-		//Initialize CommandMaps
-		System.out.println("[Pokedex main] Initializing resources...");
-		library = getCompleteLibrary(new PokeFlexFactory("http://127.0.0.1:5000"));
-		InputProcessor ip = new InputProcessor(library);
+		//Set logging level
+		Logger logger4j = org.apache.log4j.Logger.getRootLogger();
+		logger4j.setLevel(Level.toLevel(configurator.getDebugLevel()));
+			
+		/**
+		 * Patreon SETUP
+		 */
+		System.out.println("[Pokedex main] Establishing Patreon client");
+		patreonAccessToken = configurator.getConfigData("access_token", "patreon");
+		
+		if(!patreonAccessToken.isPresent())
+		{
+			System.out.println("[Pokedex main] No configuration data found for Patreon authentication.");
+			return;
+		}
+		
+		patreonClient = new PatreonAPI(patreonAccessToken.get());
 		
 		/**
 		 * DISCORD SETUP
 		 */
-		//Log into Discord and establish a listener
+		//Log into Discord
+		System.out.println("[Pokedex main] Establishing Discord client");
+		discordToken = configurator.getAuthToken("discord");
+		discordClient = initClient(discordToken, shardIDToManage, totalShards);
+		
+		//Initialize other resources
+		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), patreonClient);
+		ip = new InputProcessor(library);
+		dcm = new DiscordCommandMap(library);
+		deh = new DiscordEventHandler(discordClient, dcm, ip);
+		discordClient.getDispatcher().registerListener(deh);
+		
+		//Login to Discord
 		System.out.println("[Pokedex main] Logging into Discord");
-		Optional<String> discordToken = configurator.getAuthToken("discord");
-		Optional<IDiscordClient> discordClient = discordLogin(discordToken, library, ip, shardIDToManage, totalShards);
+		discordClient.login();
 		
 		/**
 		 * CARBONITEX SETUP
@@ -100,38 +136,27 @@ public class Pokedex
 		
 	}
 	
-	private static Optional<IDiscordClient> discordLogin(Optional<String> discordToken, CommandLibrary library, InputProcessor ip, int shardID, int totalShards)
+	private static IDiscordClient initClient(Optional<String> discordToken, int shardID, int totalShards)
 	{
 		if(!discordToken.isPresent())
 		{
 			System.out.println("[Pokedex main] No configuration data found for Discord application.");
-			return Optional.empty();
+			System.exit(1);
 		}
 		
-		IDiscordClient discordClient = getClient(discordToken.get(), shardID, totalShards);
-		DiscordCommandMap dcm = new DiscordCommandMap(library);
-		DiscordEventHandler deh = new DiscordEventHandler(discordClient, dcm, ip);
-		discordClient.getDispatcher().registerListener(deh);
-		discordClient.login();
-		
-		return Optional.of(discordClient);
-	}
-	
-	private static IDiscordClient getClient(String token, int shardID, int totalShards) throws DiscordException
-    {
 		IDiscordClient idc = new ClientBuilder()
 				.setMaxMessageCacheCount(5)
 				.setMaxReconnectAttempts(5)
-				.withToken(token)
+				.withToken(discordToken.get())
 				.setShard(shardID, totalShards)
 				.build();
 		
-        return idc;
-    }
+		return idc;
+	}
 	
-	private static void carbonitexLogin(Optional<String> carbonToken, Optional<IDiscordClient> discordClient)
+	private static void carbonitexLogin(Optional<String> carbonToken, IDiscordClient discordClient)
 	{
-		if(!carbonToken.isPresent() || !discordClient.isPresent())
+		if(!carbonToken.isPresent())
 		{
 			System.out.println("[Pokedex main] No configuration data found for Carbonitex Communication.");
 			return;
@@ -139,7 +164,7 @@ public class Pokedex
 		
 		//Create timer and task
     	Timer carbonTimer = new Timer(true);
-		TimerTask carbonTask = createCarbonTask(carbonToken.get(), discordClient.get());
+		TimerTask carbonTask = createCarbonTask(carbonToken.get(), discordClient);
         
         //Schedule task for every hour, starting in one hour
         carbonTimer.scheduleAtFixedRate(carbonTask, 1 * 60 * 60 * 1000, 1 * 60 * 60 * 1000); //1 hour
@@ -166,47 +191,36 @@ public class Pokedex
             	{
             		// Request parameters and other properties.
             		params.add(new BasicNameValuePair("key", carbonKey));
-            		params.add(new BasicNameValuePair("servercount", Integer.toString(discordClient.getGuilds().size())));
+            		params.add(new BasicNameValuePair("servercount", Integer.toString(12 * discordClient.getGuilds().size())));
             		httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
             		response = httpclient.execute(httppost);
 					params.remove(1);
 					
 					entity = response.getEntity();
 
-					if(entity != null) 
-					{
-					    instream = entity.getContent();
-					    reader = new BufferedReader(new InputStreamReader(instream));
-					    
-					    StringBuilder result = new StringBuilder();
-					    String line;
-					    while((line = reader.readLine()) != null) 
-					    {
-					        result.append(line);
-					    }
-					    reader.close();
-					    instream.close();
-					    
-					    System.out.println("[Pokedex main] HTTP post:"+httppost.toString());
-					    System.out.println("[Pokedex main] HTTP response:"+result.toString());
-					}
-					else
+					if(entity == null) 
 					{
 						System.out.println("[Pokedex main] No response recieved.");
+						return;
 					}
 					
-					System.out.println("[Pokedex main] done");
+					instream = entity.getContent();
+				    reader = new BufferedReader(new InputStreamReader(instream));
+				    
+				    StringBuilder result = new StringBuilder();
+				    String line;
+				    while((line = reader.readLine()) != null) 
+				    {
+				        result.append(line);
+				    }
+				    reader.close();
+				    instream.close();
+				    
+				    System.out.println("[Pokedex main] HTTP post:"+httppost.toString());
+				    System.out.println("[Pokedex main] HTTP response:"+result.toString());
+					
 				}
-            	catch(ClientProtocolException e)
-            	{
-            		System.err.println("[Pokedex main] Some HTTP error occured.");
-					e.printStackTrace();
-				}
-            	catch (IOException e)
-            	{
-            		System.err.println("[Pokedex main] Some I/O HTTP error occured.");
-					e.printStackTrace();
-				}
+            	catch(Exception e) { System.err.println("[Pokedex main] Some error occured."); }
             }
         };
         
@@ -220,29 +234,30 @@ public class Pokedex
 	 * recognized by any command map.
 	 * @return a CommandLibrary of ICommands that are supported for Discord
 	 */
-	private static CommandLibrary getCompleteLibrary(PokeFlexFactory factory)
+	private static CommandLibrary initCompleteLibrary(PokeFlexFactory factory, PatreonAPI patreonClient)
 	{
 		CommandLibrary lib = new CommandLibrary();
+		PrivilegeChecker checker = new PrivilegeChecker(patreonClient);
 		
-		lib.addToLibrary(RandpokeCommand.getInstance(factory));
-		lib.addToLibrary(StatsCommand.getInstance(factory));
-		lib.addToLibrary(DataCommand.getInstance(factory));
-		lib.addToLibrary(AbilityCommand.getInstance(factory));
-		lib.addToLibrary(ItemCommand.getInstance(factory));
-		lib.addToLibrary(MoveCommand.getInstance(factory));
-		lib.addToLibrary(LearnCommand.getInstance(factory));
-		lib.addToLibrary(WeakCommand.getInstance(factory));
-		lib.addToLibrary(CoverageCommand.getInstance(factory));
-		lib.addToLibrary(DexCommand.getInstance(factory));
-		lib.addToLibrary(SetCommand.getInstance(factory));
-		lib.addToLibrary(LocationCommand.getInstance(factory));
-		lib.addToLibrary(AboutCommand.getInstance());
-		lib.addToLibrary(HelpCommand.getInstance());
-		lib.addToLibrary(DonateCommand.getInstance());
-		lib.addToLibrary(InviteCommand.getInstance());
-		//lib.addToLibrary(ShinyCommand.getInstance(factory));
+		lib.addToLibrary(new RandpokeCommand(factory));
+		lib.addToLibrary(new StatsCommand(factory));
+		lib.addToLibrary(new DataCommand(factory));
+		lib.addToLibrary(new AbilityCommand(factory));
+		lib.addToLibrary(new ItemCommand(factory));
+		lib.addToLibrary(new MoveCommand(factory));
+		lib.addToLibrary(new LearnCommand(factory));
+		lib.addToLibrary(new WeakCommand(factory));
+		lib.addToLibrary(new CoverageCommand(factory));
+		lib.addToLibrary(new DexCommand(factory));
+		lib.addToLibrary(new SetCommand(factory));
+		lib.addToLibrary(new LocationCommand(factory));
+		lib.addToLibrary(new AboutCommand());
+		lib.addToLibrary(new HelpCommand());
+		lib.addToLibrary(new PatreonCommand());
+		lib.addToLibrary(new InviteCommand());
+		lib.addToLibrary(new ShinyCommand(factory, checker));
 		
-		lib.addToLibrary(CommandsCommand.getInstance(lib.getLibrary()));
+		lib.addToLibrary(new CommandsCommand(lib.getLibrary()));
 		
 		return lib;
 	}

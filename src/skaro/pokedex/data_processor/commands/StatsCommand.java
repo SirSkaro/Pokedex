@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import skaro.pokedex.data_processor.ColorTracker;
@@ -9,21 +8,20 @@ import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class StatsCommand implements ICommand 
 {	
-	private static StatsCommand instance;
-	private static ArgumentRange expectedArgRange;
-	private static String commandName;
-	private static ArrayList<ArgumentCategory> argCats;
-	private static PokeFlexFactory factory;
+	private ArgumentRange expectedArgRange;
+	private String commandName;
+	private ArrayList<ArgumentCategory> argCats;
+	private PokeFlexFactory factory;
 	
-	private StatsCommand(PokeFlexFactory pff)
+	public StatsCommand(PokeFlexFactory pff)
 	{
 		commandName = "stats".intern();
 		argCats = new ArrayList<ArgumentCategory>();
@@ -32,22 +30,14 @@ public class StatsCommand implements ICommand
 		factory = pff;
 	}
 	
-	public static ICommand getInstance(PokeFlexFactory pff)
-	{
-		if(instance != null)
-			return instance;
-
-		instance = new StatsCommand(pff);
-		return instance;
-	}
-	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public boolean makesWebRequest() { return true; }
 	
 	public String getArguments()
 	{
-		return "[pokemon name]";
+		return "<pokemon>";
 	}
 	
 	public boolean inputIsValid(Response reply, Input input)
@@ -71,7 +61,7 @@ public class StatsCommand implements ICommand
 		return true;
 	}
 	
-	public Response discordReply(Input input)
+	public Response discordReply(Input input, IUser requester)
 	{ 
 		Response reply = new Response();
 		
@@ -89,7 +79,7 @@ public class StatsCommand implements ICommand
 			reply.addToReply(("**__"+TextFormatter.flexFormToProper(pokemon.getName())+"__**").intern());
 			reply.setEmbededReply(formatEmbed(pokemon));
 		} 
-		catch (IOException | PokeFlexException e) { this.addErrorMessage(reply, "1001", e); }
+		catch (Exception e) { this.addErrorMessage(reply, input, "1001", e); }
 		
 		return reply;
 	}
