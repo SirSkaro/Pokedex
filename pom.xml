@@ -115,6 +115,12 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- DiscordBotList -->
+    <dependency>
+      <groupId>com.github.DiscordBotList</groupId>
+      <artifactId>DBL-Java-Library</artifactId>
+      <version>a7f791f</version>
+    </dependency>
   </dependencies>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

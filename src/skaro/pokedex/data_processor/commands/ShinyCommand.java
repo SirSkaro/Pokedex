@@ -104,8 +104,8 @@ public class ShinyCommand implements ICommand
 			path = baseModelPath + "/jirachi.gif";
 			
 			//format reply
-			reply.addToReply("This is a Patreon-only command that shows shiny HD models of Pokemon");
-			builder.appendField("Patreon link", "[Gain access to all shiny Pokemon by pledging $1/month!](https://www.patreon.com/sirskaro)", false);
+			reply.addToReply("Pledge $1/month on Patreon to gain access to all HD shiny Pokemon!");
+			builder.appendField("Patreon link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);
 			reply.addImage(new File(path));
 			reply.setEmbededReply(builder.build());
 		}

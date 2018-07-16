@@ -11,12 +11,11 @@ import skaro.pokedex.data_processor.commands.ICommand;
 
 public class DiscordCommandMap 
 {
-	private CacheManager discordCacheManager;
 	private Cache<String, ICommand> discordCommandCache;
 	
 	public DiscordCommandMap(CommandLibrary lib)
 	{
-		discordCacheManager = CacheManagerBuilder.newCacheManagerBuilder()
+		CacheManager discordCacheManager = CacheManagerBuilder.newCacheManagerBuilder()
 				.withCache("discordCommandCache",
 						CacheConfigurationBuilder.newCacheConfigurationBuilder(String.class, ICommand.class,
 								ResourcePoolsBuilder.heap(50))

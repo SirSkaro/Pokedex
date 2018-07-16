@@ -2,6 +2,9 @@ package skaro.pokedex.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;				//in Discord4J's dependencies
@@ -77,6 +80,45 @@ public class Configurator
 		if(result.equals(""))
 			return Optional.empty();
 		return Optional.of(result);
+	}
+	
+	public List<String> getPublishRecipients()
+	{
+		List<String> result = new ArrayList<String>();
+		JsonNode dataNode = rootNode.get("publish_recipients");
+		
+		for(Iterator<String> itr = dataNode.fieldNames(); itr.hasNext(); )
+			result.add(itr.next());
+		
+		return result;
+	}
+	
+	public Optional<String> getPublishAuthToken(String recipient)
+	{
+		JsonNode dataNode = rootNode.get("publish_recipients");
+		if(dataNode == null)
+			return Optional.empty();	//No configuration data for application
+		
+		String result = dataNode.get(recipient).get("token").get(dataKey).asText();
+		
+		if(result.equals(""))
+			return Optional.empty();
+		return Optional.of(result);
+	}
+	
+	public int getPublishDesignatedShard(String recipient)
+	{
+		JsonNode dataNode = rootNode.get("publish_recipients");
+		
+		return dataNode.get(recipient).get("designated_shard").asInt();
+	}
+	
+	public String getPublishClass(String recipient)
+	{
+		JsonNode dataNode = rootNode.get("publish_recipients");
+		
+		String result = dataNode.get(recipient).get("class_name").asText();
+		return result;
 	}
 	
 	public String[] getDBCredentials()
