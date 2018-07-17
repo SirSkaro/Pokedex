@@ -87,6 +87,9 @@ public class DiscordEventHandler
     @EventSubscriber
     public void onTextMessageEvent(MessageReceivedEvent event) 
     {
+    	if(event.getAuthor().isBot())
+    		return;
+    	
 		try
 		{ handleTextResponse(event.getMessage()); }
 		catch(Exception e) 
@@ -97,6 +100,9 @@ public class DiscordEventHandler
     @EventSubscriber
     public void onTextMessageUpdateEvent(MessageUpdateEvent event)
     {
+    	if(event.getAuthor().isBot())
+    		return;
+    	
     	try 
     	{ handleTextResponse(event.getNewMessage()); }
     	catch(Exception e) 
