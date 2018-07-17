@@ -100,16 +100,16 @@ public class Pokedex
 		discordToken = configurator.getAuthToken("discord");
 		discordClient = initClient(discordToken, shardIDToManage, totalShards);
 		
-		//Initialize other resources
-		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), patreonClient);
-		ip = new InputProcessor(library);
-		dcm = new DiscordCommandMap(library);
-		deh = new DiscordEventHandler(discordClient, dcm, ip);
-		discordClient.getDispatcher().registerListener(deh);
-		
 		//Login to Discord
 		System.out.println("[Pokedex main] Logging into Discord");
 		discordClient.login();
+		
+		//Initialize other resources
+		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), patreonClient);
+		ip = new InputProcessor(library, discordClient.getOurUser().getLongID());
+		dcm = new DiscordCommandMap(library);
+		deh = new DiscordEventHandler(discordClient, dcm, ip);
+		discordClient.getDispatcher().registerListener(deh);
 		
 		/**
 		 * PUBLISHER SETUP
