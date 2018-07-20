@@ -8,7 +8,6 @@ import org.apache.log4j.Logger;
 import com.patreon.PatreonAPI;
 
 import skaro.pokedex.communicator.Publisher;
-import skaro.pokedex.data_processor.DiscordCommandMap;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
 import skaro.pokedex.data_processor.commands.CommandsCommand;
@@ -27,7 +26,6 @@ import skaro.pokedex.data_processor.commands.SetCommand;
 import skaro.pokedex.data_processor.commands.ShinyCommand;
 import skaro.pokedex.data_processor.commands.StatsCommand;
 import skaro.pokedex.data_processor.commands.WeakCommand;
-import skaro.pokedex.input_processor.InputProcessor;
 import skaro.pokeflex.api.PokeFlexFactory;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
@@ -44,8 +42,6 @@ public class Pokedex
 		Publisher publisher;
 		
 		CommandLibrary library;
-		InputProcessor ip;
-		DiscordCommandMap dcm;
 		DiscordEventHandler deh;
 		PrivilegeChecker checker;
 		
@@ -97,21 +93,17 @@ public class Pokedex
 		/**
 		 * DISCORD SETUP
 		 */
-		//Log into Discord
+		//Initialize resources
 		System.out.println("[Pokedex main] Establishing Discord client");
+		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), checker);
+		deh = new DiscordEventHandler(library);
 		discordToken = configurator.getAuthToken("discord");
 		discordClient = initClient(discordToken, shardIDToManage, totalShards);
 		
 		//Login to Discord
 		System.out.println("[Pokedex main] Logging into Discord");
-		discordClient.login();
-		
-		//Initialize other resources
-		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), checker);
-		ip = new InputProcessor(library, discordClient.getOurUser().getLongID());
-		dcm = new DiscordCommandMap(library);
-		deh = new DiscordEventHandler(discordClient, dcm, ip);
 		discordClient.getDispatcher().registerListener(deh);
+		discordClient.login();
 		
 		/**
 		 * PUBLISHER SETUP

@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import skaro.pokedex.data_processor.DiscordCommandMap;
+import skaro.pokedex.data_processor.CommandMap;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.commands.ICommand;
 import skaro.pokedex.input_processor.Input;
@@ -35,38 +35,15 @@ import sx.blah.discord.util.audio.events.TrackFinishEvent;
 
 public class DiscordEventHandler
 {
-	private IDiscordClient discordClient; 		//access to DiscordClient object
-	private DiscordCommandMap commandMap;		//Contains the 'cache' of commands
-	private Timer statusTimer;					//Timers for special purposes
-	private TimerTask statusTask;				//tasks for timers
-	private int statusIndex;					//count for booting tracking, statusIndex to iterate through status messages
-	private ArrayList<String> statusMessages;	//all status messages to be displayed
+	private CommandMap commandMap;		//Contains the 'cache' of commands
+	private int statusIndex;			//count for booting tracking, statusIndex to iterate through status messages
 	private InputProcessor processor;
+	private CommandLibrary library;
 
-	public DiscordEventHandler(IDiscordClient dc, DiscordCommandMap cm, InputProcessor ip)
+	public DiscordEventHandler(CommandLibrary lib)
 	{
-		discordClient = dc;
-		commandMap = cm;
 		statusIndex = 0;
-		processor = ip;
-		
-		statusMessages = new ArrayList<String>();
-		statusMessages.add("!commands/!help");
-		statusMessages.add("[NEW] %shiny");
-		statusMessages.add("%commands/%help");
-		statusMessages.add("[NEW] %patreon");
-		statusMessages.add("commands()/help()");
-		statusMessages.add("%invite");
-        
-        statusTimer = new Timer(true);
-		statusTask = new TimerTask() {
-            @Override
-            public void run() 
-            {
-            	discordClient.changePresence(StatusType.ONLINE, ActivityType.PLAYING, statusMessages.get(statusIndex % statusMessages.size()));
-            	statusIndex++;
-            }
-        };	        
+		library = lib;
 	}
 	
 	@EventSubscriber
@@ -80,6 +57,31 @@ public class DiscordEventHandler
     @EventSubscriber
     public void onReadyEvent(ReadyEvent event) 
     {	    	    	
+    	ArrayList<String> statusMessages;	
+    	Timer statusTimer;					
+    	TimerTask statusTask;
+    	
+    	processor = new InputProcessor(library, event.getClient().getOurUser().getLongID());
+		commandMap = new CommandMap(library);
+    	
+    	statusMessages = new ArrayList<String>();
+		statusMessages.add("!commands/!help");
+		statusMessages.add("[NEW] %shiny");
+		statusMessages.add("%commands/%help");
+		statusMessages.add("[NEW] %patreon");
+		statusMessages.add("commands()/help()");
+		statusMessages.add("%invite");
+    	
+    	statusTimer = new Timer(true);
+		statusTask = new TimerTask() {
+            @Override
+            public void run() 
+            {
+            	event.getClient().changePresence(StatusType.ONLINE, ActivityType.PLAYING, statusMessages.get(statusIndex % statusMessages.size()));
+            	statusIndex++;
+            }
+        };	
+    	
     	statusTimer.scheduleAtFixedRate(statusTask, 1000, 1 * 60 * 1000); //1 minute
     	System.out.println("[DiscordEventHandler] Finished logging into Discord");
     }
@@ -161,7 +163,7 @@ public class DiscordEventHandler
     
     private Optional<IMessage> sendAcknowledgement(IMessage userMsg)
     {
-    	MessageBuilder reply = new MessageBuilder(discordClient);
+    	MessageBuilder reply = new MessageBuilder(userMsg.getClient());
     	reply.withChannel(userMsg.getChannel());
     	reply.withContent(userMsg.getAuthor().getName() + ", gathering data for your request...");
     	return Optional.of(reply.send());
@@ -169,11 +171,13 @@ public class DiscordEventHandler
     
     private boolean connectToVoiceChannel(IMessage userMsg)
     {
+    	IDiscordClient discordClient = userMsg.getClient();
+    	
     	//Send the audio to the voice channel a user is in. If they are not in a voice channel,
     	//then tell user to join an accessible voice channel
     	if(userMsg.getAuthor().getVoiceStateForGuild(userMsg.getGuild()).getChannel() == null)
     	{
-    		sendMessage(userMsg.getChannel().getLongID(), userMsg.getAuthor().getName() +
+    		sendMessage(discordClient, userMsg.getChannel().getLongID(), userMsg.getAuthor().getName() +
     				", connect to a voice channel to listen to this Pokedex entry!");
     		return false;
     	}
@@ -183,7 +187,7 @@ public class DiscordEventHandler
     	for(IVoiceChannel vc : guildChannels)
         	if(discordClient.getConnectedVoiceChannels().contains(vc))
         	{
-        		sendMessage(userMsg.getChannel().getLongID(), userMsg.getAuthor().mention() +
+        		sendMessage(discordClient, userMsg.getChannel().getLongID(), userMsg.getAuthor().mention() +
         				", I am currently speaking a dex entry in this server."
         				+ " If you want to hear your entry spoken then please try again.");
         		return false;
@@ -194,6 +198,8 @@ public class DiscordEventHandler
     
     private void playDexEntry(IVoiceChannel channel, AudioPlayer player, Track audioTrack, long channelID, String user)
     {        	
+    	IDiscordClient discordClient = channel.getClient();
+    	
     	if(!channel.isConnected())
     	{
     		try
@@ -201,12 +207,12 @@ public class DiscordEventHandler
     			channel.join();
         		discordClient.getDispatcher().waitFor(UserVoiceChannelJoinEvent.class);
         		player.queue(audioTrack);
-        		sendMessage(channelID, "Now playing Pokedex entry requested by "+ user);
+        		sendMessage(discordClient, channelID, "Now playing Pokedex entry requested by "+ user);
         		System.out.println("\t[DiscordEventHandler] Audio response sent.");
     		}
     		catch(MissingPermissionsException | InterruptedException e)
     		{
-    			sendMessage(channelID, user
+    			sendMessage(discordClient, channelID, user
         				+", I do not have permission to join the voice channel you are in. "
         				+ "Please connect to another channel if you wish to hear this Pokedex entry." );
     		}
@@ -214,7 +220,7 @@ public class DiscordEventHandler
     	else
     	{
     		player.queue(audioTrack);
-    		sendMessage(channelID, "Now playing Pokedex entry requested by "+user);
+    		sendMessage(discordClient, channelID, "Now playing Pokedex entry requested by "+user);
     		System.out.println("\t[DiscordEventHandler] Audio response sent.");
     	}
     }
@@ -222,7 +228,7 @@ public class DiscordEventHandler
     private void sendResponse(IMessage userMsg, Response response)
     {
     	//Utility variables
-    	MessageBuilder reply = new MessageBuilder(discordClient);
+    	MessageBuilder reply = new MessageBuilder(userMsg.getClient());
     	Optional<EmbedObject> embed = response.getEmbedObject();
     	Optional<File> image = response.getImage();
     	
@@ -243,7 +249,7 @@ public class DiscordEventHandler
     		{
 	    		if(response.isPrivateMessage())
 	    		{
-	    			reply.withChannel(discordClient.getOrCreatePMChannel(userMsg.getAuthor()));
+	    			reply.withChannel(userMsg.getClient().getOrCreatePMChannel(userMsg.getAuthor()));
 	    			reply.send();
 	    			userMsg.getChannel().sendMessage("Sent to your inbox!".intern());
 	    			System.out.println("\t[DiscordEventHandler] PM sent.");
@@ -263,7 +269,7 @@ public class DiscordEventHandler
     	});
     }
     
-    private void sendMessage(long ChannelID, String msg)
+    private void sendMessage(IDiscordClient discordClient, long ChannelID, String msg)
     {
     	RequestBuffer.request(() -> 
     	{
