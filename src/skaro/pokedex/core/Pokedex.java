@@ -47,6 +47,7 @@ public class Pokedex
 		InputProcessor ip;
 		DiscordCommandMap dcm;
 		DiscordEventHandler deh;
+		PrivilegeChecker checker;
 		
 		IDiscordClient discordClient;
 		PatreonAPI patreonClient;
@@ -91,6 +92,7 @@ public class Pokedex
 		}
 		
 		patreonClient = new PatreonAPI(patreonAccessToken.get());
+		checker = new PrivilegeChecker(patreonClient);
 		
 		/**
 		 * DISCORD SETUP
@@ -105,7 +107,7 @@ public class Pokedex
 		discordClient.login();
 		
 		//Initialize other resources
-		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), patreonClient);
+		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), checker);
 		ip = new InputProcessor(library, discordClient.getOurUser().getLongID());
 		dcm = new DiscordCommandMap(library);
 		deh = new DiscordEventHandler(discordClient, dcm, ip);
@@ -145,10 +147,9 @@ public class Pokedex
 	 * recognized by any command map.
 	 * @return a CommandLibrary of ICommands that are supported for Discord
 	 */
-	private static CommandLibrary initCompleteLibrary(PokeFlexFactory factory, PatreonAPI patreonClient)
+	private static CommandLibrary initCompleteLibrary(PokeFlexFactory factory, PrivilegeChecker checker)
 	{
 		CommandLibrary lib = new CommandLibrary();
-		PrivilegeChecker checker = new PrivilegeChecker(patreonClient);
 		
 		lib.addToLibrary(new RandpokeCommand(factory));
 		lib.addToLibrary(new StatsCommand(factory));
