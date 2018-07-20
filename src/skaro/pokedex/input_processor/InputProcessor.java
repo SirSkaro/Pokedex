@@ -16,10 +16,16 @@ import skaro.pokedex.input_processor.arguments.ParsedText;
 public class InputProcessor 
 {
 	private CommandLibrary commandLibrary;
+	private Pattern prefixPattern, postfixPattern, mentionPattern;
+	private long botID;
 	
-	public InputProcessor(CommandLibrary lib)
+	public InputProcessor(CommandLibrary lib, Long id)
 	{
 		commandLibrary = lib;
+		botID = id;
+		prefixPattern = Pattern.compile("[!%][a-zA-Z]+[\\s]*.*");
+		postfixPattern = Pattern.compile("[a-zA-Z]+[\\s]*[(].*[)]");
+		mentionPattern = Pattern.compile("<@![0-9]+>[\\s]*[a-zA-Z]+[\\s]*.*");
 	}
 	public Optional<Input> processInput(String input)
 	{
@@ -82,51 +88,83 @@ public class InputProcessor
      * then the message is organized into a String array
      */
     private Optional<ParsedText> parseTextMessage(String msg)
-    {	    	
+    {
+    	Matcher matcher;
+    	
     	if(msg == null || msg.trim().equals(""))
     		return Optional.empty();
     	
-    	//Pattern matching variables
-    	Pattern p1, p2;
-    	Matcher matcher;
+		matcher = prefixPattern.matcher(msg);
+		if(matcher.matches())
+			return parsePrefix(msg);
+    	
+		matcher = postfixPattern.matcher(msg);
+    	if(matcher.matches())
+    		return parsePostfix(msg);
+    	
+    	matcher = mentionPattern.matcher(msg);
+    	if(matcher.matches())
+    		return parseMention(msg);
+    	
+		//Patterns do not match
+		return Optional.empty();
+    }
+    
+    private Optional<ParsedText> parsePrefix(String msg)
+    {
     	ParsedText result = new ParsedText();
     	String unprasedArguments;
     	int index;
-
-		//format: [prefix] [command] [args]
-		p1 = Pattern.compile("[!%][a-zA-Z]+[\\s]*.*");
-		matcher = p1.matcher(msg);
-		 
-		//This is a command with an argument
-		if(matcher.matches())
-		{	        	 
-			index = msg.indexOf(" ");
-			if(index != -1)
-			{
-				unprasedArguments = msg.substring(index + 1).trim();
-				result.setArgs(unprasedArguments);
-				result.setFunction(msg.substring(1, index).toLowerCase());
-			}
-			else
-				result.setFunction(msg.substring(1, msg.length()).toLowerCase());
-			
-			return Optional.of(result);
-		}
     	
-		p2 = Pattern.compile("[a-zA-Z]+[\\s]*[(].*[)]");
-		matcher = p2.matcher(msg);
+    	index = msg.indexOf(" ");
+		if(index != -1)
+		{
+			unprasedArguments = msg.substring(index + 1);
+			result.setArgs(unprasedArguments);
+			result.setFunction(msg.substring(1, index).toLowerCase());
+		}
+		else
+			result.setFunction(msg.substring(1, msg.length()).toLowerCase());
 		
-    	//Other formats: command(args) or command()
-    	if(matcher.matches())
+		return Optional.of(result);
+    }
+    
+    private Optional<ParsedText> parsePostfix(String msg)
+    {
+    	ParsedText result = new ParsedText();
+    	String unprasedArguments;
+    	
+    	unprasedArguments = msg.substring(msg.indexOf("(") + 1, msg.indexOf(")"));
+		result.setArgs(unprasedArguments);
+		result.setFunction(msg.substring(0, msg.indexOf("(")).toLowerCase());
+		
+		return Optional.of(result);
+    }
+    
+    private Optional<ParsedText> parseMention(String msg)
+    {
+    	ParsedText result = new ParsedText();
+    	String id;
+    	int indexFunc, indexArgs;
+    	
+    	id = msg.substring(msg.indexOf("!") + 1, msg.indexOf(">"));
+    	if(Long.parseLong(id) != botID)
+    		return Optional.empty();
+		
+    	indexFunc = msg.indexOf(" ");
+    	if(indexFunc == -1)
+    		return Optional.empty();
+    	
+    	indexArgs = msg.indexOf(" ", indexFunc + 1);
+    	if(indexArgs == -1)
     	{
-    		unprasedArguments = msg.substring(msg.indexOf("(") + 1, msg.indexOf(")")).trim();
-    		result.setArgs(unprasedArguments);
-    		result.setFunction(msg.substring(0, msg.indexOf("(")).toLowerCase());
-    		
+    		result.setFunction(msg.substring(msg.indexOf(">") + 1));
     		return Optional.of(result);
     	}
- 
-		//Patterns do not match
-		return Optional.empty();
+    	
+    	result.setFunction(msg.substring(indexFunc + 1, indexArgs));
+    	result.setArgs(msg.substring(indexArgs + 1));
+    	
+		return Optional.of(result);
     }
 }

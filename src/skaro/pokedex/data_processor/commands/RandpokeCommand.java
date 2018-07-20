@@ -3,6 +3,7 @@ package skaro.pokedex.data_processor.commands;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -73,11 +74,11 @@ public class RandpokeCommand implements ICommand
 	
 	private EmbedObject formatEmbed(Pokemon pokemon)
 	{
+		int randNum;
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setLenient(true);
 		
-		builder.withTitle(TextFormatter.flexFormToProper(pokemon.getName()).intern() + " | #" + Integer.toString(pokemon.getId()));
-		builder.withFooterText("[Update] Shiny Pokemon have returned! Try the %shiny command!");
+		builder.withTitle(TextFormatter.flexFormToProper(pokemon.getName()) + " | #" + Integer.toString(pokemon.getId()));
 		
 		//Add images
 		builder.withImage(pokemon.getModel().getUrl());
@@ -85,6 +86,11 @@ public class RandpokeCommand implements ICommand
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.withColor(ColorTracker.getColorForType(type));
+		
+		//Set a footer with a random chance
+		randNum = ThreadLocalRandom.current().nextInt(1, 3 + 1); //1 in 3 chance
+		if(randNum == 1)
+			builder.withFooterText("See the shiny with \"%shiny "+ TextFormatter.flexFormToProper(pokemon.getName()+"\""));
 		
 		return builder.build();
 	}

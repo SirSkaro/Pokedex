@@ -31,13 +31,23 @@
 			"production": ""
 		}
 	},
-		
-	"carbonitex": {
-		"token": { 
-			"debug": "",
-			"production": ""
+	
+	"publish_recipients" : {
+		"discord_bots": {
+			"token": { 
+				"debug": "",
+				"production": ""
+			}
+		},
+			
+		"carbonitex": {
+			"token": { 
+				"debug": "",
+				"production": ""
+			}
 		}
 	},
+	
 	
 	"sql": {
 		"username": "",

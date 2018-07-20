@@ -3,6 +3,7 @@ package skaro.pokedex.data_processor.commands;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -121,6 +122,7 @@ public class WeakCommand implements ICommand
 	
 	private EmbedObject formatEmbed(Type type1, Type type2)
 	{
+		int randNum;
 		EmbedBuilder builder = new EmbedBuilder();
 		TypeInteractionWrapper wrapper = TypeTracker.onDefense(type1, type2);
 		builder.setLenient(true);
@@ -130,7 +132,13 @@ public class WeakCommand implements ICommand
 		builder.appendField("Resist", combineLists(wrapper, 0.5, 0.25), false);
 		builder.appendField("Immune", getList(wrapper, 0.0), false);
 		
+		//Set color
 		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
+		
+		//set footer with random chance
+		randNum = ThreadLocalRandom.current().nextInt(1, 4 + 1); //1 in 4 chance
+		if(randNum == 1)
+			builder.withFooterText("You may also like the %coverage command!");
 		
 		return builder.build();
 	}
