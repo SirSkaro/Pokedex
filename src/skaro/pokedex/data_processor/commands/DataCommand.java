@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -121,6 +122,7 @@ public class DataCommand implements ICommand
 
 	private EmbedObject formatEmbed(Pokemon pokemon, List<Object> peripheralData)
 	{
+		int randNum;
 		PokemonSpecies speciesData = PokemonSpecies.class.cast(getDataOfInstance(peripheralData, PokemonSpecies.class));
 		EvolutionChain evolutionData = EvolutionChain.class.cast(getDataOfInstance(peripheralData, EvolutionChain.class));
 		EmbedBuilder builder = new EmbedBuilder();	
@@ -149,8 +151,10 @@ public class DataCommand implements ICommand
 			builder.appendField("Evolution Requirements", formatEvolutionDetails(evolutionData, speciesData.getName()), true);
 		}
 		
-		//Footer data
-		builder.withFooterText("[Update] Shiny Pokemon have returned! Try the %shiny command!");
+		//Footer data with random chance
+		randNum = ThreadLocalRandom.current().nextInt(1, 3 + 1); //1 in 3 chance
+			if(randNum == 1)
+		builder.withFooterText("Shiny Pokemon have returned! Try \"%shiny "+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+"\"");
 		
 		//Add images
 		builder.withImage(pokemon.getModel().getUrl());

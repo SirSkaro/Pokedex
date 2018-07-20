@@ -9,14 +9,13 @@ import org.ehcache.config.builders.ResourcePoolsBuilder;
 import skaro.pokedex.core.CommandLibrary;
 import skaro.pokedex.data_processor.commands.ICommand;
 
-public class DiscordCommandMap 
+public class CommandMap 
 {
-	private CacheManager discordCacheManager;
 	private Cache<String, ICommand> discordCommandCache;
 	
-	public DiscordCommandMap(CommandLibrary lib)
+	public CommandMap(CommandLibrary lib)
 	{
-		discordCacheManager = CacheManagerBuilder.newCacheManagerBuilder()
+		CacheManager discordCacheManager = CacheManagerBuilder.newCacheManagerBuilder()
 				.withCache("discordCommandCache",
 						CacheConfigurationBuilder.newCacheConfigurationBuilder(String.class, ICommand.class,
 								ResourcePoolsBuilder.heap(50))
