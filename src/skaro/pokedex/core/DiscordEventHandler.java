@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import skaro.pokedex.communicator.Publisher;
 import skaro.pokedex.data_processor.CommandMap;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.commands.ICommand;
@@ -39,11 +40,13 @@ public class DiscordEventHandler
 	private int statusIndex;			//count for booting tracking, statusIndex to iterate through status messages
 	private InputProcessor processor;
 	private CommandLibrary library;
+	private Publisher publisher;
 
-	public DiscordEventHandler(CommandLibrary lib)
+	public DiscordEventHandler(CommandLibrary lib, Publisher pub)
 	{
 		statusIndex = 0;
 		library = lib;
+		publisher = pub;
 	}
 	
 	@EventSubscriber
@@ -60,10 +63,16 @@ public class DiscordEventHandler
     	ArrayList<String> statusMessages;	
     	Timer statusTimer;					
     	TimerTask statusTask;
+    	IDiscordClient discordClient = event.getClient();
     	
-    	processor = new InputProcessor(library, event.getClient().getOurUser().getLongID());
+    	processor = new InputProcessor(library, discordClient.getOurUser().getLongID());
 		commandMap = new CommandMap(library);
     	
+		System.out.println("[DiscordEventHandler] Setting up publisher");
+		publisher.populatePublicationRecipients(discordClient);
+		publisher.scheduleHoursPerPublishment(1);
+		
+		System.out.println("[DiscordEventHandler] Setting up status message rotation");
     	statusMessages = new ArrayList<String>();
 		statusMessages.add("!commands/!help");
 		statusMessages.add("[NEW] %shiny");
@@ -89,26 +98,25 @@ public class DiscordEventHandler
     @EventSubscriber
     public void onTextMessageEvent(MessageReceivedEvent event) 
     {
-    	if(event.getAuthor().isBot())
+    	if(event.getAuthor().isBot() || processor == null)
     		return;
     	
 		try
 		{ handleTextResponse(event.getMessage()); }
 		catch(Exception e) 
-		{ System.out.println("[DiscordEventHandler] text event error: "+e.getClass().getName()); 
-		e.printStackTrace();}
+		{ System.out.println("[DiscordEventHandler] text event error: "+e.getClass().getName());}
     }
     
     @EventSubscriber
     public void onTextMessageUpdateEvent(MessageUpdateEvent event)
     {
-    	if(event.getAuthor().isBot())
+    	if(event.getAuthor().isBot() || processor == null)
     		return;
     	
     	try 
     	{ handleTextResponse(event.getNewMessage()); }
     	catch(Exception e) 
-		{ System.out.println("[DiscordEventHandler] update text event error: "+e.getClass().getName()); }
+		{ System.out.println("[DiscordEventHandler] update text event error: "+e.getClass().getName());}
     }
     
     @EventSubscriber
@@ -125,6 +133,9 @@ public class DiscordEventHandler
 		Optional<Input> parseTest;
 		Input userInput;
 		Optional<IMessage> ackMsg = Optional.empty();
+		
+		if(userMsg == null || userMsg.getContent() == null)
+			return;
 		
 		parseTest = processor.processInput(userMsg.getContent());
         if(!parseTest.isPresent()) //if the command doesn't exist, return

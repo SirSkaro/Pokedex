@@ -69,7 +69,7 @@ public class Pokedex
 
 		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
-		configurator = Configurator.initializeConfigurator(false);
+		configurator = Configurator.initializeConfigurator(true);
 		
 		//Set logging level
 		Logger logger4j = org.apache.log4j.Logger.getRootLogger();
@@ -91,12 +91,18 @@ public class Pokedex
 		checker = new PrivilegeChecker(patreonClient);
 		
 		/**
+		 * PUBLISHER SETUP
+		 */
+		System.out.println("[Pokedex main] Setting up Publisher");
+		publisher = new Publisher(shardIDToManage, totalShards);
+		
+		/**
 		 * DISCORD SETUP
 		 */
 		//Initialize resources
 		System.out.println("[Pokedex main] Establishing Discord client");
 		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), checker);
-		deh = new DiscordEventHandler(library);
+		deh = new DiscordEventHandler(library, publisher);
 		discordToken = configurator.getAuthToken("discord");
 		discordClient = initClient(discordToken, shardIDToManage, totalShards);
 		
@@ -104,14 +110,6 @@ public class Pokedex
 		System.out.println("[Pokedex main] Logging into Discord");
 		discordClient.getDispatcher().registerListener(deh);
 		discordClient.login();
-		
-		/**
-		 * PUBLISHER SETUP
-		 */
-		System.out.println("[Pokedex main] Setting up Publisher");
-		publisher = new Publisher(shardIDToManage, totalShards);
-		publisher.populatePublicationRecipients(discordClient);
-		publisher.scheduleHoursPerPublishment(1);
 	}
 	
 	private static IDiscordClient initClient(Optional<String> discordToken, int shardID, int totalShards)
