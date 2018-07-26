@@ -2,6 +2,8 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 
+import org.apache.commons.lang.StringUtils;
+
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
@@ -21,6 +23,8 @@ public class StatsCommand implements ICommand
 	private ArrayList<ArgumentCategory> argCats;
 	private PokeFlexFactory factory;
 	
+	private String statHeader1, statHeader2, statHeader3;
+	
 	public StatsCommand(PokeFlexFactory pff)
 	{
 		commandName = "stats".intern();
@@ -28,6 +32,10 @@ public class StatsCommand implements ICommand
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
 		factory = pff;
+		
+		statHeader1 = String.format("%s%s\n", StringUtils.rightPad("HP", 12, " "), "Attack");
+		statHeader2 = String.format("%s%s\n", StringUtils.rightPad("Defense", 12, " "), "Sp.Attack");
+		statHeader3 = String.format("%s%s\n", StringUtils.rightPad("Sp.Defense", 12, " "), "Speed");
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
@@ -91,21 +99,30 @@ public class StatsCommand implements ICommand
 		int stats[] = extractStats(pokemon);
 		String type;
 		
-		String names1 = String.format("%-12s%s", "HP", "Attack").intern();
-		String names2 = String.format("%-12s%s", "Defense", "Sp. Attack").intern();
-		String names3 = String.format("%-12s%s", "Sp. Defense", "Speed").intern();
-		String stats1 = String.format("%-12d%d", stats[5], stats[4]);
-		String stats2 = String.format("%-12d%d", stats[3], stats[2]);
-		String stats3 = String.format("%-12d%d", stats[1], stats[0]);
+		String stats1 = String.format("%s%d\n", StringUtils.rightPad(Integer.toString(stats[5]), 12, " "), stats[4]);
+		String stats2 = String.format("%s%d\n", StringUtils.rightPad(Integer.toString(stats[3]), 12, " "), stats[2]);
+		String stats3 = String.format("%s%d\n", StringUtils.rightPad(Integer.toString(stats[1]), 12, " "), stats[0]);
 		
-		builder.withDescription("__`"+names1+"`__\n`"+stats1+"`"
-								+ "\n\n__`"+ names2+"`__\n`"+stats2+"`"
-								+ "\n\n__`"+ names3+"`__\n`"+stats3 +"`");
+		builder.withDescription("__`"+statHeader1+"`__\n`"+stats1+"`"
+								+ "\n\n__`"+ statHeader2+"`__\n`"+stats2+"`"
+								+ "\n\n__`"+ statHeader3+"`__\n`"+stats3 +"`");
+		
+		builder.withTitle("Base Stat Total: "+ getBaseStatTotal(stats));
 		
 		//Set embed color
 		type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.withColor(ColorTracker.getColorForType(type));
 		return builder.build();
+	}
+	
+	private int getBaseStatTotal(int stats[])
+	{
+		int total = 0;
+		
+		for(int i = 0; i < stats.length; i++)
+			total += stats[i];
+		
+		return total;
 	}
 	
 	private int[] extractStats(Pokemon poke)

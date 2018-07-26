@@ -65,8 +65,6 @@ public class PreLoginEventHandler
     	plev = new PostLoginEventHandler(library, discordClient.getOurUser().getLongID());
     	discordClient.getDispatcher().unregisterListener(this);
     	discordClient.getDispatcher().registerListener(plev);
-    	
-    	System.out.println(discordClient.isLoggedIn());
     }
     
     private List<String> createStatusMessages()
