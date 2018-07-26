@@ -42,8 +42,6 @@ public class BotsDiscordRecipient extends AbstractPublicationRecipient
 			object.put("shard_count", totalShards);
 			object.put("server_count", discordClient.getGuilds().size());
 			
-			System.out.println(object.toString());
-
 			post.setEntity(new StringEntity(object.toString(), "UTF-8"));
 			post.addHeader("Content-type", "application/json");
 			post.addHeader("Authorization", authToken);
