@@ -2,31 +2,22 @@ package skaro.pokedex.core;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
 
-import skaro.pokedex.communicator.Publisher;
 import skaro.pokedex.data_processor.CommandMap;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.commands.ICommand;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.InputProcessor;
 import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.api.IShard;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
-import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageUpdateEvent;
 import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelJoinEvent;
-import sx.blah.discord.handle.impl.events.shard.ShardReadyEvent;
-import sx.blah.discord.handle.obj.ActivityType;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IVoiceChannel;
-import sx.blah.discord.handle.obj.StatusType;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RequestBuffer;
@@ -34,71 +25,21 @@ import sx.blah.discord.util.audio.AudioPlayer;
 import sx.blah.discord.util.audio.AudioPlayer.Track;
 import sx.blah.discord.util.audio.events.TrackFinishEvent;
 
-public class DiscordEventHandler
+public class PostLoginEventHandler 
 {
-	private CommandMap commandMap;		//Contains the 'cache' of commands
-	private int statusIndex;			//count for booting tracking, statusIndex to iterate through status messages
+	private CommandMap commandMap;
 	private InputProcessor processor;
-	private CommandLibrary library;
-	private Publisher publisher;
-
-	public DiscordEventHandler(CommandLibrary lib, Publisher pub)
+	
+	public PostLoginEventHandler(CommandLibrary lib, Long botID)
 	{
-		statusIndex = 0;
-		library = lib;
-		publisher = pub;
+		processor = new InputProcessor(lib, botID);
+		commandMap = new CommandMap(lib);
 	}
 	
-	@EventSubscriber
-    public void onShardReadyEvent(ShardReadyEvent event)
-    {	    	    	
-		IShard shard = event.getShard();
-		System.out.println("[DiscordEventHandler] Shard "+shard.getInfo()[0]+" finished connecting "
-				+ "with "+shard.getGuilds().size()+" guilds and "+ shard.getUsers().size()+" users.");
-    }
-	
-    @EventSubscriber
-    public void onReadyEvent(ReadyEvent event) 
-    {	    	    	
-    	ArrayList<String> statusMessages;	
-    	Timer statusTimer;					
-    	TimerTask statusTask;
-    	IDiscordClient discordClient = event.getClient();
-    	
-    	processor = new InputProcessor(library, discordClient.getOurUser().getLongID());
-		commandMap = new CommandMap(library);
-    	
-		System.out.println("[DiscordEventHandler] Setting up publisher");
-		publisher.populatePublicationRecipients(discordClient);
-		publisher.scheduleHoursPerPublishment(1);
-		
-		System.out.println("[DiscordEventHandler] Setting up status message rotation");
-    	statusMessages = new ArrayList<String>();
-		statusMessages.add("!commands/!help");
-		statusMessages.add("[NEW] %shiny");
-		statusMessages.add("%commands/%help");
-		statusMessages.add("[NEW] %patreon");
-		statusMessages.add("commands()/help()");
-		statusMessages.add("%invite");
-    	
-    	statusTimer = new Timer(true);
-		statusTask = new TimerTask() {
-            @Override
-            public void run() 
-            {
-            	event.getClient().changePresence(StatusType.ONLINE, ActivityType.PLAYING, statusMessages.get(statusIndex % statusMessages.size()));
-            	statusIndex++;
-            }
-        };	
-    	
-    	statusTimer.scheduleAtFixedRate(statusTask, 1000, 1 * 60 * 1000); //1 minute
-    	System.out.println("[DiscordEventHandler] Finished logging into Discord");
-    }
-	
-    @EventSubscriber
+	 @EventSubscriber
     public void onTextMessageEvent(MessageReceivedEvent event) 
     {
-    	if(event.getAuthor().isBot() || processor == null)
+    	if(event.getAuthor().isBot())
     		return;
     	
 		try
@@ -110,7 +51,7 @@ public class DiscordEventHandler
     @EventSubscriber
     public void onTextMessageUpdateEvent(MessageUpdateEvent event)
     {
-    	if(event.getAuthor().isBot() || processor == null)
+    	if(event.getAuthor().isBot())
     		return;
     	
     	try 
@@ -125,7 +66,7 @@ public class DiscordEventHandler
     	event.getPlayer().getGuild().getConnectedVoiceChannel().leave();
     }
     
-    public void handleTextResponse(IMessage userMsg)
+    private void handleTextResponse(IMessage userMsg)
     {
     	//Utility variable
 		Response response;
@@ -133,9 +74,6 @@ public class DiscordEventHandler
 		Optional<Input> parseTest;
 		Input userInput;
 		Optional<IMessage> ackMsg = Optional.empty();
-		
-		if(userMsg == null || userMsg.getContent() == null)
-			return;
 		
 		parseTest = processor.processInput(userMsg.getContent());
         if(!parseTest.isPresent()) //if the command doesn't exist, return

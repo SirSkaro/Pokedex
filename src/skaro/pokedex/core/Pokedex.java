@@ -42,7 +42,7 @@ public class Pokedex
 		Publisher publisher;
 		
 		CommandLibrary library;
-		DiscordEventHandler deh;
+		PreLoginEventHandler deh;
 		PrivilegeChecker checker;
 		
 		IDiscordClient discordClient;
@@ -102,7 +102,7 @@ public class Pokedex
 		//Initialize resources
 		System.out.println("[Pokedex main] Establishing Discord client");
 		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), checker);
-		deh = new DiscordEventHandler(library, publisher);
+		deh = new PreLoginEventHandler(library, publisher);
 		discordToken = configurator.getAuthToken("discord");
 		discordClient = initClient(discordToken, shardIDToManage, totalShards);
 		
