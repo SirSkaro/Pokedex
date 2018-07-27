@@ -59,8 +59,7 @@ public class Publisher
 		TimerTask task = createPublicationTimerTask();
         
         //Schedule task for every hour, starting in one hour
-        //timer.scheduleAtFixedRate(task, frequency * 60 * 60 * 1000, frequency * 60 * 60 * 1000);
-		timer.scheduleAtFixedRate(task,  5 * 1000, frequency * 60 * 60 * 1000);
+        timer.scheduleAtFixedRate(task, frequency * 60 * 60 * 1000, frequency * 60 * 60 * 1000);
 	}
 	
 	private List<AbstractPublicationRecipient> getRecipientList(IDiscordClient discordClient)
