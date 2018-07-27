@@ -42,7 +42,7 @@ public class Pokedex
 		Publisher publisher;
 		
 		CommandLibrary library;
-		PreLoginEventHandler deh;
+		PreLoginEventHandler pleh;
 		PrivilegeChecker checker;
 		
 		IDiscordClient discordClient;
@@ -69,7 +69,7 @@ public class Pokedex
 
 		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
-		configurator = Configurator.initializeConfigurator(true);
+		configurator = Configurator.initializeConfigurator(false);
 		
 		//Set logging level
 		Logger logger4j = org.apache.log4j.Logger.getRootLogger();
@@ -102,13 +102,13 @@ public class Pokedex
 		//Initialize resources
 		System.out.println("[Pokedex main] Establishing Discord client");
 		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), checker);
-		deh = new PreLoginEventHandler(library, publisher);
+		pleh = new PreLoginEventHandler(library, publisher);
 		discordToken = configurator.getAuthToken("discord");
 		discordClient = initClient(discordToken, shardIDToManage, totalShards);
 		
 		//Login to Discord
 		System.out.println("[Pokedex main] Logging into Discord");
-		discordClient.getDispatcher().registerListener(deh);
+		discordClient.getDispatcher().registerListener(pleh);
 		discordClient.login();
 	}
 	
