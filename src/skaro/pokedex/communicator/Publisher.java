@@ -13,6 +13,7 @@ import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 
+import skaro.pokedex.communicator.publish_recipients.BotsDiscordRecipient;
 import skaro.pokedex.communicator.publish_recipients.CarbonitexRecipient;
 import skaro.pokedex.communicator.publish_recipients.DiscordBotsRecipient;
 import sx.blah.discord.api.IDiscordClient;
@@ -58,7 +59,8 @@ public class Publisher
 		TimerTask task = createPublicationTimerTask();
         
         //Schedule task for every hour, starting in one hour
-        timer.scheduleAtFixedRate(task, frequency * 60 * 60 * 1000, frequency * 60 * 60 * 1000);
+        //timer.scheduleAtFixedRate(task, frequency * 60 * 60 * 1000, frequency * 60 * 60 * 1000);
+		timer.scheduleAtFixedRate(task,  5 * 1000, frequency * 60 * 60 * 1000);
 	}
 	
 	private List<AbstractPublicationRecipient> getRecipientList(IDiscordClient discordClient)
@@ -67,6 +69,7 @@ public class Publisher
 
 		result.add(new CarbonitexRecipient(discordClient, totalShards));
 		result.add(new DiscordBotsRecipient(discordClient, totalShards));
+		result.add(new BotsDiscordRecipient(discordClient, totalShards));
 		return result;
 	}
 	

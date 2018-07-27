@@ -25,7 +25,7 @@ public class InputProcessor
 		botID = id;
 		prefixPattern = Pattern.compile("[!%][a-zA-Z]+[\\s]*.*");
 		postfixPattern = Pattern.compile("[a-zA-Z]+[\\s]*[(].*[)]");
-		mentionPattern = Pattern.compile("<@![0-9]+>[\\s]*[a-zA-Z]+[\\s]*.*");
+		mentionPattern = Pattern.compile("<@[0-9]+>[\\s]*[a-zA-Z]+[\\s]*.*");
 	}
 	public Optional<Input> processInput(String input)
 	{
@@ -147,7 +147,7 @@ public class InputProcessor
     	String id;
     	int indexFunc, indexArgs;
     	
-    	id = msg.substring(msg.indexOf("!") + 1, msg.indexOf(">"));
+    	id = msg.substring(msg.indexOf("@") + 1, msg.indexOf(">"));
     	if(Long.parseLong(id) != botID)
     		return Optional.empty();
 		

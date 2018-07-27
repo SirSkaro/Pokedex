@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.apache.commons.lang.StringUtils;
+
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
@@ -36,6 +38,8 @@ public class DataCommand implements ICommand
 	private ArrayList<ArgumentCategory> argCats;
 	private PokeFlexFactory factory;
 	
+	private String statHeader1, statHeader2;
+	
 	public DataCommand(PokeFlexFactory pff)
 	{
 		commandName = "data".intern();
@@ -43,6 +47,9 @@ public class DataCommand implements ICommand
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
 		factory = pff;
+		
+		statHeader1 = String.format("%s%s%s\n", StringUtils.rightPad("HP", 9, " "), StringUtils.rightPad("Atk", 9, " "), "Def");
+		statHeader2 = String.format("%s%s%s\n", StringUtils.rightPad("Sp.Atk", 9, " "), StringUtils.rightPad("Sp.Def", 9, " "), "Spe");
 	}
 
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
@@ -207,12 +214,10 @@ public class DataCommand implements ICommand
 	
 	private String formatBaseStats(int[] stats)
 	{
-		String names1 = String.format("%-9s%-9s%s", "HP", "Atk", "Def").intern();
-		String names2 = String.format("%-9s%-9s%s", "Sp.Atk", "Sp.Def", "Spe").intern();
-		String stats1 = String.format("%-9d%-9d%d", stats[0], stats[1], stats[2]);
-		String stats2 = String.format("%-9d%-9d%d", stats[3], stats[4], stats[5]);
-		String baseStats = "__`"+names1+"`__\n`"+stats1+"`"
-				+ "\n__`"+ names2+"`__\n`"+stats2+"`";
+		String stats1 = String.format("%s%s%d\n", StringUtils.rightPad(Integer.toString(stats[0]), 9, " "), StringUtils.rightPad(Integer.toString(stats[1]), 9, " "), stats[2]);
+		String stats2 = String.format("%s%s%d\n", StringUtils.rightPad(Integer.toString(stats[3]), 9, " "), StringUtils.rightPad(Integer.toString(stats[4]), 9, " "), stats[5]);
+		String baseStats = "__`"+statHeader1+"`__\n`"+stats1+"`"
+				+ "\n__`"+ statHeader2+"`__\n`"+stats2+"`";
 		
 		return baseStats;
 	}

@@ -42,7 +42,7 @@ public class Pokedex
 		Publisher publisher;
 		
 		CommandLibrary library;
-		DiscordEventHandler deh;
+		PreLoginEventHandler pleh;
 		PrivilegeChecker checker;
 		
 		IDiscordClient discordClient;
@@ -91,27 +91,25 @@ public class Pokedex
 		checker = new PrivilegeChecker(patreonClient);
 		
 		/**
+		 * PUBLISHER SETUP
+		 */
+		System.out.println("[Pokedex main] Setting up Publisher");
+		publisher = new Publisher(shardIDToManage, totalShards);
+		
+		/**
 		 * DISCORD SETUP
 		 */
 		//Initialize resources
 		System.out.println("[Pokedex main] Establishing Discord client");
 		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), checker);
-		deh = new DiscordEventHandler(library);
+		pleh = new PreLoginEventHandler(library, publisher);
 		discordToken = configurator.getAuthToken("discord");
 		discordClient = initClient(discordToken, shardIDToManage, totalShards);
 		
 		//Login to Discord
 		System.out.println("[Pokedex main] Logging into Discord");
-		discordClient.getDispatcher().registerListener(deh);
+		discordClient.getDispatcher().registerListener(pleh);
 		discordClient.login();
-		
-		/**
-		 * PUBLISHER SETUP
-		 */
-		System.out.println("[Pokedex main] Setting up Publisher");
-		publisher = new Publisher(shardIDToManage, totalShards);
-		publisher.populatePublicationRecipients(discordClient);
-		publisher.scheduleHoursPerPublishment(1);
 	}
 	
 	private static IDiscordClient initClient(Optional<String> discordToken, int shardID, int totalShards)
