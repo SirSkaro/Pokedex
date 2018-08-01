@@ -1,8 +1,8 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.util.ArrayList;
 import java.util.Optional;
 
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.AbstractArgument;
@@ -17,33 +17,20 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class SetCommand implements ICommand 
+public class SetCommand extends AbstractCommand 
 {
-	private ArgumentRange expectedArgRange;
-	private String commandName;
-	private ArrayList<ArgumentCategory> argCats;
-	private PokeFlexFactory factory;
-	
 	public SetCommand(PokeFlexFactory pff)
 	{
+		super(pff);
 		commandName = "set".intern();
-		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.META);
 		argCats.add(ArgumentCategory.GEN);
 		expectedArgRange = new ArgumentRange(3,3);
-		factory = pff;
 	}
 	
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
-	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	public boolean makesWebRequest() { return false; }
-	
-	public String getArguments()
-	{
-		return "<pokemon>, <meta>, <generation> (not updated for gen 7)";
-	}
+	public String getArguments() { return "<pokemon>, <meta>, <generation> (not updated for gen 7)"; }
 	
 	public boolean inputIsValid(Response reply, Input input)
 	{

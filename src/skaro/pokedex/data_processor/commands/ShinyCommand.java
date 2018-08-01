@@ -7,6 +7,7 @@ import java.util.List;
 
 import skaro.pokedex.core.Configurator;
 import skaro.pokedex.core.PrivilegeChecker;
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
@@ -20,35 +21,23 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class ShinyCommand implements ICommand
+public class ShinyCommand extends AbstractCommand 
 {
-	private ArgumentRange expectedArgRange;
-	private String commandName;
-	private ArrayList<ArgumentCategory> argCats;
-	private PokeFlexFactory factory;
 	private String baseModelPath;
 	private PrivilegeChecker checker;
 	
 	public ShinyCommand(PokeFlexFactory pff, PrivilegeChecker pc)
 	{
+		super(pff);
 		commandName = "shiny".intern();
-		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
-		factory = pff;
 		baseModelPath = Configurator.getInstance().get().getModelBasePath();
 		checker = pc;
 	}
 
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
-	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	public boolean makesWebRequest() { return true; }
-	
-	public String getArguments()
-	{
-		return "<pokemon>";
-	}
+	public String getArguments() { return "<pokemon>"; }
 	
 	public boolean inputIsValid(Response reply, Input input) 
 	{

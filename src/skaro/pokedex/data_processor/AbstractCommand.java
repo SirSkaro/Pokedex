@@ -1,33 +1,40 @@
-package skaro.pokedex.data_processor.commands;
+package skaro.pokedex.data_processor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.commands.ArgumentRange;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokeflex.api.PokeFlexFactory;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-/**
- * An interface for all Command objects. These objects format replies for users.
- * Each Command is a singleton class.
- *
- */
-public interface ICommand 
-{	
-	//Basic data getters
-	public ArgumentRange getExpectedArgumentRange();	//The min and max number of arguments expected (size always 2)
-	public String getCommandName();			//The name of the command
-	public ArrayList<ArgumentCategory> getArgumentCats();	//The categories of the expected argument(s)
-	public boolean makesWebRequest();
+public abstract class AbstractCommand 
+{
+	protected ArgumentRange expectedArgRange;
+	protected String commandName;
+	protected ArrayList<ArgumentCategory> argCats;
+	protected PokeFlexFactory factory;
+	protected int id;
 	
-	//Response functions
-	public Response discordReply(Input input, IUser requester);	//Format a reply
-	public String getArguments();				//Get the arguments in a response-friendly form
-	public boolean inputIsValid(Response reply, Input input);	//Check if user input is valid
+	public AbstractCommand(PokeFlexFactory pff)
+	{
+		factory = pff;
+		argCats = new ArrayList<ArgumentCategory>();
+	}
 	
-	public default String listToItemizedString(List<?> list)
+	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
+	public String getCommandName() { return commandName; }
+	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	
+	abstract public boolean makesWebRequest();
+	abstract public String getArguments();
+	abstract public Response discordReply(Input input, IUser requester);
+	
+	protected boolean inputIsValid(Response reply, Input input) { return true; }
+	
+	protected String listToItemizedString(List<?> list)
 	{
 		if(list.isEmpty())
 			return "None".intern();
@@ -45,7 +52,7 @@ public interface ICommand
 		return result.toString();
 	}
 	
-	public default void addErrorMessage(Response reply, Input input, String errCode, Exception e)
+	protected void addErrorMessage(Response reply, Input input, String errCode, Exception e)
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setLenient(true);
@@ -61,4 +68,3 @@ public interface ICommand
 		reply.setEmbededReply(builder.build());
 	}
 }
-
