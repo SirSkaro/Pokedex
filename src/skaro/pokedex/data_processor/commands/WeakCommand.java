@@ -8,6 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.data_processor.Type;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
@@ -72,6 +73,7 @@ public class WeakCommand extends AbstractCommand
 		
 		//Declare utility variables
 		Type type1 = null, type2 = null;
+		Pokemon pokemon = null;
 		StringBuilder header = new StringBuilder();
 		
 		//Build reply according to the argument case
@@ -82,7 +84,7 @@ public class WeakCommand extends AbstractCommand
 			try 
 			{
 				flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
-				Pokemon pokemon = Pokemon.class.cast(flexObj);
+				pokemon = Pokemon.class.cast(flexObj);
 				List<skaro.pokeflex.objects.pokemon.Type> types = pokemon.getTypes();
 				type1 = Type.getByName(types.get(0).getType().getName());
 				if(types.size() > 1)
@@ -103,7 +105,8 @@ public class WeakCommand extends AbstractCommand
 		}
 		
 		header.append("**__"+type1.toProperName());
-		header.append(type2 != null ? "/"+type2.toProperName()+"__**" : "__**");
+		header.append(type2 != null ? "/"+type2.toProperName() : "");
+		header.append(pokemon != null ? " ("+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+")__**" : "__**");
 		reply.addToReply(header.toString());
 		reply.setEmbededReply(formatEmbed(type1, type2));
 		
