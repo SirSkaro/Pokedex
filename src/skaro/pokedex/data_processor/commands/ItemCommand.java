@@ -1,8 +1,8 @@
 package skaro.pokedex.data_processor.commands;
 
 import java.awt.Color;
-import java.util.ArrayList;
 
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.input_processor.Input;
@@ -14,31 +14,18 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class ItemCommand implements ICommand 
+public class ItemCommand extends AbstractCommand
 {
-	private ArgumentRange expectedArgRange;
-	private String commandName;
-	private ArrayList<ArgumentCategory> argCats;
-	private PokeFlexFactory factory;
-	
 	public ItemCommand(PokeFlexFactory pff)
 	{
+		super(pff);
 		commandName = "item".intern();
-		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.ITEM);
 		expectedArgRange = new ArgumentRange(1,1);
-		factory = pff;
 	}
 	
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
-	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	public boolean makesWebRequest() { return true; }
-	
-	public String getArguments()
-	{
-		return "<item>";
-	}
+	public String getArguments() { return "<item>"; }
 	
 	public boolean inputIsValid(Response reply, Input input)
 	{
@@ -87,7 +74,6 @@ public class ItemCommand implements ICommand
 	private EmbedObject formatEmbed(Item item)
 	{
 		//Organize the data and add it to the reply
-		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
 		

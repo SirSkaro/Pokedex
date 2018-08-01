@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.data_processor.Type;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
@@ -20,15 +22,11 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class WeakCommand implements ICommand 
+public class WeakCommand extends AbstractCommand 
 {
-	private ArgumentRange expectedArgRange;
-	private String commandName;
-	private ArrayList<ArgumentCategory> argCats;
-	private PokeFlexFactory factory;
-	
 	public WeakCommand(PokeFlexFactory pff)
 	{
+		super(pff);
 		commandName = "weak".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKE_TYPE_LIST);
@@ -36,15 +34,8 @@ public class WeakCommand implements ICommand
 		factory = pff;
 	}
 	
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
-	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	public boolean makesWebRequest() { return true; }
-	
-	public String getArguments()
-	{
-		return "<pokemon> or <type> or <type>, <type>";
-	}
+	public String getArguments() { return "<pokemon> or <type> or <type>, <type>"; }
 	
 	public boolean inputIsValid(Response reply, Input input)
 	{
@@ -82,6 +73,7 @@ public class WeakCommand implements ICommand
 		
 		//Declare utility variables
 		Type type1 = null, type2 = null;
+		Pokemon pokemon = null;
 		StringBuilder header = new StringBuilder();
 		
 		//Build reply according to the argument case
@@ -92,7 +84,7 @@ public class WeakCommand implements ICommand
 			try 
 			{
 				flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
-				Pokemon pokemon = Pokemon.class.cast(flexObj);
+				pokemon = Pokemon.class.cast(flexObj);
 				List<skaro.pokeflex.objects.pokemon.Type> types = pokemon.getTypes();
 				type1 = Type.getByName(types.get(0).getType().getName());
 				if(types.size() > 1)
@@ -113,7 +105,8 @@ public class WeakCommand implements ICommand
 		}
 		
 		header.append("**__"+type1.toProperName());
-		header.append(type2 != null ? "/"+type2.toProperName()+"__**" : "__**");
+		header.append(type2 != null ? "/"+type2.toProperName() : "");
+		header.append(pokemon != null ? " ("+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+")__**" : "__**");
 		reply.addToReply(header.toString());
 		reply.setEmbededReply(formatEmbed(type1, type2));
 		

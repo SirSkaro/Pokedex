@@ -2,18 +2,18 @@ package skaro.pokedex.core;
 
 import java.util.HashMap;
 
-import skaro.pokedex.data_processor.commands.ICommand;
+import skaro.pokedex.data_processor.AbstractCommand;
 
 public class CommandLibrary 
 {
-	private HashMap<String, ICommand> library;
+	private HashMap<String, AbstractCommand> library;
 	
 	public CommandLibrary()
 	{
-		library = new HashMap<String, ICommand>();
+		library = new HashMap<String, AbstractCommand>();
 	}
 	
-	public void addToLibrary(ICommand cmd)
+	public void addToLibrary(AbstractCommand cmd)
 	{
 		library.put(cmd.getCommandName(), cmd);
 	}
@@ -23,12 +23,12 @@ public class CommandLibrary
 		return library.containsKey(cmd);
 	}
 	
-	public ICommand getCommand(String cmd)
+	public AbstractCommand getCommand(String cmd)
 	{
 		return library.get(cmd);
 	}
 	
-	public HashMap<String, ICommand> getLibrary()
+	public HashMap<String, AbstractCommand> getLibrary()
 	{
 		return library;
 	}

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
@@ -17,36 +18,18 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class RandpokeCommand implements ICommand
+public class RandpokeCommand extends AbstractCommand 
 {
-	private ArgumentRange expectedArgRange;
-	private String commandName;
-	private ArrayList<ArgumentCategory> argCats;
-	private PokeFlexFactory factory;
-	
 	public RandpokeCommand(PokeFlexFactory pff)
 	{
+		super(pff);
 		commandName = "randpoke".intern();
-		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
-		factory = pff;
 	}
 	
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
-	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	public boolean makesWebRequest() { return true; }
-	
-	public String getArguments()
-	{
-		return "none";
-	}
-	
-	public boolean inputIsValid(Response reply, Input input)
-	{
-		return true;
-	}
+	public String getArguments() { return "none"; }
 
 	@Override
 	public Response discordReply(Input input, IUser requester)

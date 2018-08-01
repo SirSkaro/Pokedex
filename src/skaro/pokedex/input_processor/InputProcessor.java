@@ -7,8 +7,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import skaro.pokedex.core.CommandLibrary;
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
-import skaro.pokedex.data_processor.commands.ICommand;
 import skaro.pokedex.input_processor.arguments.AbstractArgument;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.ParsedText;
@@ -32,7 +32,7 @@ public class InputProcessor
 		//Utility variables
 		Optional<ParsedText> parseTest = parseTextMessage(input);
 		ParsedText parsedText;
-		ICommand command;
+		AbstractCommand command;
 		Input result;
 		List<AbstractArgument> argsFromParse;
 		Iterator<String> argItr;
@@ -74,7 +74,7 @@ public class InputProcessor
 		return Optional.of(result);
 	}
 	
-	private boolean hasExpectedNumberOfArguments(ParsedText text, ICommand cmd)
+	private boolean hasExpectedNumberOfArguments(ParsedText text, AbstractCommand cmd)
 	{
 		ArgumentRange range = cmd.getExpectedArgumentRange();
 		int numArgs = text.getNumberOfArguments();

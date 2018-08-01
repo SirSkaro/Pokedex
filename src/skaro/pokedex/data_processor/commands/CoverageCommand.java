@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Type;
@@ -21,33 +22,20 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class CoverageCommand implements ICommand 
+public class CoverageCommand extends AbstractCommand 
 {
-	private ArgumentRange expectedArgRange;
-	private String commandName;
-	private ArrayList<ArgumentCategory> argCats;
-	private PokeFlexFactory factory;
-	
 	public CoverageCommand(PokeFlexFactory pff)
 	{
+		super(pff);
 		commandName = "coverage".intern();
-		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.MOVE_TYPE_LIST);
 		expectedArgRange = new ArgumentRange(1,4);
-		factory = pff;
 	}
 	
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
-	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	public boolean makesWebRequest() { return true; }
+	public String getArguments() { return "<type/move>,...,<type/move>"; }
 	
-	public String getArguments()
-	{
-		return "<type/move>,...,<type/move>";
-	}
-	
-	public boolean inputIsValid(Response reply, Input input)
+	protected boolean inputIsValid(Response reply, Input input)
 	{
 		if(!input.isValid())
 		{

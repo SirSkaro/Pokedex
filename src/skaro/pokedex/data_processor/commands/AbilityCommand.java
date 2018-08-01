@@ -1,7 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.util.ArrayList;
-
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
@@ -15,33 +14,21 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class AbilityCommand implements ICommand 
-{
-	private ArgumentRange expectedArgRange;
-	private String commandName;
-	private ArrayList<ArgumentCategory> argCats;
-	private PokeFlexFactory factory;
-	
+public class AbilityCommand extends AbstractCommand 
+{	
 	public AbilityCommand(PokeFlexFactory pff)
 	{
+		super(pff);
 		commandName = "ability".intern();
-		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKE_ABIL);
 		expectedArgRange = new ArgumentRange(1,1);
-		factory = pff;
 	}
 	
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
-	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	public boolean makesWebRequest() { return true; }
 	
-	public String getArguments()
-	{
-		return "<pokemon> or <ability>";
-	}
+	public String getArguments() { return "<pokemon> or <ability>"; }
 	
-	public boolean inputIsValid(Response reply, Input input)
+	protected boolean inputIsValid(Response reply, Input input)
 	{
 		if(!input.isValid())
 		{

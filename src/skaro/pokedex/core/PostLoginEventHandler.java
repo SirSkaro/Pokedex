@@ -5,9 +5,9 @@ import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.CommandMap;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.commands.ICommand;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.InputProcessor;
 import sx.blah.discord.api.IDiscordClient;
@@ -70,7 +70,7 @@ public class PostLoginEventHandler
     {
     	//Utility variable
 		Response response;
-		ICommand command;
+		AbstractCommand command;
 		Optional<Input> parseTest;
 		Input userInput;
 		Optional<IMessage> ackMsg = Optional.empty();
