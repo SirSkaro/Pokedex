@@ -70,19 +70,20 @@ public class PrivilegeChecker
 			apiResponse = patreonClient.fetchCampaigns();
 			campagin = apiResponse.get().get(0);
 			pledges = patreonClient.fetchAllPledges(campagin.getId());
+			
+			for(Pledge pledge : pledges)
+			{
+				user = pledge.getPatron();
+				userDiscordID = user.getSocialConnections().getDiscord().getUser_id();
+				if(userDiscordID != null && Long.parseLong(userDiscordID) == id)
+					return Optional.of(user);
+			}
 		} 
-		catch(IOException e) 
+		catch(Exception e) 
 		{
 			System.out.println("[PrivilegeChecker] Could not fetch Patreon data.");
+			e.printStackTrace();
 			return Optional.empty();
-		}
-		
-		for(Pledge pledge : pledges)
-		{
-			user = pledge.getPatron();
-			userDiscordID = user.getSocialConnections().getDiscord().getUser_id();
-			if(userDiscordID != null && Long.parseLong(userDiscordID) == id)
-				return Optional.of(user);
 		}
 		
 		return Optional.empty();
