@@ -2,7 +2,6 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import skaro.pokedex.data_processor.AbstractCommand;
@@ -30,6 +29,8 @@ public class RandpokeCommand extends AbstractCommand
 		aliases.add("randompoke");
 		aliases.add("randompokemon");
 		aliases.add("randpokemon");
+		
+		extraMessages.add("See the shiny with the %shiny command! (Patrons only)");
 	}
 	
 	public boolean makesWebRequest() { return true; }
@@ -42,8 +43,7 @@ public class RandpokeCommand extends AbstractCommand
 		Response reply = new Response();
 		
 		//Obtain data
-		Random rand = new Random();
-		int randDexNum = rand.nextInt(807) + 1;
+		int randDexNum = ThreadLocalRandom.current().nextInt(1, 807 + 1);
 		List<String> urlParams = new ArrayList<String>();
 		urlParams.add(Integer.toString(randDexNum));
 		try 
@@ -61,7 +61,6 @@ public class RandpokeCommand extends AbstractCommand
 	
 	private EmbedObject formatEmbed(Pokemon pokemon)
 	{
-		int randNum;
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setLenient(true);
 		
@@ -74,10 +73,7 @@ public class RandpokeCommand extends AbstractCommand
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.withColor(ColorTracker.getColorForType(type));
 		
-		//Set a footer with a random chance
-		randNum = ThreadLocalRandom.current().nextInt(1, 3 + 1); //1 in 3 chance
-		if(randNum == 1)
-			builder.withFooterText("See the shiny with \"%shiny "+ TextFormatter.flexFormToProper(pokemon.getName()+"\""));
+		this.addRandomExtraMessage(builder);
 		
 		return builder.build();
 	}

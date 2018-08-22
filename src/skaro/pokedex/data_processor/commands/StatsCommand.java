@@ -102,6 +102,8 @@ public class StatsCommand extends AbstractCommand
 		//Set embed color
 		type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.withColor(ColorTracker.getColorForType(type));
+		
+		this.addRandomExtraMessage(builder);
 		return builder.build();
 	}
 	

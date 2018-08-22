@@ -2,6 +2,7 @@ package skaro.pokedex.data_processor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import skaro.pokedex.data_processor.commands.ArgumentRange;
 import skaro.pokedex.input_processor.Input;
@@ -17,19 +18,24 @@ public abstract class AbstractCommand
 	protected List<ArgumentCategory> argCats;
 	protected PokeFlexFactory factory;
 	protected int id;
-	protected List<String> aliases;
+	protected List<String> aliases, extraMessages;
 	
 	public AbstractCommand(PokeFlexFactory pff)
 	{
 		factory = pff;
 		argCats = new ArrayList<ArgumentCategory>();
 		aliases = new ArrayList<String>();
+		extraMessages = new ArrayList<String>();
+		
+		extraMessages.add("If you like Pokedex, consider becoming a Patreon for perks! (%patreon for link)");
+		extraMessages.add("Stay up to date with Pokedex: join the support server! (%invite for link)");
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public List<ArgumentCategory> getArgumentCats() { return argCats; }
 	public List<String> getAliases() { return aliases; }
+	public List<String> getExtraMessages() { return extraMessages; }
 	
 	abstract public boolean makesWebRequest();
 	abstract public String getArguments();
@@ -69,5 +75,15 @@ public abstract class AbstractCommand
 		builder.appendField("Link to Support Server", "[Click here to report](https://discord.gg/D5CfFkN)", true);
 		
 		reply.setEmbededReply(builder.build());
+	}
+	
+	protected void addRandomExtraMessage(EmbedBuilder builder)
+	{
+		int randNum = ThreadLocalRandom.current().nextInt(1, 5); //1 in 4 chance
+		if(randNum == 1)
+		{
+			randNum = ThreadLocalRandom.current().nextInt(0, extraMessages.size());
+			builder.withFooterText(extraMessages.get(randNum));
+		}
 	}
 }

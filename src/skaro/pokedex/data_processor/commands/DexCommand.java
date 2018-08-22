@@ -118,6 +118,8 @@ public class DexCommand extends AbstractCommand
 		//Add audio reply
 		reply.setPlayBack(tts.convertToAudio(replyContent));
 		
+		this.addRandomExtraMessage(builder);
+		
 		return reply;
 	}
 	

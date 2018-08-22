@@ -3,7 +3,6 @@ package skaro.pokedex.data_processor.commands;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
@@ -32,6 +31,8 @@ public class WeakCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.POKE_TYPE_LIST);
 		expectedArgRange = new ArgumentRange(1,2);
 		factory = pff;
+		
+		extraMessages.add("You may also like the %coverage command");
 	}
 	
 	public boolean makesWebRequest() { return true; }
@@ -126,7 +127,6 @@ public class WeakCommand extends AbstractCommand
 	
 	private EmbedObject formatEmbed(Type type1, Type type2, Optional<String> model)
 	{
-		int randNum;
 		EmbedBuilder builder = new EmbedBuilder();
 		TypeInteractionWrapper wrapper = TypeTracker.onDefense(type1, type2);
 		builder.setLenient(true);
@@ -143,11 +143,7 @@ public class WeakCommand extends AbstractCommand
 		//Set color
 		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
 		
-		//set footer with random chance
-		randNum = ThreadLocalRandom.current().nextInt(1, 4 + 1); //1 in 4 chance
-		if(randNum == 1)
-			builder.withFooterText("You may also like the %coverage command!");
-		
+		this.addRandomExtraMessage(builder);
 		return builder.build();
 	}
 	

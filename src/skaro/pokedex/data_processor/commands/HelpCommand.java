@@ -26,7 +26,7 @@ public class HelpCommand extends AbstractCommand
 		builder.withColor(new Color(0xD60B01));
 		
 		builder.appendField("Examples", "[click here for examples of every command]"
-				+ "(https://discordbots.org/bot/206147275775279104)", false);
+				+ "(https://discordbots.org/bot/pokedex)", false);
 		
 		staticDiscordReply.setEmbededReply(builder.build());
 	}

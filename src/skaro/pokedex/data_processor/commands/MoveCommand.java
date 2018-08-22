@@ -110,6 +110,7 @@ public class MoveCommand extends AbstractCommand
 		
 		//Set embed color
 		builder.withColor(ColorTracker.getColorForType(move.getType().getName()));
+		this.addRandomExtraMessage(builder);
 		
 		return builder.build();
 	}

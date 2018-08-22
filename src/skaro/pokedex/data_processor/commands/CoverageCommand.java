@@ -33,6 +33,8 @@ public class CoverageCommand extends AbstractCommand
 		aliases.add("strong");
 		aliases.add("cov");
 		aliases.add("effective");
+		
+		extraMessages.add("You may also like the %weak command!");
 	}
 	
 	public boolean makesWebRequest() { return true; }
@@ -120,6 +122,7 @@ public class CoverageCommand extends AbstractCommand
 		builder.appendField("Immune", getList(wrapper, 0.0), false);
 		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
 		
+		this.addRandomExtraMessage(builder);
 		return builder.build();
 	}
 	

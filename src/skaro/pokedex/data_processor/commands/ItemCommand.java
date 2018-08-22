@@ -94,6 +94,7 @@ public class ItemCommand extends AbstractCommand
 		builder.withColor(new Color(0xE89800));
 		builder.withThumbnail(item.getSprites().getDefault());
 		
+		this.addRandomExtraMessage(builder);
 		return builder.build();
 	}
 }

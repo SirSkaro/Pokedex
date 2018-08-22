@@ -129,6 +129,7 @@ public class AbilityCommand extends AbstractCommand
 		builder.appendField("Technical Description", abil.getLdesc(), false);
 		builder.withColor(ColorTracker.getColorForAbility());
 		
+		this.addRandomExtraMessage(builder);
 		return builder.build();
 	}
 }

@@ -91,7 +91,8 @@ public class SetCommand extends AbstractCommand
 		for(Set_ set : sets.getSets())
 			builder.appendField(set.getTitle(), setToString(sets.getName(), set), true);
 		
-		builder.withFooterText("You can learn more about these sets at Smogon's competitive Pokedex: "+sets.getUrl());
+		builder.appendField("More Info", "[Smogon's "+sets.getName()+" Analysis]("+sets.getUrl()+")", true);
+		this.addRandomExtraMessage(builder);
 		
 		return builder.build();
 	}
