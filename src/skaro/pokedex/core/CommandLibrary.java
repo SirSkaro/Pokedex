@@ -16,6 +16,9 @@ public class CommandLibrary
 	public void addToLibrary(AbstractCommand cmd)
 	{
 		library.put(cmd.getCommandName(), cmd);
+		
+		for(String alias : cmd.getAliases())
+			library.put(alias, cmd);
 	}
 	
 	public boolean hasCommand(String cmd)

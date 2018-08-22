@@ -14,19 +14,22 @@ public abstract class AbstractCommand
 {
 	protected ArgumentRange expectedArgRange;
 	protected String commandName;
-	protected ArrayList<ArgumentCategory> argCats;
+	protected List<ArgumentCategory> argCats;
 	protected PokeFlexFactory factory;
 	protected int id;
+	protected List<String> aliases;
 	
 	public AbstractCommand(PokeFlexFactory pff)
 	{
 		factory = pff;
 		argCats = new ArrayList<ArgumentCategory>();
+		aliases = new ArrayList<String>();
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
+	public List<ArgumentCategory> getArgumentCats() { return argCats; }
+	public List<String> getAliases() { return aliases; }
 	
 	abstract public boolean makesWebRequest();
 	abstract public String getArguments();

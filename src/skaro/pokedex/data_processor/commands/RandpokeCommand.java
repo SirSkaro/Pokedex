@@ -26,6 +26,10 @@ public class RandpokeCommand extends AbstractCommand
 		commandName = "randpoke".intern();
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
+		aliases.add("rand");
+		aliases.add("randompoke");
+		aliases.add("randompokemon");
+		aliases.add("randpokemon");
 	}
 	
 	public boolean makesWebRequest() { return true; }

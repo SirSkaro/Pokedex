@@ -34,6 +34,9 @@ public class LocationCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.VERSION);
 		expectedArgRange = new ArgumentRange(2,2);
+		aliases.add("loc");
+		aliases.add("where");
+		aliases.add("find");
 	}
 	
 	public boolean makesWebRequest() { return true; }

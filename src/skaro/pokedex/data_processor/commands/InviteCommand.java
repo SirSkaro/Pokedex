@@ -20,6 +20,7 @@ public class InviteCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
+		aliases.add("inv");
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);

@@ -22,6 +22,9 @@ public class AbilityCommand extends AbstractCommand
 		commandName = "ability".intern();
 		argCats.add(ArgumentCategory.POKE_ABIL);
 		expectedArgRange = new ArgumentRange(1,1);
+		
+		aliases.add("ab");
+		aliases.add("abil");
 	}
 	
 	public boolean makesWebRequest() { return true; }

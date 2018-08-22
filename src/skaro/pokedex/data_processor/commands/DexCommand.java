@@ -33,6 +33,9 @@ public class DexCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.VERSION);
 		expectedArgRange = new ArgumentRange(2,2);
 		tts = new TTSConverter();
+		
+		aliases.add("pokedex");
+		aliases.add("entry");
 	}
 	
 	public boolean makesWebRequest() { return true; }

@@ -22,6 +22,7 @@ public class ItemCommand extends AbstractCommand
 		commandName = "item".intern();
 		argCats.add(ArgumentCategory.ITEM);
 		expectedArgRange = new ArgumentRange(1,1);
+		aliases.add("itm");
 	}
 	
 	public boolean makesWebRequest() { return true; }

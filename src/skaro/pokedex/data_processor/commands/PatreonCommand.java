@@ -20,6 +20,7 @@ public class PatreonCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
+		aliases.add("donate");
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);

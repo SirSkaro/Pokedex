@@ -29,6 +29,8 @@ public class LearnCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.MOVE_LIST);
 		expectedArgRange = new ArgumentRange(2,21);
+		
+		aliases.add("knows");
 	}
 	
 	public boolean makesWebRequest() { return true; }

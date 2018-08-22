@@ -30,6 +30,9 @@ public class CoverageCommand extends AbstractCommand
 		commandName = "coverage".intern();
 		argCats.add(ArgumentCategory.MOVE_TYPE_LIST);
 		expectedArgRange = new ArgumentRange(1,4);
+		aliases.add("strong");
+		aliases.add("cov");
+		aliases.add("effective");
 	}
 	
 	public boolean makesWebRequest() { return true; }

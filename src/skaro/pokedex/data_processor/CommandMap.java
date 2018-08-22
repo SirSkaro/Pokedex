@@ -34,6 +34,10 @@ public class CommandMap
 	private void initializeCache(CommandLibrary lib)
 	{		
 		for(AbstractCommand icmd : lib.getLibrary().values())
+		{
 			discordCommandCache.put(icmd.getCommandName(), icmd);
+			for(String alias : icmd.getAliases())
+				discordCommandCache.put(alias, icmd);
+		}
 	}
 }

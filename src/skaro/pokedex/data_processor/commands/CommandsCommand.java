@@ -20,6 +20,9 @@ public class CommandsCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
+		aliases.add("cmds");
+		aliases.add("use");
+		aliases.add("useage");
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);

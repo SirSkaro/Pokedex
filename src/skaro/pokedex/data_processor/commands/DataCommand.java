@@ -42,6 +42,10 @@ public class DataCommand extends AbstractCommand
 		commandName = "data".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
+		aliases.add("pokemon");
+		aliases.add("dt");
+		aliases.add("poke");
+		aliases.add("mon");
 		
 		statHeader1 = String.format("%s%s%s\n", StringUtils.rightPad("HP", 9, " "), StringUtils.rightPad("Atk", 9, " "), "Def");
 		statHeader2 = String.format("%s%s%s\n", StringUtils.rightPad("Sp.Atk", 9, " "), StringUtils.rightPad("Sp.Def", 9, " "), "Spe");

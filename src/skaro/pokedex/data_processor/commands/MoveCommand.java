@@ -21,6 +21,8 @@ public class MoveCommand extends AbstractCommand
 		commandName = "move".intern();
 		argCats.add(ArgumentCategory.MOVE);
 		expectedArgRange = new ArgumentRange(1,1);
+		aliases.add("mv");
+		aliases.add("attack");
 	}
 	
 	public boolean makesWebRequest() { return true; }
