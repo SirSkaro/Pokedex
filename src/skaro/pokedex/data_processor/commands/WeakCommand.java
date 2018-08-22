@@ -75,6 +75,7 @@ public class WeakCommand extends AbstractCommand
 		Type type1 = null, type2 = null;
 		Pokemon pokemon = null;
 		StringBuilder header = new StringBuilder();
+		Optional<String> model = Optional.empty();
 		
 		//Build reply according to the argument case
 		if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON) //argument is a Pokemon
@@ -85,6 +86,7 @@ public class WeakCommand extends AbstractCommand
 			{
 				flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
 				pokemon = Pokemon.class.cast(flexObj);
+				model = Optional.ofNullable(pokemon.getSprites().getFrontDefault());
 				List<skaro.pokeflex.objects.pokemon.Type> types = pokemon.getTypes();
 				type1 = Type.getByName(types.get(0).getType().getName());
 				if(types.size() > 1)
@@ -104,16 +106,25 @@ public class WeakCommand extends AbstractCommand
 				type2 = Type.getByName(input.getArg(1).getDbForm());
 		}
 		
-		header.append("**__"+type1.toProperName());
-		header.append(type2 != null ? "/"+type2.toProperName() : "");
-		header.append(pokemon != null ? " ("+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+")__**" : "__**");
+		if(pokemon != null)
+		{
+			header.append("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+" ");
+			header.append("("+type1.toProperName());
+			header.append(type2 != null ? "/"+type2.toProperName() +")__**": ")__**");
+		}
+		else
+		{
+			header.append("**__"+type1.toProperName());
+			header.append(type2 != null ? "/"+type2.toProperName() +"__**": "__**");
+		}
+		
 		reply.addToReply(header.toString());
-		reply.setEmbededReply(formatEmbed(type1, type2));
+		reply.setEmbededReply(formatEmbed(type1, type2, model));
 		
 		return reply;
 	}
 	
-	private EmbedObject formatEmbed(Type type1, Type type2)
+	private EmbedObject formatEmbed(Type type1, Type type2, Optional<String> model)
 	{
 		int randNum;
 		EmbedBuilder builder = new EmbedBuilder();
@@ -124,6 +135,10 @@ public class WeakCommand extends AbstractCommand
 		builder.appendField("Neutral", getList(wrapper, 1.0), false);
 		builder.appendField("Resist", combineLists(wrapper, 0.5, 0.25), false);
 		builder.appendField("Immune", getList(wrapper, 0.0), false);
+		
+		//Add model if present
+		if(model.isPresent())
+			builder.withThumbnail(model.get());
 		
 		//Set color
 		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
