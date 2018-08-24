@@ -36,6 +36,9 @@ public class DexCommand extends AbstractCommand
 		
 		aliases.add("pokedex");
 		aliases.add("entry");
+		
+		createHelpMessage("Mew, Red", "kadabra, fire red", "Phantump, y", "Darumaka, white",
+				"https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 	}
 	
 	public boolean makesWebRequest() { return true; }

@@ -17,6 +17,17 @@ public enum ArgumentCategory
 		return resultList;
 	}},
 	
+	ANY{public List<AbstractArgument> parse(Iterator<String> itr)
+	{
+		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
+		AnyArgument argument = new AnyArgument();
+		
+		argument.setUp(itr.next());
+		resultList.add(argument);
+		
+		return resultList;
+	}},
+	
 	POKEMON{public List<AbstractArgument> parse(Iterator<String> itr)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
@@ -104,6 +115,26 @@ public enum ArgumentCategory
 		
 		return resultList;
 	}},
+	
+	ANY_NONE{public List<AbstractArgument> parse(Iterator<String> itr)
+	{
+		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
+		AbstractArgument argument;
+		
+		if(!itr.hasNext())
+		{
+			argument = new NoneArgument();
+			argument.setUp(null);
+		}
+		else
+		{
+			argument = new AnyArgument();
+			argument.setUp(itr.next());
+		}
+		
+		resultList.add(argument);
+		return resultList;
+	}},	
 	
 	POKE_ABIL{public List<AbstractArgument> parse(Iterator<String> itr)
 	{

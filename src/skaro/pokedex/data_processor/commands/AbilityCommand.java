@@ -25,6 +25,9 @@ public class AbilityCommand extends AbstractCommand
 		
 		aliases.add("ab");
 		aliases.add("abil");
+		
+		createHelpMessage("Starmie", "Flash Fire", "celebi", "natural cure",
+				"https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 	}
 	
 	public boolean makesWebRequest() { return true; }
@@ -132,4 +135,6 @@ public class AbilityCommand extends AbstractCommand
 		this.addRandomExtraMessage(builder);
 		return builder.build();
 	}
+	
+	
 }

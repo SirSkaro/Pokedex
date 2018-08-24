@@ -31,6 +31,7 @@ public class RandpokeCommand extends AbstractCommand
 		aliases.add("randpokemon");
 		
 		extraMessages.add("See the shiny with the %shiny command! (Patrons only)");
+		this.createHelpMessage("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 	}
 	
 	public boolean makesWebRequest() { return true; }

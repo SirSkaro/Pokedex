@@ -23,6 +23,7 @@ public class CommandsCommand extends AbstractCommand
 		aliases.add("cmds");
 		aliases.add("use");
 		aliases.add("useage");
+		aliases.add("command");
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
@@ -34,10 +35,11 @@ public class CommandsCommand extends AbstractCommand
 		setStaticReplyFields(builder, library);
 		
 		staticDiscordReply.setEmbededReply(builder.build());
+		this.createHelpMessage("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 	}
 	
 	public boolean makesWebRequest() { return false; }
-	public String getArguments() { return "[none]"; }
+	public String getArguments() { return "none"; }
 	public Response discordReply(Input input, IUser requester) { return staticDiscordReply; }
 
 	private void setStaticReplyFields(EmbedBuilder builder, HashMap<String, AbstractCommand> library)

@@ -1,5 +1,6 @@
 package skaro.pokedex.data_processor;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -8,6 +9,7 @@ import skaro.pokedex.data_processor.commands.ArgumentRange;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.PokeFlexFactory;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
@@ -17,8 +19,9 @@ public abstract class AbstractCommand
 	protected String commandName;
 	protected List<ArgumentCategory> argCats;
 	protected PokeFlexFactory factory;
-	protected int id;
 	protected List<String> aliases, extraMessages;
+	protected EmbedObject helpMessage;
+	
 	
 	public AbstractCommand(PokeFlexFactory pff)
 	{
@@ -36,6 +39,7 @@ public abstract class AbstractCommand
 	public List<ArgumentCategory> getArgumentCats() { return argCats; }
 	public List<String> getAliases() { return aliases; }
 	public List<String> getExtraMessages() { return extraMessages; }
+	public EmbedObject getHelpMessage() { return helpMessage; }
 	
 	abstract public boolean makesWebRequest();
 	abstract public String getArguments();
@@ -85,5 +89,52 @@ public abstract class AbstractCommand
 			randNum = ThreadLocalRandom.current().nextInt(0, extraMessages.size());
 			builder.withFooterText(extraMessages.get(randNum));
 		}
+	}
+	
+	protected void createHelpMessage(String ex1, String ex2, String ex3, String ex4, String imageURL)
+	{
+		EmbedBuilder builder = new EmbedBuilder();
+		StringBuilder aliasBuilder = new StringBuilder();
+		StringBuilder exampleBuilder = new StringBuilder();
+		builder.setLenient(true);
+		
+		for(String alias : aliases)
+			aliasBuilder.append(alias + "\n");
+		
+		exampleBuilder.append("!"+commandName+" "+ex1+"\n");
+		exampleBuilder.append("%"+commandName+" "+ex2+"\n");
+		exampleBuilder.append(commandName+"("+ex3+")\n");
+		exampleBuilder.append("@Pokedex "+commandName+" "+ex4);
+		
+		builder.appendField("Input", this.getArguments(), true);
+		builder.appendField("Min/Max Inputs", expectedArgRange.getMin()+"/"+expectedArgRange.getMax(), true);
+		builder.appendField("Aliases", aliasBuilder.toString(), true);
+		builder.appendField("Examples", exampleBuilder.toString(), true);
+		builder.withImage(imageURL);
+		builder.withThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
+		
+		builder.withColor(new Color(0xD60B01));
+		
+		helpMessage = builder.build();
+	}
+	
+	protected void createHelpMessage(String imageURL)
+	{
+		EmbedBuilder builder = new EmbedBuilder();
+		StringBuilder aliasBuilder = new StringBuilder();
+		builder.setLenient(true);
+		
+		for(String alias : aliases)
+			aliasBuilder.append(alias + "\n");
+		
+		builder.appendField("Input", this.getArguments(), true);
+		builder.appendField("Min/Max Inputs", expectedArgRange.getMin()+"/"+expectedArgRange.getMax(), true);
+		builder.appendField("Aliases", aliasBuilder.toString(), true);
+		builder.withImage(imageURL);
+		builder.withThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
+		
+		builder.withColor(new Color(0xD60B01));
+		
+		helpMessage = builder.build();
 	}
 }

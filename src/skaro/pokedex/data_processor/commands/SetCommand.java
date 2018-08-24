@@ -27,6 +27,9 @@ public class SetCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.META);
 		argCats.add(ArgumentCategory.GEN);
 		expectedArgRange = new ArgumentRange(3,3);
+		
+		createHelpMessage("Gengar, OU, 6", "Pikachu, NU, 5", "Groudon, Uber, 6", "zapdos, ou, 1",
+				"https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 	}
 	
 	public boolean makesWebRequest() { return false; }

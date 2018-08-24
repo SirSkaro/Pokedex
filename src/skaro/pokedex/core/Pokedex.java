@@ -154,11 +154,11 @@ public class Pokedex
 		lib.addToLibrary(new SetCommand(factory));
 		lib.addToLibrary(new LocationCommand(factory));
 		lib.addToLibrary(new AboutCommand());
-		lib.addToLibrary(new HelpCommand());
 		lib.addToLibrary(new PatreonCommand());
 		lib.addToLibrary(new InviteCommand());
 		lib.addToLibrary(new ShinyCommand(factory, checker));
 		
+		lib.addToLibrary(new HelpCommand(lib.getLibrary()));
 		lib.addToLibrary(new CommandsCommand(lib.getLibrary()));
 		
 		return lib;

@@ -34,6 +34,9 @@ public class ShinyCommand extends AbstractCommand
 		expectedArgRange = new ArgumentRange(1,1);
 		baseModelPath = Configurator.getInstance().get().getModelBasePath();
 		checker = pc;
+		
+		createHelpMessage("Minior", "Solgaleo", "Mega Charizard Y", "eevee",
+				"https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 	}
 
 	public boolean makesWebRequest() { return true; }
@@ -88,6 +91,7 @@ public class ShinyCommand extends AbstractCommand
 			//format embed
 			builder.withImage("attachment://jirachi.gif");
 			builder.withColor(ColorTracker.getColorForType("psychic"));
+			builder.withThumbnail("https://c5.patreon.com/external/logo/become_a_patron_button.png");
 			
 			//specify file path
 			path = baseModelPath + "/jirachi.gif";

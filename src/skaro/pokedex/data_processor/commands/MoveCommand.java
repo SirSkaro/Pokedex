@@ -23,6 +23,9 @@ public class MoveCommand extends AbstractCommand
 		expectedArgRange = new ArgumentRange(1,1);
 		aliases.add("mv");
 		aliases.add("attack");
+		
+		createHelpMessage("Ember", "dragon ascent", "aeroblast", "Blast Burn",
+				"https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 	}
 	
 	public boolean makesWebRequest() { return true; }

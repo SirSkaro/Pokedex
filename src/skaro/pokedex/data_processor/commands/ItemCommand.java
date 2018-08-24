@@ -23,6 +23,9 @@ public class ItemCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.ITEM);
 		expectedArgRange = new ArgumentRange(1,1);
 		aliases.add("itm");
+		
+		createHelpMessage("Life Orb", "leftovers", "Choice Band", "eviolite",
+				"https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 	}
 	
 	public boolean makesWebRequest() { return true; }

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -49,6 +48,11 @@ public class DataCommand extends AbstractCommand
 		
 		statHeader1 = String.format("%s%s%s\n", StringUtils.rightPad("HP", 9, " "), StringUtils.rightPad("Atk", 9, " "), "Def");
 		statHeader2 = String.format("%s%s%s\n", StringUtils.rightPad("Sp.Atk", 9, " "), StringUtils.rightPad("Sp.Def", 9, " "), "Spe");
+		
+		extraMessages.add("HD Shiny Pokemon are here! See the shiny with %shiny (Patreons only)");
+		
+		createHelpMessage("mew", "mega charizard x", "primal-kyogre", "Alolan Raichu",
+				"https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 	}
 
 	public boolean makesWebRequest() { return true; }
@@ -122,7 +126,6 @@ public class DataCommand extends AbstractCommand
 
 	private EmbedObject formatEmbed(Pokemon pokemon, List<Object> peripheralData)
 	{
-		int randNum;
 		PokemonSpecies speciesData = PokemonSpecies.class.cast(getDataOfInstance(peripheralData, PokemonSpecies.class));
 		EvolutionChain evolutionData = EvolutionChain.class.cast(getDataOfInstance(peripheralData, EvolutionChain.class));
 		EmbedBuilder builder = new EmbedBuilder();	
@@ -150,11 +153,6 @@ public class DataCommand extends AbstractCommand
 			builder.appendField("Evolution Chain", formatEvolutionChain(evolutionData, speciesData.getName()) , true);
 			builder.appendField("Evolution Requirements", formatEvolutionDetails(evolutionData, speciesData.getName()), true);
 		}
-		
-		//Footer data with random chance
-		randNum = ThreadLocalRandom.current().nextInt(1, 3 + 1); //1 in 3 chance
-			if(randNum == 1)
-		builder.withFooterText("Shiny Pokemon have returned! Try \"%shiny "+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+"\"");
 		
 		//Add images
 		builder.withImage(pokemon.getModel().getUrl());
