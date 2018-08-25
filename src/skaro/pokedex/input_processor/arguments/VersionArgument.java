@@ -13,7 +13,7 @@ public class VersionArgument extends AbstractArgument
 	static
 	{
 		versions = new ArrayList<String>();
-		versions.add("red"); versions.add("blue"); versions.add("gold"); versions.add("silver");
+		versions.add("red"); versions.add("blue"); versions.add("yellow"); versions.add("gold"); versions.add("silver");
 		versions.add("crystal"); versions.add("ruby"); versions.add("sapphire");
 		versions.add("emerald"); versions.add("leafgreen"); versions.add("firered"); versions.add("diamond");
 		versions.add("pearl"); versions.add("platinum"); versions.add("black");

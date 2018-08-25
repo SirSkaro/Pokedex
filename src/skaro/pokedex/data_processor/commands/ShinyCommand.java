@@ -35,8 +35,8 @@ public class ShinyCommand extends AbstractCommand
 		baseModelPath = Configurator.getInstance().get().getModelBasePath();
 		checker = pc;
 		
-		createHelpMessage("Minior", "Solgaleo", "Mega Charizard Y", "eevee",
-				"https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
+		createHelpMessage("Ponyta", "Solgaleo", "Keldeo resolute", "eevee",
+				"https://i.imgur.com/FLBOsD5.gif");
 	}
 
 	public boolean makesWebRequest() { return true; }

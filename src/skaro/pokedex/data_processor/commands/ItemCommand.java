@@ -25,7 +25,7 @@ public class ItemCommand extends AbstractCommand
 		aliases.add("itm");
 		
 		createHelpMessage("Life Orb", "leftovers", "Choice Band", "eviolite",
-				"https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
+				"https://i.imgur.com/B1NlcYh.gif");
 	}
 	
 	public boolean makesWebRequest() { return true; }

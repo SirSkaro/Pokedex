@@ -128,7 +128,6 @@ public abstract class AbstractCommand
 			aliasBuilder.append(alias + "\n");
 		
 		builder.appendField("Input", this.getArguments(), true);
-		builder.appendField("Min/Max Inputs", expectedArgRange.getMin()+"/"+expectedArgRange.getMax(), true);
 		builder.appendField("Aliases", aliasBuilder.toString(), true);
 		builder.withImage(imageURL);
 		builder.withThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");

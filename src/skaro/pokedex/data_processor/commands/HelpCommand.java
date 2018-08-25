@@ -34,7 +34,7 @@ public class HelpCommand extends AbstractCommand
 				+ "(https://discordbots.org/bot/pokedex)", false);
 		
 		staticDiscordReply.setEmbededReply(builder.build());
-		this.createHelpMessage("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
+		this.createHelpMessage("https://cdn.bulbagarden.net/upload/c/ce/Helping_Hand_IV.png");
 	}
 	
 	public boolean makesWebRequest() { return false; }

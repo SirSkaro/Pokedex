@@ -29,7 +29,7 @@ public class SetCommand extends AbstractCommand
 		expectedArgRange = new ArgumentRange(3,3);
 		
 		createHelpMessage("Gengar, OU, 6", "Pikachu, NU, 5", "Groudon, Uber, 6", "zapdos, ou, 1",
-				"https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
+				"https://i.imgur.com/SWCCW3H.gif");
 	}
 	
 	public boolean makesWebRequest() { return false; }

@@ -35,7 +35,7 @@ public class StatsCommand extends AbstractCommand
 		statHeader3 = String.format("%s%s\n", StringUtils.rightPad("Sp.Defense", 12, " "), "Speed");
 		
 		createHelpMessage("Darmanitan", "Alolan Sandshrew", "Ninetales Alola", "Mega Venusaur",
-				"https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
+				"https://i.imgur.com/svFfe9Q.gif");
 	}
 	
 	public boolean makesWebRequest() { return true; }	

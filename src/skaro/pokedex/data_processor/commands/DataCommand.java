@@ -52,7 +52,7 @@ public class DataCommand extends AbstractCommand
 		extraMessages.add("HD Shiny Pokemon are here! See the shiny with %shiny (Patreons only)");
 		
 		createHelpMessage("mew", "mega charizard x", "primal-kyogre", "Alolan Raichu",
-				"https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
+				"https://i.imgur.com/DZsD3Je.gif");
 	}
 
 	public boolean makesWebRequest() { return true; }

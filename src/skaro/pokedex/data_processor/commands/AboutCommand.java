@@ -40,7 +40,7 @@ public class AboutCommand extends AbstractCommand
 		
 		staticDiscordReply.setEmbededReply(builder.build());
 		
-		this.createHelpMessage("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
+		this.createHelpMessage("https://i.imgur.com/gC3tMJQ.gif");
 	}
 	
 	public boolean makesWebRequest() { return false; }
