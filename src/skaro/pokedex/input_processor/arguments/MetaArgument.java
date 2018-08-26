@@ -12,9 +12,8 @@ public class MetaArgument extends AbstractArgument
 	static
 	{
 		metas = new ArrayList<String>();
-		metas.add("ag"); metas.add("battlespotdoubles"); metas.add("battlespotsingles");
-		metas.add("doubles"); metas.add("lc"); metas.add("nu"); metas.add("uber");
-		metas.add("ou"); metas.add("pu"); metas.add("ru"); metas.add("uu"); metas.add("vgc");
+		metas.add("lc"); metas.add("nu"); metas.add("uber");
+		metas.add("ou"); metas.add("pu"); metas.add("ru"); metas.add("uu");
 	}
 	
 	public MetaArgument()
