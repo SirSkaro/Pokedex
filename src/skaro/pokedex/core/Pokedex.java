@@ -43,7 +43,7 @@ public class Pokedex
 		
 		CommandLibrary library;
 		PreLoginEventHandler pleh;
-		PrivilegeChecker checker;
+		PerkChecker checker;
 		
 		IDiscordClient discordClient;
 		PatreonAPI patreonClient;
@@ -88,7 +88,7 @@ public class Pokedex
 		}
 		
 		patreonClient = new PatreonAPI(patreonAccessToken.get());
-		checker = new PrivilegeChecker(patreonClient);
+		checker = new PerkChecker(patreonClient);
 		
 		/**
 		 * PUBLISHER SETUP
@@ -105,6 +105,7 @@ public class Pokedex
 		pleh = new PreLoginEventHandler(library, publisher);
 		discordToken = configurator.getAuthToken("discord");
 		discordClient = initClient(discordToken, shardIDToManage, totalShards);
+		checker.setDiscordClient(discordClient);
 		
 		//Login to Discord
 		System.out.println("[Pokedex main] Logging into Discord");
@@ -137,22 +138,22 @@ public class Pokedex
 	 * recognized by any command map.
 	 * @return a CommandLibrary of ICommands that are supported for Discord
 	 */
-	private static CommandLibrary initCompleteLibrary(PokeFlexFactory factory, PrivilegeChecker checker)
+	private static CommandLibrary initCompleteLibrary(PokeFlexFactory factory, PerkChecker checker)
 	{
 		CommandLibrary lib = new CommandLibrary();
 		
-		lib.addToLibrary(new RandpokeCommand(factory));
-		lib.addToLibrary(new StatsCommand(factory));
-		lib.addToLibrary(new DataCommand(factory));
-		lib.addToLibrary(new AbilityCommand(factory));
-		lib.addToLibrary(new ItemCommand(factory));
-		lib.addToLibrary(new MoveCommand(factory));
-		lib.addToLibrary(new LearnCommand(factory));
-		lib.addToLibrary(new WeakCommand(factory));
-		lib.addToLibrary(new CoverageCommand(factory));
-		lib.addToLibrary(new DexCommand(factory));
-		lib.addToLibrary(new SetCommand(factory));
-		lib.addToLibrary(new LocationCommand(factory));
+		lib.addToLibrary(new RandpokeCommand(factory, checker));
+		lib.addToLibrary(new StatsCommand(factory, checker));
+		lib.addToLibrary(new DataCommand(factory, checker));
+		lib.addToLibrary(new AbilityCommand(factory, checker));
+		lib.addToLibrary(new ItemCommand(factory, checker));
+		lib.addToLibrary(new MoveCommand(factory, checker));
+		lib.addToLibrary(new LearnCommand(factory, checker));
+		lib.addToLibrary(new WeakCommand(factory, checker));
+		lib.addToLibrary(new CoverageCommand(factory, checker));
+		lib.addToLibrary(new DexCommand(factory, checker));
+		lib.addToLibrary(new SetCommand(factory, checker));
+		lib.addToLibrary(new LocationCommand(factory, checker));
 		lib.addToLibrary(new AboutCommand());
 		lib.addToLibrary(new PatreonCommand());
 		lib.addToLibrary(new InviteCommand());

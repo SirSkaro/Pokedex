@@ -19,7 +19,7 @@ public class HelpCommand extends AbstractCommand
 	
 	public HelpCommand(HashMap<String, AbstractCommand> lib)
 	{
-		super(null);
+		super(null, null);
 		commandName = "help".intern();
 		argCats.add(ArgumentCategory.ANY_NONE);
 		expectedArgRange = new ArgumentRange(0,1);

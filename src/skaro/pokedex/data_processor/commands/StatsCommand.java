@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.apache.commons.lang.StringUtils;
 
+import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -21,9 +22,9 @@ public class StatsCommand extends AbstractCommand
 {	
 	private String statHeader1, statHeader2, statHeader3;
 	
-	public StatsCommand(PokeFlexFactory pff)
+	public StatsCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
-		super(pff);
+		super(pff, pc);
 		commandName = "stats".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
@@ -105,6 +106,12 @@ public class StatsCommand extends AbstractCommand
 		//Set embed color
 		type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.withColor(ColorTracker.getColorForType(type));
+		
+		//Add thumbnail
+		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		
+		//Add adopter
+		this.addAdopter(pokemon, builder);
 		
 		this.addRandomExtraMessage(builder);
 		return builder.build();

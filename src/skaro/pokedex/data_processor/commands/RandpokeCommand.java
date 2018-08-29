@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -19,9 +20,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class RandpokeCommand extends AbstractCommand 
 {
-	public RandpokeCommand(PokeFlexFactory pff)
+	public RandpokeCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
-		super(pff);
+		super(pff, pc);
 		commandName = "randpoke".intern();
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
@@ -73,6 +74,9 @@ public class RandpokeCommand extends AbstractCommand
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.withColor(ColorTracker.getColorForType(type));
+		
+		//Add adopter
+		addAdopter(pokemon, builder);
 		
 		this.addRandomExtraMessage(builder);
 		

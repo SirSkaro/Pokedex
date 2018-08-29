@@ -19,15 +19,17 @@ import com.patreon.resources.Pledge;
 import com.patreon.resources.User;
 
 import skaro.pokedex.input_processor.MySQLManager;
+import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.IUser;
 
-public class PrivilegeChecker 
+public class PerkChecker 
 {
 	private Cache<Long, IUser> privilegedUserCache;
 	private PatreonAPI patreonClient;
+	private IDiscordClient discordClient;
 	private MySQLManager sqlManager;
 	
-	public PrivilegeChecker(PatreonAPI client)
+	public PerkChecker(PatreonAPI pClient)
 	{
 		CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder().withCache("privilegedUserCache",
 		        CacheConfigurationBuilder.newCacheConfigurationBuilder(Long.class, IUser.class,
@@ -37,11 +39,24 @@ public class PrivilegeChecker
 		
 		privilegedUserCache = cacheManager.getCache("privilegedUserCache", Long.class, IUser.class);
 		
-		patreonClient = client;
+		patreonClient = pClient;
 		sqlManager = MySQLManager.getInstance();
 	}
 	
-	public boolean userIsPrivileged(IUser user)
+	public void setDiscordClient(IDiscordClient client)
+	{
+		discordClient = client;
+	}
+	
+	public IUser fetchDiscordUser(long userID)
+	{
+		if(privilegedUserCache.containsKey(userID))
+			return privilegedUserCache.get(userID);
+		
+		return discordClient.fetchUser(userID);
+	}
+	
+	public boolean userHasCommandPrivileges(IUser user)
 	{
 		if(privilegedUserCache.containsKey(user.getLongID()) || sqlManager.userIsDiscordVIP(user.getLongID()))
 			return true;
@@ -54,6 +69,38 @@ public class PrivilegeChecker
 		}
 		
 		return false;
+	}
+	
+	public Optional<IUser> getPokemonsAdopter(String pokemon)
+	{
+		long userID ;
+		Optional<Long> adoptionCheck = sqlManager.getPokemonsAdopter(pokemon);
+		Optional<IUser> result;
+		
+		//Check if user has adopted Pokemon. If not, return
+		if(!adoptionCheck.isPresent())
+			return Optional.empty();
+		userID = adoptionCheck.get();
+		result = Optional.ofNullable(discordClient.fetchUser(userID));
+		
+		//Insure that Discoord fetched the adopter
+		if(!result.isPresent())
+			return Optional.empty();
+		
+		//Check if user is still a Patron. First check the cache
+		if(privilegedUserCache.containsKey(userID) || sqlManager.userIsDiscordVIP(userID))
+			return result;
+			
+		//Ask Patreon's API if user is still pledged. If so, cache the user and return the adopted Pokemon
+		Optional<User> patronCheck = getPatronByDiscordID(userID);
+		if(patronCheck.isPresent())
+		{
+			privilegedUserCache.put(userID, result.get());
+			return result;
+		}
+	
+		//Otherwise, the adopter has unpledged :[
+		return Optional.empty();
 	}
 	
 	private Optional<User> getPatronByDiscordID(Long id)

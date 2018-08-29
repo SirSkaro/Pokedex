@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -27,9 +28,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class LocationCommand extends AbstractCommand 
 {
-	public LocationCommand(PokeFlexFactory pff)
+	public LocationCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
-		super(pff);
+		super(pff, pc);
 		commandName = "location".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.VERSION);
@@ -118,12 +119,12 @@ public class LocationCommand extends AbstractCommand
 		//Format reply
 		reply.addToReply("**"+TextFormatter.flexFormToProper(pokemon.getName())+"** can be found in **"+(encounterDataFromVersion.size())+
 				"** location(s) in **"+TextFormatter.flexFormToProper(versionDBForm)+"** version");
-		reply.setEmbededReply(formatEmbed(encounterDataFromVersion, versionDBForm));
+		reply.setEmbededReply(formatEmbed(encounterDataFromVersion, versionDBForm, pokemon));
 		
 		return reply;
 	}
 	
-	private EmbedObject formatEmbed(List<EncounterPotential> encounterDataFromVersion, String version) 
+	private EmbedObject formatEmbed(List<EncounterPotential> encounterDataFromVersion, String version, Pokemon pokemon) 
 	{
 		EmbedBuilder eBuilder = new EmbedBuilder();	
 		StringBuilder sBuilder;
@@ -151,6 +152,12 @@ public class LocationCommand extends AbstractCommand
 			
 			eBuilder.appendField(TextFormatter.flexFormToProper(potential.getLocationArea().getName()), sBuilder.toString(), true);
 		}
+		
+		//Add thumbnail
+		eBuilder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		
+		//Add adopter
+		this.addAdopter(pokemon, eBuilder);
 		
 		eBuilder.withColor(ColorTracker.getColorForVersion(version));
 		return eBuilder.build();

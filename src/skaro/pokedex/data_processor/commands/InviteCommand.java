@@ -15,7 +15,7 @@ public class InviteCommand extends AbstractCommand
 	
 	public InviteCommand()
 	{
-		super(null);
+		super(null, null);
 		commandName = "invite".intern();
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);

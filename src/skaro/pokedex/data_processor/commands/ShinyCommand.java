@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import skaro.pokedex.core.Configurator;
-import skaro.pokedex.core.PrivilegeChecker;
+import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -24,16 +24,14 @@ import sx.blah.discord.util.EmbedBuilder;
 public class ShinyCommand extends AbstractCommand 
 {
 	private String baseModelPath;
-	private PrivilegeChecker checker;
 	
-	public ShinyCommand(PokeFlexFactory pff, PrivilegeChecker pc)
+	public ShinyCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
-		super(pff);
+		super(pff, pc);
 		commandName = "shiny".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
 		baseModelPath = Configurator.getInstance().get().getModelBasePath();
-		checker = pc;
 		
 		createHelpMessage("Ponyta", "Solgaleo", "Keldeo resolute", "eevee",
 				"https://i.imgur.com/FLBOsD5.gif");
@@ -72,7 +70,7 @@ public class ShinyCommand extends AbstractCommand
 		if(!inputIsValid(reply, input))
 			return reply;
 				
-		if(checker.userIsPrivileged(requester))
+		if(checker.userHasCommandPrivileges(requester))
 			formatPrivilegedReply(reply, input);
 		else
 			formatNonPrivilegedReply(reply, input);
@@ -125,7 +123,6 @@ public class ShinyCommand extends AbstractCommand
 			reply.addToReply("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+" | #" + Integer.toString(speciesData.getId()) 
 				+ " | " + TextFormatter.formatGeneration(speciesData.getGeneration().getName()) + "__**");
 			
-			
 			//Upload local file
 			path = baseModelPath + "/" + pokemon.getName() + ".gif";
 			image = new File(path);
@@ -147,6 +144,9 @@ public class ShinyCommand extends AbstractCommand
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.withColor(ColorTracker.getColorForType(type));
+		
+		//Add adopter
+		addAdopter(pokemon, builder);
 		
 		return builder.build();
 	}

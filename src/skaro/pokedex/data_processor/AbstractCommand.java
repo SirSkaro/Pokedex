@@ -3,12 +3,15 @@ package skaro.pokedex.data_processor;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
+import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.objects.pokemon.Pokemon;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
@@ -19,19 +22,22 @@ public abstract class AbstractCommand
 	protected String commandName;
 	protected List<ArgumentCategory> argCats;
 	protected PokeFlexFactory factory;
+	protected PerkChecker checker;
 	protected List<String> aliases, extraMessages;
 	protected EmbedObject helpMessage;
 	
 	
-	public AbstractCommand(PokeFlexFactory pff)
+	public AbstractCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
 		factory = pff;
+		checker = pc;
 		argCats = new ArrayList<ArgumentCategory>();
 		aliases = new ArrayList<String>();
 		extraMessages = new ArrayList<String>();
 		
 		extraMessages.add("If you like Pokedex, consider becoming a Patreon for perks! (%patreon for link)");
 		extraMessages.add("Stay up to date with Pokedex: join the support server! (%invite for link)");
+		extraMessages.add("Want your name next to a Pokemon? Adopt a Pokemon with Patreon! (%patreon for link)");
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
@@ -135,5 +141,16 @@ public abstract class AbstractCommand
 		builder.withColor(new Color(0xD60B01));
 		
 		helpMessage = builder.build();
+	}
+	
+	protected void addAdopter(Pokemon pokemon, EmbedBuilder builder)
+	{
+		Optional<IUser> adopterCheck = checker.getPokemonsAdopter(pokemon.getName());
+		
+		if(adopterCheck.isPresent())
+		{
+			builder.withAuthorName(adopterCheck.get().getName() + "'s "+TextFormatter.flexFormToProper(pokemon.getName()));
+			builder.withAuthorIcon("https://c5.patreon.com/external/logo/downloads_logomark_color_on_coral.png");
+		}
 	}
 }

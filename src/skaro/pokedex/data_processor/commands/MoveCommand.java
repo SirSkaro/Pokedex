@@ -1,5 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
+import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -15,9 +16,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class MoveCommand extends AbstractCommand 
 {
-	public MoveCommand(PokeFlexFactory pff)
+	public MoveCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
-		super(pff);
+		super(pff, pc);
 		commandName = "move".intern();
 		argCats.add(ArgumentCategory.MOVE);
 		expectedArgRange = new ArgumentRange(1,1);

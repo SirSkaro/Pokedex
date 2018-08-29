@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -25,9 +26,9 @@ public class DexCommand extends AbstractCommand
 {
 	private TTSConverter tts;
 	
-	public DexCommand(PokeFlexFactory pff)
+	public DexCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
-		super(pff);
+		super(pff, pc);
 		commandName = "dex".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.VERSION);
@@ -116,6 +117,13 @@ public class DexCommand extends AbstractCommand
 		
 		builder.withDescription(replyContent);
 		builder.withColor(ColorTracker.getColorForVersion(input.getArg(1).getDbForm()));
+		
+		//Add thumbnail
+		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		
+		//Add adopter
+		this.addAdopter(pokemon, builder);
+		
 		reply.setEmbededReply(builder.build());
 		
 		//Add audio reply

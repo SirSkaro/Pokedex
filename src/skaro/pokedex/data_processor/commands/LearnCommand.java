@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -22,9 +23,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class LearnCommand extends AbstractCommand
 {
-	public LearnCommand(PokeFlexFactory pff)
+	public LearnCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
-		super(pff);
+		super(pff, pc);
 		commandName = "learn".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.MOVE_LIST);
@@ -128,6 +129,12 @@ public class LearnCommand extends AbstractCommand
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.withColor(ColorTracker.getColorForType(type));
 		this.addRandomExtraMessage(builder);
+		
+		//Add thumbnail
+		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		
+		//Add adopter
+		this.addAdopter(pokemon, builder);
 		
 		return builder.build();
 	}

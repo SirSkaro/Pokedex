@@ -138,4 +138,22 @@ public class MySQLManager
 		try { return dataCheck.get().next(); } 
 		catch (SQLException e) { return false; }
 	}
+	
+	public Optional<Long> getPokemonsAdopter(String pokemon)
+	{
+		Optional<ResultSet> dataCheck = dbQuery("SELECT user_id FROM DiscordAdopter WHERE pokemon = \""+pokemon+"\";");
+		ResultSet rs;
+		
+		//If some error occurs, assume the data does not exist
+		if(!dataCheck.isPresent())
+			return Optional.empty();
+			
+		try
+		{ 
+			rs = dataCheck.get();
+			rs.next();
+			return Optional.of(rs.getLong(1)); 
+		} 
+		catch (SQLException e) { return Optional.empty(); }
+	}
 }

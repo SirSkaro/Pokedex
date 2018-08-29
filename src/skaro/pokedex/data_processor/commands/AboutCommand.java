@@ -16,7 +16,7 @@ public class AboutCommand extends AbstractCommand
 	
 	public AboutCommand()
 	{
-		super(null);
+		super(null, null);
 		
 		Optional<Configurator> configurator = Configurator.getInstance();
 		String version;

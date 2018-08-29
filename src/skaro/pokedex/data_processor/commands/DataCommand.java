@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
+import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -35,16 +36,16 @@ public class DataCommand extends AbstractCommand
 {
 	private String statHeader1, statHeader2;
 	
-	public DataCommand(PokeFlexFactory pff)
+	public DataCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
-		super(pff);
+		super(pff, pc);
 		commandName = "data".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
 		aliases.add("pokemon");
 		aliases.add("dt");
 		aliases.add("poke");
-		aliases.add("mon");
+		aliases.add("info");
 		
 		statHeader1 = String.format("%s%s%s\n", StringUtils.rightPad("HP", 9, " "), StringUtils.rightPad("Atk", 9, " "), "Def");
 		statHeader2 = String.format("%s%s%s\n", StringUtils.rightPad("Sp.Atk", 9, " "), StringUtils.rightPad("Sp.Def", 9, " "), "Spe");
@@ -160,6 +161,9 @@ public class DataCommand extends AbstractCommand
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.withColor(ColorTracker.getColorForType(type));
+		
+		//Add adopter
+		addAdopter(pokemon, builder);
 		
 		this.addRandomExtraMessage(builder);
 		return builder.build();

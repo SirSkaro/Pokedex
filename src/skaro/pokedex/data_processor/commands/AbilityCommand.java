@@ -1,5 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
+import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -16,9 +17,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class AbilityCommand extends AbstractCommand 
 {	
-	public AbilityCommand(PokeFlexFactory pff)
+	public AbilityCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
-		super(pff);
+		super(pff, pc);
 		commandName = "ability".intern();
 		argCats.add(ArgumentCategory.POKE_ABIL);
 		expectedArgRange = new ArgumentRange(1,1);
@@ -116,6 +117,12 @@ public class AbilityCommand extends AbstractCommand
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.withColor(ColorTracker.getColorForType(type));
+		
+		//Add thumbnail
+		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		
+		//Add adopter
+		this.addAdopter(pokemon, builder);
 		
 		return builder.build();
 	}

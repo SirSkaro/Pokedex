@@ -15,7 +15,7 @@ public class CommandsCommand extends AbstractCommand
 	
 	public CommandsCommand(HashMap<String, AbstractCommand> library)
 	{
-		super(null);
+		super(null, null);
 		commandName = "commands".intern();
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);

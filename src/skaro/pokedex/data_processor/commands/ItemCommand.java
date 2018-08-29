@@ -2,6 +2,7 @@ package skaro.pokedex.data_processor.commands;
 
 import java.awt.Color;
 
+import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
@@ -16,9 +17,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class ItemCommand extends AbstractCommand
 {
-	public ItemCommand(PokeFlexFactory pff)
+	public ItemCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
-		super(pff);
+		super(pff, pc);
 		commandName = "item".intern();
 		argCats.add(ArgumentCategory.ITEM);
 		expectedArgRange = new ArgumentRange(1,1);

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -25,9 +26,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class SetCommand extends AbstractCommand 
 {
-	public SetCommand(PokeFlexFactory pff)
+	public SetCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
-		super(pff);
+		super(pff, pc);
 		commandName = "set".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.META);
@@ -100,7 +101,7 @@ public class SetCommand extends AbstractCommand
 				reply.setEmbededReply(formatEmbed(pokemonData, sets, tier));
 			}
 			else
-				reply.addToReply("Smogon doesn't have any sets for " +TextFormatter.flexFormToProper(pokemon)+ " at all!");
+				reply.addToReply("Smogon doesn't have any sets for " +TextFormatter.flexFormToProper(pokemon)+ " in generation" + gen);
 		} 
 		catch (Exception e) { this.addErrorMessage(reply, input, "1007", e); e.printStackTrace();}
 		
@@ -147,6 +148,9 @@ public class SetCommand extends AbstractCommand
 		
 		//Set thumbnail
 		builder.withThumbnail(pokemon.getSprites().getBackDefault());
+		
+		//Add adopter
+		this.addAdopter(pokemon, builder);
 		
 		this.addRandomExtraMessage(builder);
 		

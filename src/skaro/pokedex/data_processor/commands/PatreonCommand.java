@@ -15,7 +15,7 @@ public class PatreonCommand extends AbstractCommand
 	
 	public PatreonCommand()
 	{
-		super(null);
+		super(null, null);
 		commandName = "patreon".intern();
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);

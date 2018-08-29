@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
@@ -23,9 +24,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class WeakCommand extends AbstractCommand 
 {
-	public WeakCommand(PokeFlexFactory pff)
+	public WeakCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
-		super(pff);
+		super(pff, pc);
 		commandName = "weak".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKE_TYPE_LIST);
@@ -123,12 +124,12 @@ public class WeakCommand extends AbstractCommand
 		}
 		
 		reply.addToReply(header.toString());
-		reply.setEmbededReply(formatEmbed(type1, type2, model));
+		reply.setEmbededReply(formatEmbed(type1, type2, pokemon, model));
 		
 		return reply;
 	}
 	
-	private EmbedObject formatEmbed(Type type1, Type type2, Optional<String> model)
+	private EmbedObject formatEmbed(Type type1, Type type2, Pokemon pokemon, Optional<String> model)
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 		TypeInteractionWrapper wrapper = TypeTracker.onDefense(type1, type2);
@@ -145,6 +146,9 @@ public class WeakCommand extends AbstractCommand
 		
 		//Set color
 		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
+		
+		//Add adopter
+		addAdopter(pokemon, builder);
 		
 		this.addRandomExtraMessage(builder);
 		return builder.build();
