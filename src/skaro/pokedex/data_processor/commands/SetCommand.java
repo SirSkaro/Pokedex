@@ -57,8 +57,8 @@ public class SetCommand extends AbstractCommand
 					for(AbstractArgument arg : input.getArgs())
 						if(!arg.isValid())
 							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
-					reply.addToReply("\n*top suggestion*: Only Smogon metas are supported, and not updated for gen 7. "
-							+ "Try an official tier (Uber, OU, UU, RU, NU, PU, LC) or gens 1-7?");
+					reply.addToReply("\n*top suggestion*: Only Smogon metas are supported."
+							+ "Try an official tier (Uber, OU, UU, RU, NU, PU, LC)");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 109)");
@@ -101,7 +101,7 @@ public class SetCommand extends AbstractCommand
 				reply.setEmbededReply(formatEmbed(pokemonData, sets, tier));
 			}
 			else
-				reply.addToReply("Smogon doesn't have any sets for " +TextFormatter.flexFormToProper(pokemon)+ " in generation" + gen);
+				reply.addToReply("Smogon doesn't have any sets for " +TextFormatter.flexFormToProper(pokemon)+ " in generation " + gen);
 		} 
 		catch (Exception e) { this.addErrorMessage(reply, input, "1007", e); e.printStackTrace();}
 		

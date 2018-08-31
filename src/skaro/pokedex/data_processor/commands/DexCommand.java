@@ -60,7 +60,6 @@ public class DexCommand extends AbstractCommand
 					for(AbstractArgument arg : input.getArgs())
 						if(!arg.isValid())
 							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
-					reply.addToReply("\n*top suggestion*: Not updated for gen 7. Try gens 1-6?");
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 110)");
