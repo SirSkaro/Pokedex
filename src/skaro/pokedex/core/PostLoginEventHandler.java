@@ -45,7 +45,10 @@ public class PostLoginEventHandler
 		try
 		{ handleTextResponse(event.getMessage()); }
 		catch(Exception e) 
-		{ System.out.println("[DiscordEventHandler] text event error: "+e.getClass().getName());}
+		{ 
+			System.out.println("[DiscordEventHandler] text event error: "+e.getClass().getName());
+			event.getChannel().sendMessage("Some error occured and I could not recover. Please report this in the support server: https://discord.gg/D5CfFkN");
+		}
     }
     
     @EventSubscriber
@@ -57,7 +60,10 @@ public class PostLoginEventHandler
     	try 
     	{ handleTextResponse(event.getNewMessage()); }
     	catch(Exception e) 
-		{ System.out.println("[DiscordEventHandler] update text event error: "+e.getClass().getName());}
+		{
+    		System.out.println("[DiscordEventHandler] update text event error: "+e.getClass().getName());
+    		event.getChannel().sendMessage("Some error occured and I could not recover. Please report this in the support server: https://discord.gg/D5CfFkN");
+    	}
     }
     
     @EventSubscriber

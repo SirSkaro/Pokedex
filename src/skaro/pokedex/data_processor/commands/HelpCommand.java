@@ -50,7 +50,7 @@ public class HelpCommand extends AbstractCommand
 		
 		if(!library.containsKey(arg))
 		{
-			reply.addToReply("\""+arg +"\" is not a supported command!");
+			//reply.addToReply("\""+arg +"\" is not a supported command!");
 			return reply;
 		}
 

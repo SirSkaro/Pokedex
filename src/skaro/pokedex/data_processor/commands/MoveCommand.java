@@ -23,6 +23,7 @@ public class MoveCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.MOVE);
 		expectedArgRange = new ArgumentRange(1,1);
 		aliases.add("mv");
+		aliases.add("moves");
 		aliases.add("attack");
 		
 		createHelpMessage("Ember", "dragon ascent", "aeroblast", "Blast Burn",

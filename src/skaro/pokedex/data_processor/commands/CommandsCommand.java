@@ -21,7 +21,6 @@ public class CommandsCommand extends AbstractCommand
 		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
 		aliases.add("cmds");
-		aliases.add("use");
 		aliases.add("useage");
 		aliases.add("command");
 		

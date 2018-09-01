@@ -36,8 +36,6 @@ public class LocationCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.VERSION);
 		expectedArgRange = new ArgumentRange(2,2);
 		aliases.add("loc");
-		aliases.add("where");
-		aliases.add("find");
 		
 		createHelpMessage("fearow, blue", "Abra, Soul Silver", "Ditto, Yellow", "trubbish, black 2",
 				"https://i.imgur.com/CkPBiDT.gif");

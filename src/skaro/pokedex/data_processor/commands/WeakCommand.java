@@ -124,12 +124,12 @@ public class WeakCommand extends AbstractCommand
 		}
 		
 		reply.addToReply(header.toString());
-		reply.setEmbededReply(formatEmbed(type1, type2, pokemon, model));
+		reply.setEmbededReply(formatEmbed(type1, type2, Optional.ofNullable(pokemon), model));
 		
 		return reply;
 	}
 	
-	private EmbedObject formatEmbed(Type type1, Type type2, Pokemon pokemon, Optional<String> model)
+	private EmbedObject formatEmbed(Type type1, Type type2, Optional<Pokemon> pokemon, Optional<String> model)
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 		TypeInteractionWrapper wrapper = TypeTracker.onDefense(type1, type2);
@@ -148,15 +148,11 @@ public class WeakCommand extends AbstractCommand
 		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
 		
 		//Add adopter
-		addAdopter(pokemon, builder);
+		if(pokemon.isPresent())
+			addAdopter(pokemon.get(), builder);
 		
 		this.addRandomExtraMessage(builder);
 		return builder.build();
-	}
-	
-	public Response twitchReply(Input input)
-	{ 
-		return null;
 	}
 	
 	private String combineLists(TypeInteractionWrapper wrapper, double mult1, double mult2)
