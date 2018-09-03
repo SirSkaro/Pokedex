@@ -6,6 +6,7 @@ import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -22,9 +23,9 @@ public class MoveCommand extends AbstractCommand
 		commandName = "move".intern();
 		argCats.add(ArgumentCategory.MOVE);
 		expectedArgRange = new ArgumentRange(1,1);
-		aliases.add("mv");
-		aliases.add("moves");
-		aliases.add("attack");
+		aliases.put("mv", Language.ENGLISH);
+		aliases.put("moves", Language.ENGLISH);
+		aliases.put("attack", Language.ENGLISH);
 		
 		createHelpMessage("Ember", "dragon ascent", "aeroblast", "Blast Burn",
 				"https://i.imgur.com/B3VtWyg.gif");

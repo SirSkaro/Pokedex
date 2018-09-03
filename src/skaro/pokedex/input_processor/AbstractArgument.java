@@ -1,6 +1,6 @@
-package skaro.pokedex.input_processor.arguments;
+package skaro.pokedex.input_processor;
 
-import skaro.pokedex.input_processor.MySQLManager;
+import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 
 public abstract class AbstractArgument 
 {
@@ -12,7 +12,7 @@ public abstract class AbstractArgument
 	protected ArgumentCategory cat;	//Category of the argument
 	protected static MySQLManager sqlManager = MySQLManager.getInstance();
 	
-	abstract public void setUp(String argument);
+	abstract public void setUp(String argument, Language lang);
 	
 	public String getRawInput() { return rawInput; }
 	public String getDbForm() { return dbForm; }

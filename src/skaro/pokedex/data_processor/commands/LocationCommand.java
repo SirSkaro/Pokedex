@@ -11,8 +11,9 @@ import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
-import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -35,7 +36,7 @@ public class LocationCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.VERSION);
 		expectedArgRange = new ArgumentRange(2,2);
-		aliases.add("loc");
+		aliases.put("loc", Language.ENGLISH);
 		
 		createHelpMessage("fearow, blue", "Abra, Soul Silver", "Ditto, Yellow", "trubbish, black 2",
 				"https://i.imgur.com/CkPBiDT.gif");

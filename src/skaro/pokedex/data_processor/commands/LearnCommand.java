@@ -9,8 +9,9 @@ import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
-import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -31,7 +32,7 @@ public class LearnCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.MOVE_LIST);
 		expectedArgRange = new ArgumentRange(2,21);
 		
-		aliases.add("knows");
+		aliases.put("knows", Language.ENGLISH);
 		
 		createHelpMessage("primal groudon, roar, attract", "Mew, Thunder, Iron tail, Ice Beam, Stealth Rock, Spikes", "Golurk, Fly", "gible, earthquake, dual chop",
 				"https://i.imgur.com/EkXAXCP.gif");

@@ -17,7 +17,7 @@ public class CommandLibrary
 	{
 		library.put(cmd.getCommandName(), cmd);
 		
-		for(String alias : cmd.getAliases())
+		for(String alias : cmd.getAliases().keySet())
 			library.put(alias, cmd);
 	}
 	

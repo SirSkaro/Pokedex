@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import skaro.pokedex.input_processor.arguments.AbstractArgument;
-
 public class Input 
 {
 	private List<AbstractArgument> args;
@@ -50,6 +48,9 @@ public class Input
 	
 	public String argsToString()
 	{
+		if(args.isEmpty())
+			return "(no input)";
+		
 		StringBuilder builder = new StringBuilder();
 		
 		for(AbstractArgument arg : args)

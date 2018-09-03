@@ -5,6 +5,8 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.SpellChecker;
 
 public class AbilityArgument extends AbstractArgument 
@@ -14,7 +16,7 @@ public class AbilityArgument extends AbstractArgument
 		
 	}
 	
-	public void setUp(String argument) 
+	public void setUp(String argument, Language lang) 
 	{
 		//Utility variables
 		SpellChecker sc = SpellChecker.getInstance();
@@ -26,12 +28,12 @@ public class AbilityArgument extends AbstractArgument
 		
 		//Check if resource is recognized. If it is not recognized, attempt to spell check it.
 		//If it is still not recognized, then return the argument as invalid (default)
-		if(!isAbility(this.dbForm))
+		if(!isAbility(this.dbForm, lang))
 		{
 			String correction;
 			correction = sc.spellCheckAbility(argument);
 			
-			if(!isAbility(correction))
+			if(!isAbility(correction, lang))
 			{
 				this.valid = false;
 				return;
@@ -46,9 +48,12 @@ public class AbilityArgument extends AbstractArgument
 		this.flexForm = sqlManager.getAbilityFlexForm(dbForm).get();
 	}
 
-	private boolean isAbility(String s)
+	private boolean isAbility(String s, Language lang)
 	{
-		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT aid FROM Ability WHERE aid = '"+s+"-a';");
+		String attribute = (lang == Language.ENGLISH ? "aid" : lang.getSQLAttribute());
+		String value = (lang == Language.ENGLISH ? s + "-a" : s);
+		
+		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT "+attribute+" FROM Ability WHERE "+attribute+" = '"+value+"';");
 		boolean resourceExists = false;
 		
 		if(resultOptional.isPresent())

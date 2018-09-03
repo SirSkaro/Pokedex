@@ -5,6 +5,7 @@ import java.util.HashMap;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
@@ -20,9 +21,9 @@ public class CommandsCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
-		aliases.add("cmds");
-		aliases.add("useage");
-		aliases.add("command");
+		aliases.put("cmds", Language.ENGLISH);
+		aliases.put("useage", Language.ENGLISH);
+		aliases.put("command", Language.ENGLISH);
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);

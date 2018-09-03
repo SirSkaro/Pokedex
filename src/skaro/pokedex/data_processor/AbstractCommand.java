@@ -2,13 +2,17 @@ package skaro.pokedex.data_processor;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
@@ -23,8 +27,9 @@ public abstract class AbstractCommand
 	protected List<ArgumentCategory> argCats;
 	protected PokeFlexFactory factory;
 	protected PerkChecker checker;
-	protected List<String> aliases, extraMessages;
+	protected List<String> extraMessages;
 	protected EmbedObject helpMessage;
+	protected Map<String, Language> aliases;
 	
 	
 	public AbstractCommand(PokeFlexFactory pff, PerkChecker pc)
@@ -32,7 +37,7 @@ public abstract class AbstractCommand
 		factory = pff;
 		checker = pc;
 		argCats = new ArrayList<ArgumentCategory>();
-		aliases = new ArrayList<String>();
+		aliases = new HashMap<String, Language>();
 		extraMessages = new ArrayList<String>();
 		
 		extraMessages.add("If you like Pokedex, consider becoming a Patreon for perks! (%patreon for link)");
@@ -43,9 +48,19 @@ public abstract class AbstractCommand
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
 	public List<ArgumentCategory> getArgumentCats() { return argCats; }
-	public List<String> getAliases() { return aliases; }
+	public Map<String, Language> getAliases() { return aliases; }
 	public List<String> getExtraMessages() { return extraMessages; }
 	public EmbedObject getHelpMessage() { return helpMessage; }
+	
+	public Language getLanguageOfAlias(String alias)
+	{
+		Language result = aliases.get(alias);
+		
+		if(result == null)
+			return Language.ENGLISH;
+		
+		return result;
+	}
 	
 	abstract public boolean makesWebRequest();
 	abstract public String getArguments();
@@ -104,8 +119,8 @@ public abstract class AbstractCommand
 		StringBuilder exampleBuilder = new StringBuilder();
 		builder.setLenient(true);
 		
-		for(String alias : aliases)
-			aliasBuilder.append(alias + "\n");
+		for(Entry<String, Language> alias : aliases.entrySet())
+			aliasBuilder.append(alias.getKey() + " ("+alias.getValue().getName()+")\n");
 		
 		exampleBuilder.append("!"+commandName+" "+ex1+"\n");
 		exampleBuilder.append("%"+commandName+" "+ex2+"\n");
@@ -130,8 +145,8 @@ public abstract class AbstractCommand
 		StringBuilder aliasBuilder = new StringBuilder();
 		builder.setLenient(true);
 		
-		for(String alias : aliases)
-			aliasBuilder.append(alias + "\n");
+		for(Entry<String, Language> alias : aliases.entrySet())
+			aliasBuilder.append(alias.getKey() + " ("+alias.getValue().getName()+")\n");
 		
 		builder.appendField("Input", this.getArguments(), true);
 		builder.appendField("Aliases", aliasBuilder.toString(), true);

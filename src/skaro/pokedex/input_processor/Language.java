@@ -2,25 +2,29 @@ package skaro.pokedex.input_processor;
 
 public enum Language 
 {
-	CHINESE_SIMPMLIFIED("zh-Hans"),
-	CHINESE_TRADITIONAL("zh-Hant"),
-	JAPANESE("ja"),
-	JAPANESE_HIR_KAT("ja-Hrkt"),
-	JAPANESE_ROMAJI("roomaji"),
-	ENGLISH("en"),
-	ITALIAN("it"),
-	SPANISH("es"),
-	GERMAN("de"),
-	FRENCH("fr"),
-	KOREAN("ko"),
+	CHINESE_SIMPMLIFIED("简化字", "zh-Hans", "zh_hans"),
+	CHINESE_TRADITIONAL("正體字", "zh-Hant", "zh_hant"),
+	JAPANESE("日本語", "ja", "ja"),
+	JAPANESE_HIR_KAT("日本語","ja-Hrkt", "ja_hrkt"),
+	JAPANESE_ROMAJI("Nihongo","roomaji", "roomaji"),
+	ENGLISH("English","en", null),
+	ITALIAN("Italiano", "it", "it"),
+	SPANISH("Español", "es", "es"),
+	GERMAN("Deutsch", "de", "de"),
+	FRENCH("Français", "fr", "fr"),
+	KOREAN("조선말","ko", "ko"),
 	;
 	
-	private String abbreviation;
+	private String pokeFlexKey, sqlAttribute, languageName;
 	
-	private Language(String abb)
+	private Language(String lang, String key, String att)
 	{
-		abbreviation = abb;
+		languageName = lang;
+		pokeFlexKey = key;
+		sqlAttribute = att;
 	}
 	
-	public String getAbbreviation() { return abbreviation; }
+	public String getSQLAttribute() { return sqlAttribute; }
+	public String getFlexKey() { return pokeFlexKey; }
+	public String getName() { return languageName; }
 }

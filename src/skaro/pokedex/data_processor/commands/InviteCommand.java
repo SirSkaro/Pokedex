@@ -5,6 +5,7 @@ import java.awt.Color;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
@@ -20,7 +21,7 @@ public class InviteCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
-		aliases.add("inv");
+		aliases.put("inv", Language.ENGLISH);
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);

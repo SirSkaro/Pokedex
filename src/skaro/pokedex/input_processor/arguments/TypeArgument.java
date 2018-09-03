@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.SpellChecker;
 
 public class TypeArgument extends AbstractArgument 
@@ -26,7 +28,7 @@ public class TypeArgument extends AbstractArgument
 		
 	}
 
-	public void setUp(String argument) 
+	public void setUp(String argument, Language lang) 
 	{
 		//Utility variables
 		SpellChecker sc = SpellChecker.getInstance();

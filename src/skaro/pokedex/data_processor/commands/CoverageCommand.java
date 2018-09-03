@@ -11,8 +11,9 @@ import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Type;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
+import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
-import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
@@ -31,9 +32,9 @@ public class CoverageCommand extends AbstractCommand
 		commandName = "coverage".intern();
 		argCats.add(ArgumentCategory.MOVE_TYPE_LIST);
 		expectedArgRange = new ArgumentRange(1,4);
-		aliases.add("strong");
-		aliases.add("cov");
-		aliases.add("effective");
+		aliases.put("strong", Language.ENGLISH);
+		aliases.put("cov", Language.ENGLISH);
+		aliases.put("effective", Language.ENGLISH);
 		
 		extraMessages.add("You may also like the %weak command!");
 		

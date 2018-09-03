@@ -13,6 +13,7 @@ import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
@@ -42,10 +43,12 @@ public class DataCommand extends AbstractCommand
 		commandName = "data".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
-		aliases.add("pokemon");
-		aliases.add("dt");
-		aliases.add("poke");
-		aliases.add("info");
+		
+		aliases.put("pokemon", Language.ENGLISH);
+		aliases.put("dt", Language.ENGLISH);
+		aliases.put("poke", Language.ENGLISH);
+		aliases.put("info", Language.ENGLISH);
+		aliases.put("datos", Language.SPANISH);
 		
 		statHeader1 = String.format("%s%s%s\n", StringUtils.rightPad("HP", 9, " "), StringUtils.rightPad("Atk", 9, " "), "Def");
 		statHeader2 = String.format("%s%s%s\n", StringUtils.rightPad("Sp.Atk", 9, " "), StringUtils.rightPad("Sp.Def", 9, " "), "Spe");
