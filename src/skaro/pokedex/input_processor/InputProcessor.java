@@ -47,8 +47,8 @@ public class InputProcessor
 			return Optional.empty();
 		
 		command = commandLibrary.getCommand(parsedText.getFunction());
-		result = new Input(parsedText.getFunction());
 		lang = command.getLanguageOfAlias(parsedText.getFunction());
+		result = new Input(parsedText.getFunction(), lang);
 		
 		//Check for a legal number of arguments
 		if(!hasExpectedNumberOfArguments(parsedText, command))

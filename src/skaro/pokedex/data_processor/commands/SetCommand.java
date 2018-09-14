@@ -14,6 +14,7 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.set.Ev;
@@ -108,9 +109,9 @@ public class SetCommand extends AbstractCommand
 		return reply;
 	}
 	
-	private List<Request> createRequests(String pokemon, int gen)
+	private List<PokeFlexRequest> createRequests(String pokemon, int gen)
 	{
-		List<Request> result = new ArrayList<Request>();
+		List<PokeFlexRequest> result = new ArrayList<PokeFlexRequest>();
 		Request request = new Request(Endpoint.SET);
 		request.addParam(String.valueOf(gen));
 		request.addParam(pokemon.replace("-", "_"));

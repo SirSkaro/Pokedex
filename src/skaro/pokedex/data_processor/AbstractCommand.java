@@ -30,7 +30,7 @@ public abstract class AbstractCommand
 	protected List<String> extraMessages;
 	protected EmbedObject helpMessage;
 	protected Map<String, Language> aliases;
-	
+	protected IDiscordFormatter formatter;
 	
 	public AbstractCommand(PokeFlexFactory pff, PerkChecker pc)
 	{

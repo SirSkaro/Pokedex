@@ -45,7 +45,7 @@ public class PokemonArgument extends AbstractArgument
 		}
 		
 		this.valid = true;
-		this.flexForm = sqlManager.getPokemonFlexForm(dbForm).get();
+		this.flexForm = sqlManager.getPokemonFlexForm(dbForm, lang).get();
 	}
 	
 	private boolean isPokemon(String s, Language lang)
