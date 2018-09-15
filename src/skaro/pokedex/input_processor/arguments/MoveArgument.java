@@ -27,7 +27,7 @@ public class MoveArgument extends AbstractArgument {
 		if(!isMove(this.dbForm, lang))
 		{
 			String correction;
-			correction = sc.spellCheckMove(argument);
+			correction = sc.spellCheckMove(argument, lang);
 			
 			this.dbForm = TextFormatter.dbFormat(correction).intern();
 			if(!isMove(this.dbForm, lang))

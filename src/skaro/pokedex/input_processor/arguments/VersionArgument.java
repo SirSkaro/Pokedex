@@ -45,7 +45,7 @@ public class VersionArgument extends AbstractArgument
 		if(!isVersion(this.dbForm))
 		{
 			String correction;
-			correction = sc.spellCheckVersion(argument);
+			correction = sc.spellCheckVersion(argument, lang);
 			
 			if(!isVersion(correction))
 			{

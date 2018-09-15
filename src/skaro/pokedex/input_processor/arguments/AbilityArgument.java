@@ -31,7 +31,7 @@ public class AbilityArgument extends AbstractArgument
 		if(!isAbility(this.dbForm, lang))
 		{
 			String correction;
-			correction = sc.spellCheckAbility(argument);
+			correction = sc.spellCheckAbility(argument, lang);
 			
 			if(!isAbility(correction, lang))
 			{

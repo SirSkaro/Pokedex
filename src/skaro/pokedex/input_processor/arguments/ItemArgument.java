@@ -27,7 +27,7 @@ public class ItemArgument extends AbstractArgument {
 		if(!isItem(this.dbForm, lang))
 		{
 			String correction;
-			correction = sc.spellCheckItem(argument);
+			correction = sc.spellCheckItem(argument, lang);
 			
 			if(!isItem(correction, lang))
 			{

@@ -31,7 +31,7 @@ public class PokemonArgument extends AbstractArgument
 		if(!isPokemon(this.dbForm, lang))
 		{
 			String correction;
-			correction = sc.spellCheckPokemon(argument);
+			correction = sc.spellCheckPokemon(argument, lang);
 			
 			if(!isPokemon(correction, lang))
 			{

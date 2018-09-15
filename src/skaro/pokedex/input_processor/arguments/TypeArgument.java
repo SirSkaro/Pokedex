@@ -43,7 +43,7 @@ public class TypeArgument extends AbstractArgument
 		if(!isType(this.dbForm))
 		{
 			String correction;
-			correction = sc.spellCheckType(argument);
+			correction = sc.spellCheckType(argument, lang);
 			
 			if(!isType(correction))
 			{
