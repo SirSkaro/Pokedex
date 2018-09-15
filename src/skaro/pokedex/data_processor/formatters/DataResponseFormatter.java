@@ -11,7 +11,6 @@ import org.eclipse.jetty.util.MultiMap;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.objects.ability.Ability;
@@ -107,7 +106,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 		for(Object group : groups)
 		{
 			tempGroup = (EggGroup)group;
-			builder.append(tempGroup.getNameInLanguage(lang.getFlexKey()) + "*/* ");
+			builder.append(TextFormatter.flexFormToProper(tempGroup.getNameInLanguage(lang.getFlexKey()) + "*/* "));
 		}
 		
 		return builder.substring(0, builder.length() - 4);
@@ -288,7 +287,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 		for(Object type : types)
 		{
 			tempType = (Type)type;
-			builder.append(tempType.getNameInLanguage(lang.getFlexKey()) + "*/* ");
+			builder.append(TextFormatter.flexFormToProper(tempType.getNameInLanguage(lang.getFlexKey())) + "*/* ");
 		}
 		
 		return builder.substring(0, builder.length() - 4);
@@ -383,45 +382,57 @@ public class DataResponseFormatter implements IDiscordFormatter
 	
 	private enum DataField
 	{
-		BASE_STATS("Base Stats", "Estadísticas Base", "Statistique de Base", "Statistiche Base"),
-		TYPING("Typing","Tipos", "Types", "Tipi"),
-		ABILITIES("Ability", "Habilidad", "Talents", "Abilità"),
-		HIGHT_WEIGHT("Height & Weight", "Altura & Peso", "Taille & Poids", "Altezza & Peso"),
-		EV_YIELD("EV Yield","Puntos de Esfuerzo", "Points Effort", "PA Ceduti"),
-		GROWTH_CATCH("Growth & Capture Rates","Ratio de Crecimiento & Captura", "Taux de Capture & Croissance", "Crescita e Tasso di Cattura"),
-		GENDER("Gender Ratio","Ratio de Género", "Sexe", "Sesso"),
-		EGG_GROUP("Egg Groups", "Grupos Huevos", "Groupe œuf", "Uova"),
-		HATCH_TIME("Hatch Time", "Pasos para la Eclosión", "Éclosion", "Passi per Tratteggio"),
-		FORMS("Forms", "Formas", "Formes", "Forme"),
-		EVO_CHAIN("Evolution Chain", "Línea Evolución", "Ligne d'évolution", "Evoluzioni"),
-		EVO_REQ("Evolution Requirements", "Requisitos de Evolución", "Conditions d'évolution", "Requisiti di Evoluzione"),
+		BASE_STATS("Base Stats", "Estadísticas Base", "Statistique de Base", "Statistiche Base", "Basiswerte", "種族値", "种族值", "종족값"),
+		TYPING("Typing","Tipos", "Types", "Tipi", "Typen", "タイプ", "属性", "타입"),
+		ABILITIES("Ability", "Habilidad", "Talents", "Abilità", "Fähigkeiten", "とくせい", "特性", "특성"),
+		HIGHT_WEIGHT("Height & Weight", "Altura & Peso", "Taille & Poids", "Altezza & Peso", "Größe & Gewicht", "たかさ & おもさ", "身高 & 体重", "키 & 몸무게"),
+		EV_YIELD("EV Yield","Puntos de Esfuerzo", "Points Effort", "PA Ceduti", "FP", "獲得努力値", "取得基础点数", "노력치"),
+		GROWTH_CATCH("Growth & Capture Rates","Ratio de Crecimiento & Captura", "Taux de Capture & Croissance", "Crescita e Tasso di Cattura", "Wachstumsrate & Fangrate", "成長速度 & 捕捉率", "增长率 & 捕获率", "성장률 & 포획률"),
+		GENDER("Gender Ratio","Ratio de Género", "Sexe", "Sesso", "Geschlecht", "性別", "性别比例", "성비"),
+		EGG_GROUP("Egg Groups", "Grupos Huevos", "Groupe œuf", "Uova", "Ei-Gruppen", "タマゴグループ", "蛋群", "알그룹"),
+		HATCH_TIME("Hatch Time", "Pasos para la Eclosión", "Éclosion", "Passi per Tratteggio", "Ei-Schritte", "タマゴの歩数", "孵化周期", "부화 걸음수"),
+		FORMS("Forms", "Formas", "Formes", "Forme", "Formwandel", "フォーム", "形态", "폼체인지"),
+		EVO_CHAIN("Evolution Line", "Línea Evolución", "Ligne d'évolution", "Evoluzioni", "Entwicklung", "進化", "进化", "진화 단계"),
+		EVO_REQ("Evolution Requirements", "Requisitos de Evolución", "Conditions d'évolution", "Requisiti di Evoluzione", "Entwicklungsanforderungen", "進化要件", "进化要求", "진화 요구 사항"),
 		
 		ERROR(),
 		STAT_HEADER1(String.format("%s%s%s\n", StringUtils.rightPad(Statistic.HP.getInLanguage(Language.ENGLISH), 9, " "), StringUtils.rightPad(Statistic.ATK.getInLanguage(Language.ENGLISH), 9, " "), Statistic.DEF.getInLanguage(Language.ENGLISH)),
 				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.HP.getInLanguage(Language.SPANISH), 9, " "), StringUtils.rightPad(Statistic.ATK.getInLanguage(Language.SPANISH), 9, " "), Statistic.DEF.getInLanguage(Language.SPANISH)),
 				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.HP.getInLanguage(Language.FRENCH), 9, " "), StringUtils.rightPad(Statistic.ATK.getInLanguage(Language.FRENCH), 9, " "), Statistic.DEF.getInLanguage(Language.FRENCH)),
-				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.HP.getInLanguage(Language.ITALIAN), 9, " "), StringUtils.rightPad(Statistic.ATK.getInLanguage(Language.ITALIAN), 9, " "), Statistic.DEF.getInLanguage(Language.ITALIAN))
+				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.HP.getInLanguage(Language.ITALIAN), 9, " "), StringUtils.rightPad(Statistic.ATK.getInLanguage(Language.ITALIAN), 9, " "), Statistic.DEF.getInLanguage(Language.ITALIAN)),
+				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.HP.getInLanguage(Language.GERMAN), 9, " "), StringUtils.rightPad(Statistic.ATK.getInLanguage(Language.GERMAN), 9, " "), Statistic.DEF.getInLanguage(Language.GERMAN)),
+				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.HP.getInLanguage(Language.JAPANESE_HIR_KAT), 9, " "), StringUtils.rightPad(Statistic.ATK.getInLanguage(Language.JAPANESE_HIR_KAT), 7, " "), Statistic.DEF.getInLanguage(Language.JAPANESE_HIR_KAT)),
+				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.HP.getInLanguage(Language.CHINESE_SIMPMLIFIED), 7, " "), StringUtils.rightPad(Statistic.ATK.getInLanguage(Language.CHINESE_SIMPMLIFIED), 7, " "), Statistic.DEF.getInLanguage(Language.CHINESE_SIMPMLIFIED)),
+				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.HP.getInLanguage(Language.KOREAN), 9, " "), StringUtils.rightPad(Statistic.ATK.getInLanguage(Language.KOREAN), 7, " "), Statistic.DEF.getInLanguage(Language.KOREAN))
 				),
 		
 		STAT_HEADER2(String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.ENGLISH), 9, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.ENGLISH), 9, " "), Statistic.SPE.getInLanguage(Language.ENGLISH)),
 				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.SPANISH), 9, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.SPANISH), 9, " "), Statistic.SPE.getInLanguage(Language.SPANISH)),
 				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.FRENCH), 9, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.FRENCH), 9, " "), Statistic.SPE.getInLanguage(Language.FRENCH)),
-				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.ITALIAN), 9, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.ITALIAN), 9, " "), Statistic.SPE.getInLanguage(Language.ITALIAN))
+				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.ITALIAN), 9, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.ITALIAN), 9, " "), Statistic.SPE.getInLanguage(Language.ITALIAN)),
+				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.GERMAN), 9, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.GERMAN), 9, " "), Statistic.SPE.getInLanguage(Language.GERMAN)),
+				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.JAPANESE_HIR_KAT), 6, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.JAPANESE_HIR_KAT), 7, " "), Statistic.SPE.getInLanguage(Language.JAPANESE_HIR_KAT)),
+				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.CHINESE_SIMPMLIFIED), 7, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.CHINESE_SIMPMLIFIED), 7, " "), Statistic.SPE.getInLanguage(Language.CHINESE_SIMPMLIFIED)),
+				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.KOREAN), 6, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.KOREAN), 6, " "), Statistic.SPE.getInLanguage(Language.KOREAN))
 				),
 		
-		STEP_TRANSLATION("steps","pasos","pas", "passi"),
+		STEP_TRANSLATION("steps","pasos","pas", "passi", "schritte", "ステップ", "步", "걸음"),
 		;
 		
 		private Map<Language, String> titleMap;
 		
 		DataField() {}
-		DataField(String english, String spanish, String french, String italian)
+		DataField(String english, String spanish, String french, String italian, String german, String japanese, String chinese, String korean)
 		{
 			titleMap = new HashMap<Language, String>();
 			titleMap.put(Language.ENGLISH, english);
 			titleMap.put(Language.SPANISH, spanish);
 			titleMap.put(Language.FRENCH, french);
 			titleMap.put(Language.ITALIAN, italian);
+			titleMap.put(Language.GERMAN, german);
+			titleMap.put(Language.JAPANESE_HIR_KAT, japanese);
+			titleMap.put(Language.CHINESE_SIMPMLIFIED, chinese);
+			titleMap.put(Language.KOREAN, korean);
 		}
 		
 		public String getFieldTitle(Language lang)

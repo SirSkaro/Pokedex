@@ -46,6 +46,10 @@ public class DataCommand extends AbstractCommand
 		aliases.put("datos", Language.SPANISH);
 		aliases.put("dennees", Language.FRENCH);
 		aliases.put("dati", Language.ITALIAN);
+		aliases.put("daten", Language.GERMAN);
+		aliases.put("dēta", Language.JAPANESE_HIR_KAT);
+		aliases.put("shùjù", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("deiteo", Language.KOREAN);
 		
 		extraMessages.add("HD Shiny Pokemon are here! See the shiny with %shiny (Patreons only)");
 		
@@ -76,6 +80,7 @@ public class DataCommand extends AbstractCommand
 		return true;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public Response discordReply(Input input, IUser requester)
 	{
 		Request request;

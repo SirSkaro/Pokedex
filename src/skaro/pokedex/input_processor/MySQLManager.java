@@ -30,7 +30,7 @@ public class MySQLManager
 			}
 			
 			Class.forName("com.mysql.jdbc.Driver");   
-			con = DriverManager.getConnection("jdbc:mysql://"+dbURI+"/"+dbName+"?autoReconnect=true&useSSL=false", dbUser, dbPassword);
+			con = DriverManager.getConnection("jdbc:mysql://"+dbURI+"/"+dbName+"?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false", dbUser, dbPassword);
 		}
 		catch(Exception e)
 		{  
