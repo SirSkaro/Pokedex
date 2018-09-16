@@ -3,6 +3,7 @@ package skaro.pokedex.input_processor;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,19 +26,32 @@ public class SpellChecker
 	
 	private SpellChecker() throws IOException
 	{
-		pokeDict = new HashMap<Language, SpellDictionary>(); //new SpellDictionaryHashMap();
+		List<Language> supportedLanguages = new ArrayList<Language>();
+		supportedLanguages.add(Language.ENGLISH);
+		supportedLanguages.add(Language.SPANISH);
+		supportedLanguages.add(Language.FRENCH);
+		supportedLanguages.add(Language.ITALIAN);
+		supportedLanguages.add(Language.GERMAN);
+		supportedLanguages.add(Language.JAPANESE_HIR_KAT);
+		supportedLanguages.add(Language.CHINESE_SIMPMLIFIED);
+		supportedLanguages.add(Language.KOREAN);
+		
+		pokeDict = new HashMap<Language, SpellDictionary>();
 		itemDict = new HashMap<Language, SpellDictionary>();
 		typeDict = new HashMap<Language, SpellDictionary>();
 		abilityDict = new HashMap<Language, SpellDictionary>();
 		moveDict = new HashMap<Language, SpellDictionary>();
 		versionDict = new HashMap<Language, SpellDictionary>();
 		
-		populateDict(pokeDict, "pokemon.txt", Language.ENGLISH);
-		populateDict(itemDict, "items.txt", Language.ENGLISH);
-		populateDict(typeDict, "types.txt", Language.ENGLISH);
-		populateDict(abilityDict, "abilities.txt", Language.ENGLISH);
-		populateDict(moveDict, "moves.txt", Language.ENGLISH);
-		populateDict(versionDict, "versions.txt", Language.ENGLISH);
+		for(Language lang : supportedLanguages)
+		{
+			populateDict(pokeDict, "pokemon.txt", lang);
+			populateDict(itemDict, "items.txt", lang);
+			populateDict(typeDict, "types.txt", lang);
+			populateDict(abilityDict, "abilities.txt", lang);
+			populateDict(moveDict, "moves.txt", lang);
+			populateDict(versionDict, "versions.txt", lang);
+		}
 	}
 	
 	public static SpellChecker getInstance()
@@ -186,7 +200,6 @@ public class SpellChecker
 		return output.toString().trim();
 	}
 	
-	//Spell checks artist
 	public String spellCheckVersion(String ver, Language lang)
 	{
 		StringBuilder version = new StringBuilder(ver.toLowerCase());

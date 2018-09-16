@@ -8,7 +8,7 @@ public class ResourceManager
 {	
 	public static InputStream getDictionaryResource(String fileName, Language lang)
 	{
-		return ResourceManager.class.getResourceAsStream("/dictionaries/"+ lang.getFlexKey() + "/" + fileName);
+		return ResourceManager.class.getResourceAsStream("/dictionaries/"+ lang.getSQLAttribute() + "/" + fileName);
 	}
 	
 	public static InputStream getConfigurationResource(String fileName)

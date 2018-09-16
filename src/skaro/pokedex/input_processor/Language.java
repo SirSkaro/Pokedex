@@ -7,7 +7,7 @@ public enum Language
 	JAPANESE("日本語", "ja", "ja"),
 	JAPANESE_HIR_KAT("日本語","ja-Hrkt", "ja_hrkt"),
 	JAPANESE_ROMAJI("Nihongo","roomaji", "roomaji"),
-	ENGLISH("English","en", null),
+	ENGLISH("English","en", "en"),
 	ITALIAN("Italiano", "it", "it"),
 	SPANISH("Español", "es", "es"),
 	GERMAN("Deutsch", "de", "de"),

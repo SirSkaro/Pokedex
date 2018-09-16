@@ -413,7 +413,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.GERMAN), 9, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.GERMAN), 9, " "), Statistic.SPE.getInLanguage(Language.GERMAN)),
 				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.JAPANESE_HIR_KAT), 6, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.JAPANESE_HIR_KAT), 7, " "), Statistic.SPE.getInLanguage(Language.JAPANESE_HIR_KAT)),
 				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.CHINESE_SIMPMLIFIED), 7, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.CHINESE_SIMPMLIFIED), 7, " "), Statistic.SPE.getInLanguage(Language.CHINESE_SIMPMLIFIED)),
-				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.KOREAN), 6, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.KOREAN), 6, " "), Statistic.SPE.getInLanguage(Language.KOREAN))
+				String.format("%s%s%s\n", StringUtils.rightPad(Statistic.SP_ATK.getInLanguage(Language.KOREAN), 6, " "), StringUtils.rightPad(Statistic.SP_DEF.getInLanguage(Language.KOREAN), 5, " "), Statistic.SPE.getInLanguage(Language.KOREAN))
 				),
 		
 		STEP_TRANSLATION("steps","pasos","pas", "passi", "schritte", "ステップ", "步", "걸음"),
