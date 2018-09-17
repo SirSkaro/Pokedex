@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 import skaro.pokedex.core.CommandLibrary;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
-import skaro.pokedex.input_processor.arguments.AbstractArgument;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.ParsedText;
 
@@ -36,6 +35,7 @@ public class InputProcessor
 		Input result;
 		List<AbstractArgument> argsFromParse;
 		Iterator<String> argItr;
+		Language lang;
 		
 		//If args is null, then the input does not match the command format. Discard.
 		if(!parseTest.isPresent())
@@ -47,7 +47,8 @@ public class InputProcessor
 			return Optional.empty();
 		
 		command = commandLibrary.getCommand(parsedText.getFunction());
-		result = new Input(parsedText.getFunction());
+		lang = command.getLanguageOfAlias(parsedText.getFunction());
+		result = new Input(parsedText.getFunction(), lang);
 		
 		//Check for a legal number of arguments
 		if(!hasExpectedNumberOfArguments(parsedText, command))
@@ -60,7 +61,7 @@ public class InputProcessor
 		argItr = parsedText.getArgumentIterator();
 		for(ArgumentCategory argCat : command.getArgumentCats())
 		{
-			argsFromParse = argCat.parse(argItr);
+			argsFromParse = argCat.parse(argItr, lang);
 			result.addArgs(argsFromParse);
 		}
 		

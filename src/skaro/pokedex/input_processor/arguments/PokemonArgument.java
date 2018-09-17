@@ -4,7 +4,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.SpellChecker;
 
 public class PokemonArgument extends AbstractArgument
@@ -14,7 +16,7 @@ public class PokemonArgument extends AbstractArgument
 		
 	};
 	
-	public void setUp(String argument)
+	public void setUp(String argument, Language lang)
 	{
 		//Utility variables
 		SpellChecker sc = SpellChecker.getInstance();
@@ -26,12 +28,12 @@ public class PokemonArgument extends AbstractArgument
 		
 		//Check if resource is recognized. If it is not recognized, attempt to spell check it.
 		//If it is still not recognized, then return the argument as invalid (default)
-		if(!isPokemon(this.dbForm))
+		if(!isPokemon(this.dbForm, lang))
 		{
 			String correction;
-			correction = sc.spellCheckPokemon(argument);
+			correction = sc.spellCheckPokemon(argument, lang);
 			
-			if(!isPokemon(correction))
+			if(!isPokemon(correction, lang))
 			{
 				this.valid = false;
 				return;
@@ -43,12 +45,14 @@ public class PokemonArgument extends AbstractArgument
 		}
 		
 		this.valid = true;
-		this.flexForm = sqlManager.getPokemonFlexForm(dbForm).get();
+		this.flexForm = sqlManager.getPokemonFlexForm(dbForm, lang).get();
 	}
 	
-	private boolean isPokemon(String s)
+	private boolean isPokemon(String s, Language lang)
 	{
-		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT pid FROM Pokemon WHERE pid = '"+s+"';");
+		String attribute = lang == Language.ENGLISH ? "pid" : lang.getSQLAttribute();
+		
+		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT "+attribute+" FROM Pokemon WHERE "+attribute+" = '"+s+"';");
 		boolean resourceExists = false;
 		
 		if(resultOptional.isPresent())

@@ -1,6 +1,8 @@
 package skaro.pokedex.input_processor.arguments;
 
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 
 public class GenArgument extends AbstractArgument 
 {
@@ -9,7 +11,7 @@ public class GenArgument extends AbstractArgument
 		
 	}
 	
-	public void setUp(String argument) 
+	public void setUp(String argument, Language lang) 
 	{
 		//Set up argument
 		this.dbForm = TextFormatter.dbFormat(argument).replaceAll("[^0-9]", "");

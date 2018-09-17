@@ -5,8 +5,9 @@ import java.awt.Color;
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -23,7 +24,7 @@ public class ItemCommand extends AbstractCommand
 		commandName = "item".intern();
 		argCats.add(ArgumentCategory.ITEM);
 		expectedArgRange = new ArgumentRange(1,1);
-		aliases.add("itm");
+		aliases.put("itm", Language.ENGLISH);
 		
 		createHelpMessage("Life Orb", "leftovers", "Choice Band", "eviolite",
 				"https://i.imgur.com/B1NlcYh.gif");

@@ -14,7 +14,7 @@ public class TypeTracker {
 	 * @param type2: two of two types to check defensively. Can be null
 	 * @return An object that wraps all the type interactions
 	 */
-	public static TypeInteractionWrapper onDefense(Type type1, Type type2)
+	public static TypeInteractionWrapper onDefense(TypeData type1, TypeData type2)
 	{	
 		TypeInteractionWrapper result = new TypeInteractionWrapper();
 		Double[] multipliers = {0.0, 0.25, 0.5, 1.0, 2.0, 4.0};
@@ -22,17 +22,17 @@ public class TypeTracker {
 		if(type2 == null)
 		{
 			for(double mult : multipliers)
-				for(int i = 0; i < Type.effectiveness.length - 1; i++)
-					if(Type.effectiveness[i][type1.toIndex()] == mult)
-						result.addInteraction(mult, Type.getByIndex(i));
+				for(int i = 0; i < TypeData.effectiveness.length - 1; i++)
+					if(TypeData.effectiveness[i][type1.toIndex()] == mult)
+						result.addInteraction(mult, TypeData.getByIndex(i));
 			result.addType(type1);
 		}
 		else
 		{
 			for(double mult : multipliers)
-				for(int i = 0; i < Type.effectiveness.length - 1; i++)
-					if(Type.effectiveness[i][type1.toIndex()] * Type.effectiveness[i][type2.toIndex()] == mult)
-						result.addInteraction(mult, Type.getByIndex(i));
+				for(int i = 0; i < TypeData.effectiveness.length - 1; i++)
+					if(TypeData.effectiveness[i][type1.toIndex()] * TypeData.effectiveness[i][type2.toIndex()] == mult)
+						result.addInteraction(mult, TypeData.getByIndex(i));
 			result.addType(type1);
 			result.addType(type2);
 		}
@@ -47,21 +47,21 @@ public class TypeTracker {
 	 * @param typeX: a typing to check for type interaction
 	 * @return The interaction between these four types and all other types
 	 */
-	public static TypeInteractionWrapper onOffense(ArrayList<Type> types)
+	public static TypeInteractionWrapper onOffense(ArrayList<TypeData> types)
 	{
 		TypeInteractionWrapper result = new TypeInteractionWrapper();
-		Set<Type> effective = new HashSet<Type>();
-		Set<Type> neutral = new HashSet<Type>();
-		Set<Type> resist = new HashSet<Type>();
-		Set<Type> immune = new HashSet<Type>();
-		Iterator<Type> iter = types.iterator();
+		Set<TypeData> effective = new HashSet<TypeData>();
+		Set<TypeData> neutral = new HashSet<TypeData>();
+		Set<TypeData> resist = new HashSet<TypeData>();
+		Set<TypeData> immune = new HashSet<TypeData>();
+		Iterator<TypeData> iter = types.iterator();
 		
-		immune.addAll(Arrays.asList(Type.values()));
-		immune.remove(Type.BIRD);	//not a canon Type
+		immune.addAll(Arrays.asList(TypeData.values()));
+		immune.remove(TypeData.BIRD);	//not a canon Type
 		
 		while (iter.hasNext())
 		{
-			Type type = iter.next();
+			TypeData type = iter.next();
 			effective.addAll(getTypesWithOffenseEffectiveness(type, 2.0));
 			neutral.addAll(getTypesWithOffenseEffectiveness(type, 1.0));
 			resist.addAll(getTypesWithOffenseEffectiveness(type, 0.5));
@@ -79,29 +79,29 @@ public class TypeTracker {
 		immune.removeAll(resist);
 		
 		//Populate the wrapper
-		for(Type t : effective)
+		for(TypeData t : effective)
 			result.addInteraction(2.0, t);
-		for(Type t : neutral)
+		for(TypeData t : neutral)
 			result.addInteraction(1.0, t);
-		for(Type t : resist)
+		for(TypeData t : resist)
 			result.addInteraction(0.5, t);
-		for(Type t : immune)
+		for(TypeData t : immune)
 			result.addInteraction(0.0, t);
 		
 		return result;
 	}
 	
-	private static Set<Type> getTypesWithOffenseEffectiveness(Type atk, double mult)
+	private static Set<TypeData> getTypesWithOffenseEffectiveness(TypeData atk, double mult)
 	{
-		Set<Type> types = new HashSet<Type>(Arrays.asList(Type.values()));
-		Type type;
-		types.remove(Type.BIRD);		//not a canon typing
+		Set<TypeData> types = new HashSet<TypeData>(Arrays.asList(TypeData.values()));
+		TypeData type;
+		types.remove(TypeData.BIRD);		//not a canon typing
 		
-		Iterator<Type> iter = types.iterator();
+		Iterator<TypeData> iter = types.iterator();
 		while (iter.hasNext())
 		{
 			type = iter.next();
-			if(Type.effectiveness[atk.toIndex()][type.toIndex()] != mult)
+			if(TypeData.effectiveness[atk.toIndex()][type.toIndex()] != mult)
 				iter.remove();
 		}
 			

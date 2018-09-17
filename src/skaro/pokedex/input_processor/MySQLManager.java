@@ -8,7 +8,6 @@ import java.sql.Statement;
 import java.util.Optional;
 
 import skaro.pokedex.core.Configurator;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 
 public class MySQLManager 
 {
@@ -31,7 +30,7 @@ public class MySQLManager
 			}
 			
 			Class.forName("com.mysql.jdbc.Driver");   
-			con = DriverManager.getConnection("jdbc:mysql://"+dbURI+"/"+dbName+"?autoReconnect=true&useSSL=false", dbUser, dbPassword);
+			con = DriverManager.getConnection("jdbc:mysql://"+dbURI+"/"+dbName+"?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false", dbUser, dbPassword);
 		}
 		catch(Exception e)
 		{  
@@ -63,23 +62,6 @@ public class MySQLManager
 		{ return Optional.empty(); }  
 	}
 	
-	public Optional<String> getFlexForm(String dbForm, ArgumentCategory cat)
-	{
-		switch(cat)
-		{
-			case ABILITY:
-				return getAbilityFlexForm(dbForm);
-			case ITEM:
-				return getItemFlexForm(dbForm);
-			case MOVE:
-				return getMoveFlexForm(dbForm);
-			case POKEMON:
-				return getPokemonFlexForm(dbForm);
-			default:
-				return Optional.empty();
-		}
-	}
-	
 	private Optional<String> getFlexForm(ResultSet resultSet)
 	{
 		try 
@@ -91,9 +73,10 @@ public class MySQLManager
 		{ return Optional.empty(); }
 	}
 	
-	public Optional<String> getPokemonFlexForm(String dbForm)
+	public Optional<String> getPokemonFlexForm(String dbForm, Language lang)
 	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Pokemon WHERE pid = '"+dbForm+"';");
+		String attribute = lang == Language.ENGLISH ? "pid" : lang.getSQLAttribute();
+		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Pokemon WHERE "+attribute+" = '"+dbForm+"';");
 		
 		if(!dataCheck.isPresent())
 			return Optional.empty();

@@ -4,13 +4,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.SpellChecker;
 
 public class MoveArgument extends AbstractArgument {
 
 	@Override
-	public void setUp(String argument) 
+	public void setUp(String argument, Language lang) 
 	{
 		//Utility variables
 		SpellChecker sc = SpellChecker.getInstance();
@@ -22,13 +24,13 @@ public class MoveArgument extends AbstractArgument {
 		
 		//Check if resource is recognized. If it is not recognized, attempt to spell check it.
 		//If it is still not recognized, then return the argument as invalid (default)
-		if(!isMove(this.dbForm))
+		if(!isMove(this.dbForm, lang))
 		{
 			String correction;
-			correction = sc.spellCheckMove(argument);
+			correction = sc.spellCheckMove(argument, lang);
 			
 			this.dbForm = TextFormatter.dbFormat(correction).intern();
-			if(!isMove(this.dbForm))
+			if(!isMove(this.dbForm, lang))
 			{
 				this.valid = false;
 				return;
@@ -42,9 +44,12 @@ public class MoveArgument extends AbstractArgument {
 		this.flexForm = sqlManager.getMoveFlexForm(dbForm).get();
 	}
 
-	private boolean isMove(String s)
+	private boolean isMove(String s, Language lang)
 	{
-		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT mid FROM Move WHERE mid = '"+s+"-m';");
+		String attribute = (lang == Language.ENGLISH ? "mid" : lang.getSQLAttribute());
+		String value = (lang == Language.ENGLISH ? s + "-m" : s);
+		
+		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT "+attribute+" FROM Move WHERE "+attribute+" = '"+value+"';");
 		boolean resourceExists = false;
 		
 		if(resultOptional.isPresent())

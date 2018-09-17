@@ -8,8 +8,9 @@ import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -26,10 +27,10 @@ public class RandpokeCommand extends AbstractCommand
 		commandName = "randpoke".intern();
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
-		aliases.add("rand");
-		aliases.add("randompoke");
-		aliases.add("randompokemon");
-		aliases.add("randpokemon");
+		aliases.put("rand", Language.ENGLISH);
+		aliases.put("randompoke", Language.ENGLISH);
+		aliases.put("randompokemon", Language.ENGLISH);
+		aliases.put("randpokemon", Language.ENGLISH);
 		
 		extraMessages.add("See the shiny with the %shiny command! (Patrons only)");
 		this.createHelpMessage("https://i.imgur.com/cOEo8jW.gif");

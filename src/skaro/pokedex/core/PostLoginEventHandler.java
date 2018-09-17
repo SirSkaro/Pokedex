@@ -47,6 +47,7 @@ public class PostLoginEventHandler
 		catch(Exception e) 
 		{ 
 			System.out.println("[DiscordEventHandler] text event error: "+e.getClass().getName());
+			e.printStackTrace();
 			event.getChannel().sendMessage("Some error occured and I could not recover. Please report this in the support server: https://discord.gg/D5CfFkN");
 		}
     }

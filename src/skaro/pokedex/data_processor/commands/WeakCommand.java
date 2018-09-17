@@ -8,12 +8,12 @@ import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TextFormatter;
-import skaro.pokedex.data_processor.Type;
+import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
-import skaro.pokedex.input_processor.arguments.AbstractArgument;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -77,7 +77,7 @@ public class WeakCommand extends AbstractCommand
 			return reply;
 		
 		//Declare utility variables
-		Type type1 = null, type2 = null;
+		TypeData type1 = null, type2 = null;
 		Pokemon pokemon = null;
 		StringBuilder header = new StringBuilder();
 		Optional<String> model = Optional.empty();
@@ -93,9 +93,9 @@ public class WeakCommand extends AbstractCommand
 				pokemon = Pokemon.class.cast(flexObj);
 				model = Optional.ofNullable(pokemon.getSprites().getFrontDefault());
 				List<skaro.pokeflex.objects.pokemon.Type> types = pokemon.getTypes();
-				type1 = Type.getByName(types.get(0).getType().getName());
+				type1 = TypeData.getByName(types.get(0).getType().getName());
 				if(types.size() > 1)
-					type2 = Type.getByName(types.get(1).getType().getName());
+					type2 = TypeData.getByName(types.get(1).getType().getName());
 			} 
 			catch(Exception e)
 			{ 
@@ -106,9 +106,9 @@ public class WeakCommand extends AbstractCommand
 		}
 		else //argument is a list of Types
 		{
-			type1 = Type.getByName(input.getArg(0).getDbForm());
+			type1 = TypeData.getByName(input.getArg(0).getDbForm());
 			if(input.getArgs().size() > 1)
-				type2 = Type.getByName(input.getArg(1).getDbForm());
+				type2 = TypeData.getByName(input.getArg(1).getDbForm());
 		}
 		
 		if(pokemon != null)
@@ -129,7 +129,7 @@ public class WeakCommand extends AbstractCommand
 		return reply;
 	}
 	
-	private EmbedObject formatEmbed(Type type1, Type type2, Optional<Pokemon> pokemon, Optional<String> model)
+	private EmbedObject formatEmbed(TypeData type1, TypeData type2, Optional<Pokemon> pokemon, Optional<String> model)
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 		TypeInteractionWrapper wrapper = TypeTracker.onDefense(type1, type2);

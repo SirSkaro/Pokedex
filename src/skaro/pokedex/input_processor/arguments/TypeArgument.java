@@ -3,7 +3,9 @@ package skaro.pokedex.input_processor.arguments;
 import java.util.ArrayList;
 import java.util.List;
 
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.SpellChecker;
 
 public class TypeArgument extends AbstractArgument 
@@ -26,7 +28,7 @@ public class TypeArgument extends AbstractArgument
 		
 	}
 
-	public void setUp(String argument) 
+	public void setUp(String argument, Language lang) 
 	{
 		//Utility variables
 		SpellChecker sc = SpellChecker.getInstance();
@@ -41,7 +43,7 @@ public class TypeArgument extends AbstractArgument
 		if(!isType(this.dbForm))
 		{
 			String correction;
-			correction = sc.spellCheckType(argument);
+			correction = sc.spellCheckType(argument, lang);
 			
 			if(!isType(correction))
 			{

@@ -4,119 +4,122 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
+
 public enum ArgumentCategory 
 {
-	NONE{public List<AbstractArgument> parse(Iterator<String> itr)
+	NONE{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		NoneArgument argument = new NoneArgument();
 		
-		argument.setUp(null);
+		argument.setUp(null, null);
 		resultList.add(argument);
 		
 		return resultList;
 	}},
 	
-	ANY{public List<AbstractArgument> parse(Iterator<String> itr)
+	ANY{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		AnyArgument argument = new AnyArgument();
 		
-		argument.setUp(itr.next());
+		argument.setUp(itr.next(), lang);
 		resultList.add(argument);
 		
 		return resultList;
 	}},
 	
-	POKEMON{public List<AbstractArgument> parse(Iterator<String> itr)
+	POKEMON{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		PokemonArgument argument = new PokemonArgument();
 		
-		argument.setUp(itr.next());
+		argument.setUp(itr.next(), lang);
 		resultList.add(argument);
 		
 		return resultList;
 	}},	
 	
-	ITEM{public List<AbstractArgument> parse(Iterator<String> itr)
+	ITEM{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		ItemArgument argument = new ItemArgument();
 		
-		argument.setUp(itr.next());
+		argument.setUp(itr.next(), lang);
 		resultList.add(argument);
 		
 		return resultList;
 	}},	
 	
-	TYPE{public List<AbstractArgument> parse(Iterator<String> itr)
+	TYPE{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		TypeArgument argument = new TypeArgument();
 		
-		argument.setUp(itr.next());
+		argument.setUp(itr.next(), lang);
 		resultList.add(argument);
 		
 		return resultList;
 	}},	
 	
-	MOVE{public List<AbstractArgument> parse(Iterator<String> itr)
+	MOVE{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		MoveArgument argument = new MoveArgument();
 		
-		argument.setUp(itr.next());
+		argument.setUp(itr.next(),lang);
 		resultList.add(argument);
 		
 		return resultList;
 	}},	
 	
-	META{public List<AbstractArgument> parse(Iterator<String> itr)
+	META{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		MetaArgument argument = new MetaArgument();
 		
-		argument.setUp(itr.next());
+		argument.setUp(itr.next(), lang);
 		resultList.add(argument);
 		
 		return resultList;
 	}},	
 	
-	ABILITY{public List<AbstractArgument> parse(Iterator<String> itr)
+	ABILITY{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		AbilityArgument argument = new AbilityArgument();
 		
-		argument.setUp(itr.next());
+		argument.setUp(itr.next(), lang);
 		resultList.add(argument);
 		
 		return resultList;
 	}},
 	
-	VERSION{public List<AbstractArgument> parse(Iterator<String> itr)
+	VERSION{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		VersionArgument argument = new VersionArgument();
 		
-		argument.setUp(itr.next());
+		argument.setUp(itr.next(), lang);
 		resultList.add(argument);
 		
 		return resultList;
 	}},
 	
-	GEN{public List<AbstractArgument> parse(Iterator<String> itr)
+	GEN{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		GenArgument argument = new GenArgument();
 		
-		argument.setUp(itr.next());
+		argument.setUp(itr.next(), lang);
 		resultList.add(argument);
 		
 		return resultList;
 	}},
 	
-	ANY_NONE{public List<AbstractArgument> parse(Iterator<String> itr)
+	ANY_NONE{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		AbstractArgument argument;
@@ -124,19 +127,19 @@ public enum ArgumentCategory
 		if(!itr.hasNext())
 		{
 			argument = new NoneArgument();
-			argument.setUp(null);
+			argument.setUp(null, null);
 		}
 		else
 		{
 			argument = new AnyArgument();
-			argument.setUp(itr.next());
+			argument.setUp(itr.next(), lang);
 		}
 		
 		resultList.add(argument);
 		return resultList;
 	}},	
 	
-	POKE_ABIL{public List<AbstractArgument> parse(Iterator<String> itr)
+	POKE_ABIL{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		String argToParse = itr.next();
@@ -144,14 +147,14 @@ public enum ArgumentCategory
 		
 		pokemonArgument = new PokemonArgument();
 		abilityArgument = new AbilityArgument();
-		pokemonArgument.setUp(argToParse);
-		abilityArgument.setUp(argToParse);
+		pokemonArgument.setUp(argToParse, lang);
+		abilityArgument.setUp(argToParse, lang);
 		
 		resultList.add(chooseBestArgument(pokemonArgument, abilityArgument));
 		return resultList;
 	}},	
 	
-	POKE_TYPE{public List<AbstractArgument> parse(Iterator<String> itr)
+	POKE_TYPE{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		String argToParse = itr.next();
@@ -159,14 +162,14 @@ public enum ArgumentCategory
 		
 		pokemonArgument = new PokemonArgument();
 		typeArgument = new TypeArgument();
-		pokemonArgument.setUp(argToParse);
-		typeArgument.setUp(argToParse);
+		pokemonArgument.setUp(argToParse, lang);
+		typeArgument.setUp(argToParse, lang);
 		
 		resultList.add(chooseBestArgument(pokemonArgument, typeArgument));
 		return resultList;
 	}},	
 	
-	MOVE_TYPE{public List<AbstractArgument> parse(Iterator<String> itr)
+	MOVE_TYPE{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		String argToParse = itr.next();
@@ -174,54 +177,54 @@ public enum ArgumentCategory
 		
 		moveArgument = new MoveArgument();
 		typeArgument = new TypeArgument();
-		moveArgument.setUp(argToParse);
-		typeArgument.setUp(argToParse);
+		moveArgument.setUp(argToParse, lang);
+		typeArgument.setUp(argToParse, lang);
 		
 		resultList.add(chooseBestArgument(moveArgument, typeArgument));
 		return resultList;
 	}},	
 	
-	TYPE_LIST{public List<AbstractArgument> parse(Iterator<String> itr)
+	TYPE_LIST{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		
 		while(itr.hasNext())
-			resultList.addAll(TYPE.parse(itr));
+			resultList.addAll(TYPE.parse(itr, lang));
 		
 		return resultList;
 	}},	
 	
-	MOVE_LIST{public List<AbstractArgument> parse(Iterator<String> itr)
+	MOVE_LIST{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		
 		while(itr.hasNext())
-			resultList.addAll(MOVE.parse(itr));
+			resultList.addAll(MOVE.parse(itr, lang));
 		
 		return resultList;
 	}},	
 	
-	POKE_TYPE_LIST{public List<AbstractArgument> parse(Iterator<String> itr)
+	POKE_TYPE_LIST{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		
 		while(itr.hasNext())
-			resultList.addAll(POKE_TYPE.parse(itr));
+			resultList.addAll(POKE_TYPE.parse(itr, lang));
 		
 		return resultList;
 	}},	
 	
-	MOVE_TYPE_LIST{public List<AbstractArgument> parse(Iterator<String> itr)
+	MOVE_TYPE_LIST{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
 		
 		while(itr.hasNext())
-			resultList.addAll(MOVE_TYPE.parse(itr));
+			resultList.addAll(MOVE_TYPE.parse(itr, lang));
 		
 		return resultList;
 	}};
 	
-	public abstract List<AbstractArgument> parse(Iterator<String> itr);
+	public abstract List<AbstractArgument> parse(Iterator<String> itr, Language lang);
 	
 	private static AbstractArgument chooseBestArgument(AbstractArgument arg1, AbstractArgument arg2)
 	{

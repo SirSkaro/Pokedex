@@ -9,9 +9,10 @@ import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TTSConverter;
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
-import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -35,8 +36,8 @@ public class DexCommand extends AbstractCommand
 		expectedArgRange = new ArgumentRange(2,2);
 		tts = new TTSConverter();
 		
-		aliases.add("pokedex");
-		aliases.add("entry");
+		aliases.put("pokedex", Language.ENGLISH);
+		aliases.put("entry", Language.ENGLISH);
 		
 		createHelpMessage("Mew, Red", "kadabra, fire red", "Phantump, y", "Darumaka, white",
 				"https://i.imgur.com/AvJMBpR.gif");

@@ -3,7 +3,7 @@ package skaro.pokedex.data_processor;
 import java.awt.Color;
 import java.util.HashMap;
 
-public enum Type 
+public enum TypeData 
 {	 		
 	NORMAL("Normal", 0, 0xA8A77A),
 	FIGHTING("Fighting", 1, 0xC22E28),
@@ -29,7 +29,7 @@ public enum Type
 	private final String properName;
 	private final int index;
 	private final Color color;
-	private final static HashMap<Integer, Type> indexMap = new HashMap<Integer, Type>();
+	private final static HashMap<Integer, TypeData> indexMap = new HashMap<Integer, TypeData>();
 	public static double[][] effectiveness = new double[/*attacker*/][/*defender*/]{
 	  //  			   0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17	 18
 	  /*0Normal*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
@@ -55,12 +55,12 @@ public enum Type
 	
 	static
 	{
-		for(Type type : Type.values())
+		for(TypeData type : TypeData.values())
 			indexMap.put(type.index, type);
 	}
 	
 	//Constructors
-    private Type(final String text, int index, int color) 
+    private TypeData(final String text, int index, int color) 
     { 
     	this.properName = text;
     	this.index = index;
@@ -71,13 +71,13 @@ public enum Type
     public int toIndex() { return this.index; }
     public Color toColor() { return this.color; }
     
-    public static Type getByName(String type)
+    public static TypeData getByName(String type)
     {
     	type = type.toUpperCase();
-    	return Type.valueOf(type); 
+    	return TypeData.valueOf(type); 
     }
     
-    public static Type getByIndex(int index)
+    public static TypeData getByIndex(int index)
     { 
     	return indexMap.get(index); 
     }
