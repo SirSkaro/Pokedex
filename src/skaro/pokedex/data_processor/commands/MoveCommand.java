@@ -1,17 +1,22 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.jetty.util.MultiMap;
+
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.data_processor.formatters.MoveResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.PokeFlexRequest;
+import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.move.Move;
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
@@ -23,9 +28,20 @@ public class MoveCommand extends AbstractCommand
 		commandName = "move".intern();
 		argCats.add(ArgumentCategory.MOVE);
 		expectedArgRange = new ArgumentRange(1,1);
+		formatter = new MoveResponseFormatter();
+		
 		aliases.put("mv", Language.ENGLISH);
 		aliases.put("moves", Language.ENGLISH);
 		aliases.put("attack", Language.ENGLISH);
+		aliases.put("attacke", Language.GERMAN);
+		aliases.put("movimiento", Language.SPANISH);
+		aliases.put("capacite", Language.FRENCH);
+		aliases.put("capacité", Language.FRENCH);
+		aliases.put("attaque", Language.FRENCH);
+		aliases.put("mossa", Language.ITALIAN);
+		aliases.put("waza", Language.JAPANESE_HIR_KAT);
+		aliases.put("zhāoshì", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("gisul", Language.KOREAN);
 		
 		createHelpMessage("Ember", "dragon ascent", "aeroblast", "Blast Burn",
 				"https://i.imgur.com/B3VtWyg.gif");
@@ -56,68 +72,45 @@ public class MoveCommand extends AbstractCommand
 	}
 	
 	public Response discordReply(Input input, IUser requester)
-	{ 
-		Response reply = new Response();
-		
-		//Check if input is valid
-		if(!inputIsValid(reply, input))
-			return reply;
-		
-		try 
-		{
-			//Obtain data
-			Object flexObj = factory.createFlexObject(Endpoint.MOVE, input.argsAsList());
-			Move move = Move.class.cast(flexObj);
-			
-			//Format reply
-			reply.addToReply(("**__"+TextFormatter.flexFormToProper(move.getName())+"__**").intern());
-			reply.setEmbededReply(formatEmbed(move));
-		} 
-		catch (Exception e) { this.addErrorMessage(reply, input, "1006", e); }
-		
-		return reply;
-	}
-	
-	private EmbedObject formatEmbed(Move move)
 	{
-		EmbedBuilder builder = new EmbedBuilder();	
-		builder.setLenient(true);
+		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
+		List<Object> flexData = new ArrayList<Object>();
+		MultiMap<Object> dataMap = new MultiMap<Object>();
+		EmbedBuilder builder = new EmbedBuilder();
 		
-		if(move.getPower() != 0)
-			builder.appendField("Base Power", Integer.toString(move.getPower()), true);
-		if(move.getZPower() != 0)
-			builder.appendField("Z-Base Power", Integer.toString(move.getZPower()), true);
-		if(move.getCrystal() != null)
-			builder.appendField("Z-Crystal", move.getCrystal().toString(), true);
-		builder.appendField("Accuracy", (move.getAccuracy() != 0 ? Integer.toString(move.getAccuracy()) : "-"), true);
-		builder.appendField("Category", TextFormatter.flexFormToProper(move.getDamageClass().getName()), true);
-		builder.appendField("Type", TextFormatter.flexFormToProper(move.getType().getName()), true);
-		builder.appendField("Base PP", Integer.toString(move.getPp()), true);
-		builder.appendField("Max PP", Integer.toString(move.getMaxPp()), true);
-		if(move.getZBoost() != null)
-			builder.appendField("Z-Boosts", move.getZBoost().toString(), true);
-		if(move.getZEffect() != null)
-			builder.appendField("Z-Effect", move.getZEffect().toString(), true);
-		builder.appendField("Priority", Integer.toString(move.getPriority()), true);
-		builder.appendField("Target", TextFormatter.flexFormToProper(move.getTarget().getName()), true);
-		if(move.getContestType() != null)
-			builder.appendField("Contest Category", TextFormatter.flexFormToProper(move.getContestType().getName()), true);
-		builder.appendField("Game Description", move.getSdesc(), false);
-		builder.appendField("Technical Description", move.getLdesc(), false);
-		
-		if(move.getFlags() != null)
+		try
 		{
-			StringBuilder flagBuilder = new StringBuilder();
-			for(String flag : move.getFlags())
-				flagBuilder.append(flag + " ");
+			//Initial data - Move object
+			Move move = (Move)factory.createFlexObject(Endpoint.MOVE, input.argsAsList());
+			dataMap.put(Move.class.getName(), move);
 			
-			builder.appendField("Other Properties", flagBuilder.toString(), false);
+			//Type
+			concurrentRequestList.add(new RequestURL(move.getType().getUrl(), Endpoint.TYPE));
+			
+			//Target
+			concurrentRequestList.add(new RequestURL(move.getTarget().getUrl(), Endpoint.MOVE_TARGET));
+			
+			//Contest
+			concurrentRequestList.add(new RequestURL(move.getContestType().getUrl(), Endpoint.CONTEST_TYPE));
+			
+			//Damage Class (Category)
+			concurrentRequestList.add(new RequestURL(move.getDamageClass().getUrl(), Endpoint.MOVE_DAMAGE_CLASS));
+			
+			//Make PokeFlex request
+			flexData = factory.createFlexObjects(concurrentRequestList);
+			
+			//Add all data to the map
+			for(Object obj : flexData)
+				dataMap.add(obj.getClass().getName(), obj);
+			
+			return formatter.format(input, dataMap, builder);
 		}
-		
-		//Set embed color
-		builder.withColor(ColorTracker.getColorForType(move.getType().getName()));
-		this.addRandomExtraMessage(builder);
-		
-		return builder.build();
+		catch(Exception e)
+		{
+			Response response = new Response();
+			response.addToReply("Get back in there and figure out what you did wrong!");
+			e.printStackTrace();
+			return response;
+		}
 	}
 }

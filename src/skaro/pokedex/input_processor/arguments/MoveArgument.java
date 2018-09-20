@@ -41,15 +41,14 @@ public class MoveArgument extends AbstractArgument {
 		}
 		
 		this.valid = true;
-		this.flexForm = sqlManager.getMoveFlexForm(dbForm).get();
+		this.flexForm = sqlManager.getMoveFlexForm(dbForm, lang).get();
 	}
 
 	private boolean isMove(String s, Language lang)
 	{
-		String attribute = (lang == Language.ENGLISH ? "mid" : lang.getSQLAttribute());
-		String value = (lang == Language.ENGLISH ? s + "-m" : s);
+		String attribute = lang.getSQLAttribute();
 		
-		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT "+attribute+" FROM Move WHERE "+attribute+" = '"+value+"';");
+		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT "+attribute+" FROM Move WHERE "+attribute+" = '"+s+"';");
 		boolean resourceExists = false;
 		
 		if(resultOptional.isPresent())

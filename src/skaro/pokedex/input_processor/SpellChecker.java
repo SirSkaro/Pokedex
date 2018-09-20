@@ -202,39 +202,7 @@ public class SpellChecker
 	
 	public String spellCheckVersion(String ver, Language lang)
 	{
-		StringBuilder version = new StringBuilder(ver.toLowerCase());
-		int index;
-		
-		//Check for abbreviations
-		if((index = version.indexOf("1")) != -1)
-			version.replace(index, index + 1, "");
-			//version.replace("1", "");
-		else if((index = version.indexOf("one")) != -1)
-			version.replace(index, index + 3, "");
-			//ver.replace("one", "");
-		else if((index = version.indexOf("two")) != -1)
-			version.replace(index, index + 3, "2");
-			//ver.replace("two", "2");
-		else if((index = version.indexOf("as")) != -1)
-			version.replace(index, index + 2, "alpha sapphire");
-			//ver.replace("as", "alpha sapphire");
-		else if((index = version.indexOf("or")) != -1)
-			version.replace(index, index + 2, "omega ruby");
-			//ver.replace("or", "omega ruby");
-		else if((index = version.indexOf("ss")) != -1)
-			version.replace(index, index + 2, "soul silver");
-			//ver.replace("ss", "soul silver");
-		else if((index = version.indexOf("hg")) != -1)
-			version.replace(index, index + 2, "heart gold");
-			//ver.replace("hg", "heart gold");
-		else if((index = version.indexOf("fr")) != -1)
-			version.replace(index, index + 2, "fire red");
-			//ver.replace("fr", "fire red");
-		else if((index = version.indexOf("lg")) != -1)
-			version.replace(index, index + 2, "leaf green");
-			//ver.replace("lg", "leaf green");
-		
-		String[] temp = version.toString().split(" ");
+		String[] temp = ver.split(" ");
 		StringBuilder output = new StringBuilder();
 		for(int i = 0; i < temp.length; i++)
 			output.append(getBestSuggestion(versionDict.get(lang), temp[i]) + " ");

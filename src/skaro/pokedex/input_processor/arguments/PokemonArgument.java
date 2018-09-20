@@ -50,7 +50,7 @@ public class PokemonArgument extends AbstractArgument
 	
 	private boolean isPokemon(String s, Language lang)
 	{
-		String attribute = lang == Language.ENGLISH ? "pid" : lang.getSQLAttribute();
+		String attribute = lang.getSQLAttribute();
 		
 		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT "+attribute+" FROM Pokemon WHERE "+attribute+" = '"+s+"';");
 		boolean resourceExists = false;

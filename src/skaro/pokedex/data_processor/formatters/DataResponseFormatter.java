@@ -28,10 +28,6 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class DataResponseFormatter implements IDiscordFormatter 
 {
-	public DataResponseFormatter()
-	{
-	}
-	
 	@Override
 	public Response invalidInputResponse(Input input)
 	{
@@ -57,9 +53,9 @@ public class DataResponseFormatter implements IDiscordFormatter
 	{
 		Response response = new Response();
 		Language lang = input.getLanguage();
-		Pokemon pokemon = (Pokemon) (data.get(Pokemon.class.getName()).get(0));
-		PokemonSpecies species = (PokemonSpecies)data.get(PokemonSpecies.class.getName()).get(0);
-		EvolutionChain evoChain = (EvolutionChain)data.get(EvolutionChain.class.getName()).get(0);
+		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
+		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
+		EvolutionChain evoChain = (EvolutionChain)data.getValue(EvolutionChain.class.getName(), 0);
 		builder.setLenient(true);
 		
 		//Header
@@ -74,7 +70,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 		builder.appendField(DataField.ABILITIES.getFieldTitle(lang), formatAbilities(data.get(Ability.class.getName()), lang), true);
 		builder.appendField(DataField.HIGHT_WEIGHT.getFieldTitle(lang), formatHeightWeight(pokemon), true);
 		builder.appendField(DataField.EV_YIELD.getFieldTitle(lang), formatEvYield(pokemon, lang), true);
-		builder.appendField(DataField.GROWTH_CATCH.getFieldTitle(lang), formatGrowthAndCatchRates((GrowthRate)data.get(GrowthRate.class.getName()).get(0), species.getCaptureRate(), lang), true);
+		builder.appendField(DataField.GROWTH_CATCH.getFieldTitle(lang), formatGrowthAndCatchRates((GrowthRate)data.getValue(GrowthRate.class.getName(), 0), species.getCaptureRate(), lang), true);
 		builder.appendField(DataField.GENDER.getFieldTitle(lang), formatGenderRatio(species), true);
 		builder.appendField(DataField.EGG_GROUP.getFieldTitle(lang), formatEggGroups(data.get(EggGroup.class.getName()),lang), true);
 		builder.appendField(DataField.HATCH_TIME.getFieldTitle(lang), calcHatchTime(species, lang), true);

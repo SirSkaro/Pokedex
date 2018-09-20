@@ -75,8 +75,7 @@ public class MySQLManager
 	
 	public Optional<String> getPokemonFlexForm(String dbForm, Language lang)
 	{
-		String attribute = lang == Language.ENGLISH ? "pid" : lang.getSQLAttribute();
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Pokemon WHERE "+attribute+" = '"+dbForm+"';");
+		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Pokemon WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
 		
 		if(!dataCheck.isPresent())
 			return Optional.empty();
@@ -92,9 +91,9 @@ public class MySQLManager
 		return getFlexForm(dataCheck.get());
 	}
 	
-	public Optional<String> getMoveFlexForm(String dbForm)
+	public Optional<String> getMoveFlexForm(String dbForm, Language lang)
 	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Move WHERE mid = '"+dbForm+"-m';");
+		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Move WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
 		
 		if(!dataCheck.isPresent())
 			return Optional.empty();
