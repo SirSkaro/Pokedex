@@ -50,29 +50,11 @@ public class MoveCommand extends AbstractCommand
 	public boolean makesWebRequest() { return true; }
 	public String getArguments() { return "<move>"; }
 	
-	public boolean inputIsValid(Response reply, Input input)
-	{
-		if(!input.isValid())
-		{
-			switch(input.getError())
-			{
-				case ARGUMENT_NUMBER:
-					reply.addToReply("You must specify exactly one Move as input for this command.".intern());
-				break;
-				case INVALID_ARGUMENT:
-					reply.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Move");
-				break;
-				default:
-					reply.addToReply("A technical error occured (code 106)");
-			}
-			return false;
-		}
-		
-		return true;
-	}
-	
 	public Response discordReply(Input input, IUser requester)
 	{
+		if(!input.isValid())
+			return formatter.invalidInputResponse(input);
+		
 		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
 		List<Object> flexData = new ArrayList<Object>();
 		MultiMap<Object> dataMap = new MultiMap<Object>();

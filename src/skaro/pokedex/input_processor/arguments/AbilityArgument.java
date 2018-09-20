@@ -45,15 +45,14 @@ public class AbilityArgument extends AbstractArgument
 		}
 		
 		this.valid = true;
-		this.flexForm = sqlManager.getAbilityFlexForm(dbForm).get();
+		this.flexForm = sqlManager.getAbilityFlexForm(dbForm, lang).get();
 	}
 
 	private boolean isAbility(String s, Language lang)
 	{
-		String attribute = (lang == Language.ENGLISH ? "aid" : lang.getSQLAttribute());
-		String value = (lang == Language.ENGLISH ? s + "-a" : s);
+		String attribute = lang.getSQLAttribute();
 		
-		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT "+attribute+" FROM Ability WHERE "+attribute+" = '"+value+"';");
+		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT "+attribute+" FROM Ability WHERE "+attribute+" = '"+s+"';");
 		boolean resourceExists = false;
 		
 		if(resultOptional.isPresent())

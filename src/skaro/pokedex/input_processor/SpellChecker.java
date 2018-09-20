@@ -159,7 +159,7 @@ public class SpellChecker
 		String[] temp = abil.split(" ");
 		StringBuilder output = new StringBuilder();
 		for(int i = 0; i < temp.length; i++)
-		output.append(getBestSuggestion(abilityDict.get(lang), temp[i]) + " ");
+			output.append(getBestSuggestion(abilityDict.get(lang), temp[i]) + " ");
 		
 		return output.toString().trim();
 	}

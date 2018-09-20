@@ -104,7 +104,7 @@ public class MoveResponseFormatter implements IDiscordFormatter
 		Optional<String> desc = move.getFlavorTextEntry(lang.getFlexKey(), "sun-moon");
 		
 		if(desc.isPresent())
-			return desc.get().replaceAll("\\n", "");
+			return desc.get().replaceAll("\\n", " ");
 		
 		return null;
 	}

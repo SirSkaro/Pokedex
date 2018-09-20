@@ -60,29 +60,12 @@ public class DataCommand extends AbstractCommand
 	public boolean makesWebRequest() { return true; }
 	public String getArguments(){ return "<pokemon>"; }
 	
-	public boolean inputIsValid(Response reply, Input input) 
-	{
-		if(!input.isValid())
-		{
-			switch(input.getError())
-			{
-				case ARGUMENT_NUMBER:
-					reply.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
-				break;
-				case INVALID_ARGUMENT:
-					reply.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Pokemon.");
-				break;
-				default:
-					reply.addToReply("A technical error occured (code 102)");
-			}
-			return false;
-		}
-		return true;
-	}
-	
 	@SuppressWarnings("unchecked")
 	public Response discordReply(Input input, IUser requester)
 	{
+		if(!input.isValid())
+			return formatter.invalidInputResponse(input);
+		
 		Request request;
 		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
 		List<Object> flexData = new ArrayList<Object>();

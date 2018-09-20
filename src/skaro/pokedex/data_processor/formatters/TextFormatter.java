@@ -4,6 +4,7 @@ import java.util.TreeMap;
 
 //import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import skaro.pokedex.input_processor.Language;
 
@@ -156,6 +157,9 @@ public class TextFormatter
 			s = s.replace("\"", "");
 		if(s.contains("'"))
 			s = s.replace("'", "");
+		
+		//Remove accents
+		s = StringUtils.stripAccents(s);
 		
 		return s.intern();
 	}
