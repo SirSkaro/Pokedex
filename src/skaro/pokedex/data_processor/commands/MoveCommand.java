@@ -73,7 +73,8 @@ public class MoveCommand extends AbstractCommand
 			concurrentRequestList.add(new RequestURL(move.getTarget().getUrl(), Endpoint.MOVE_TARGET));
 			
 			//Contest
-			concurrentRequestList.add(new RequestURL(move.getContestType().getUrl(), Endpoint.CONTEST_TYPE));
+			if(move.getContestType() != null)
+				concurrentRequestList.add(new RequestURL(move.getContestType().getUrl(), Endpoint.CONTEST_TYPE));
 			
 			//Damage Class (Category)
 			concurrentRequestList.add(new RequestURL(move.getDamageClass().getUrl(), Endpoint.MOVE_DAMAGE_CLASS));
@@ -85,12 +86,13 @@ public class MoveCommand extends AbstractCommand
 			for(Object obj : flexData)
 				dataMap.add(obj.getClass().getName(), obj);
 			
+			this.addRandomExtraMessage(builder);
 			return formatter.format(input, dataMap, builder);
 		}
 		catch(Exception e)
 		{
-			Response response = new Response();
-			response.addToReply("Get back in there and figure out what you did wrong!");
+			Response response = new Response();;
+			this.addErrorMessage(response, input, "1006", e); 
 			e.printStackTrace();
 			return response;
 		}

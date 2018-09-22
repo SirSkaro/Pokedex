@@ -2,16 +2,13 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TTSConverter;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.data_processor.formatters.DexResponseFormatter;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -22,16 +19,12 @@ import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.pokemon.Pokemon;
-import skaro.pokeflex.objects.pokemon_species.FlavorTextEntry;
-import skaro.pokeflex.objects.pokemon_species.Genera;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class DexCommand extends AbstractCommand
 {
-	private TTSConverter tts;
-	
 	public DexCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
 		super(pff, pc);
@@ -39,13 +32,23 @@ public class DexCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.VERSION);
 		expectedArgRange = new ArgumentRange(2,2);
-		tts = new TTSConverter();
+		formatter = new DexResponseFormatter();
 		
 		aliases.put("pokedex", Language.ENGLISH);
 		aliases.put("entry", Language.ENGLISH);
+//		aliases.put("giib", Language.KOREAN);
+//		aliases.put("entrada", Language.SPANISH);
+//		aliases.put("iscrizione", Language.ITALIAN);
+//		aliases.put("eintrag", Language.GERMAN);
+//		aliases.put("entrée", Language.FRENCH);
+//		aliases.put("tiáomù", Language.CHINESE_SIMPMLIFIED);
+//		aliases.put("entori", Language.JAPANESE_HIR_KAT);
+		
+		extraMessages.add("Connect to a voice channel to hear entries spoken! (English only)");
 		
 		createHelpMessage("Mew, Red", "kadabra, fire red", "Phantump, y", "Darumaka, white",
 				"https://i.imgur.com/AvJMBpR.gif");
+		
 	}
 	
 	public boolean makesWebRequest() { return true; }
@@ -76,7 +79,7 @@ public class DexCommand extends AbstractCommand
 		return true;
 	}
 	
-	public Response discordReply2(Input input, IUser requester)
+	public Response discordReply(Input input, IUser requester)
 	{
 		if(!input.isValid())
 			return formatter.invalidInputResponse(input);
@@ -116,6 +119,7 @@ public class DexCommand extends AbstractCommand
 			
 			//Add adopter
 			this.addAdopter(pokemon, builder);
+			this.addRandomExtraMessage(builder);
 			
 			return formatter.format(input, dataMap, builder);
 		}
@@ -126,87 +130,5 @@ public class DexCommand extends AbstractCommand
 			e.printStackTrace();
 			return response;
 		}
-	}
-	
-	public Response discordReply(Input input, IUser requester)
-	{ 
-		Response reply = new Response();
-		
-		//Check if input is valid
-		if(!inputIsValid(reply, input))
-			return reply;
-		
-		//Obtain data
-		Pokemon pokemon = null;
-		PokemonSpecies speciesData = null;
-		try 
-		{
-			List<String> urlParams = new ArrayList<String>();
-			urlParams.add(input.getArg(0).getFlexForm());//Pokemon name
-			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, urlParams);
-			pokemon = Pokemon.class.cast(flexObj);
-			
-			urlParams.clear();
-			urlParams.add(pokemon.getSpecies().getName());
-			flexObj = factory.createFlexObject(Endpoint.POKEMON_SPECIES, urlParams);
-			speciesData = PokemonSpecies.class.cast(flexObj);
-		} 
-		catch(Exception e) { this.addErrorMessage(reply, input, "1010", e); }
-		
-		//Check if the Pokemon has a Pokedex entry that meets the user criteria
-		Optional<FlavorTextEntry> entry = getEntry(speciesData, input.getArg(1).getDbForm());
-		
-		if(!entry.isPresent())
-		{
-			reply.addToReply(TextFormatter.flexFormToProper(speciesData.getName())+" does not have a Pokedex entry in "
-							+TextFormatter.flexFormToProper(input.getArg(1).getRawInput()) + " version");
-			return reply;
-		}
-		
-		//Format reply
-		EmbedBuilder builder = new EmbedBuilder();
-		builder.setLenient(true);
-		String replyContent = TextFormatter.flexFormToProper(speciesData.getName())+", the "+ getGenera(speciesData)+": "
-				+ TextFormatter.formatDexEntry(entry.get().getFlavorText());
-		
-		reply.addToReply("Pokedex entry for **"+TextFormatter.flexFormToProper(speciesData.getName())+"** from **" 
-				+TextFormatter.flexFormToProper(entry.get().getVersion().getName())+"**:");
-		
-		builder.withDescription(replyContent);
-		builder.withColor(ColorTracker.getColorForVersion(input.getArg(1).getDbForm()));
-		
-		//Add thumbnail
-		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
-		
-		//Add adopter
-		this.addAdopter(pokemon, builder);
-		
-		reply.setEmbededReply(builder.build());
-		
-		//Add audio reply
-		reply.setPlayBack(tts.convertToAudio(replyContent));
-		
-		this.addRandomExtraMessage(builder);
-		
-		return reply;
-	}
-	
-	private Optional<FlavorTextEntry> getEntry(PokemonSpecies speciesData, String version)
-	{
-		for(FlavorTextEntry entry : speciesData.getFlavorTextEntries())
-			if(TextFormatter.flexToDBForm(entry.getVersion().getName()).equals(version) 
-					&& entry.getLanguage().getName().equals("en"))
-				return Optional.of(entry);
-		
-		return Optional.empty();
-	}
-	
-	private String getGenera(PokemonSpecies speciesData)
-	{
-		for(Genera genera : speciesData.getGenera())
-			if(genera.getLanguage().getName().equals("en"))
-				return genera.getGenus();
-		
-		throw new IllegalStateException("No genera could be found!");
 	}
 }

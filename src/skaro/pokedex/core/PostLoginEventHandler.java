@@ -132,11 +132,7 @@ public class PostLoginEventHandler
     	//Send the audio to the voice channel a user is in. If they are not in a voice channel,
     	//then tell user to join an accessible voice channel
     	if(userMsg.getAuthor().getVoiceStateForGuild(userMsg.getGuild()).getChannel() == null)
-    	{
-    		sendMessage(discordClient, userMsg.getChannel().getLongID(), userMsg.getAuthor().getName() +
-    				", connect to a voice channel to listen to this Pokedex entry!");
     		return false;
-    	}
     	
     	//If dex is already in a voice channel in the guild where the request is from, drop this request
     	List<IVoiceChannel> guildChannels = userMsg.getGuild().getVoiceChannels();
@@ -145,7 +141,7 @@ public class PostLoginEventHandler
         	{
         		sendMessage(discordClient, userMsg.getChannel().getLongID(), userMsg.getAuthor().mention() +
         				", I am currently speaking a dex entry in this server."
-        				+ " If you want to hear your entry spoken then please try again.");
+        				+ " If you want to hear your entry spoken then please wait and try again.");
         		return false;
         	}
     	

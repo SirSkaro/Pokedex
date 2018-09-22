@@ -39,7 +39,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 				response.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
 			break;
 			case INVALID_ARGUMENT:
-				response.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Pokemon.");
+				response.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Pokemon in " + input.getLanguage().getName());
 			break;
 			default:
 				response.addToReply("A technical error occured (code 102)");
@@ -379,7 +379,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 	private enum DataField
 	{
 		BASE_STATS("Base Stats", "Estadísticas Base", "Statistique de Base", "Statistiche Base", "Basiswerte", "種族値", "种族值", "종족값"),
-		TYPING("Typing","Tipos", "Types", "Tipi", "Typen", "タイプ", "属性", "타입"),
+		TYPING("Type","Tipos", "Types", "Tipi", "Typen", "タイプ", "属性", "타입"),
 		ABILITIES("Ability", "Habilidad", "Talents", "Abilità", "Fähigkeiten", "とくせい", "特性", "특성"),
 		HIGHT_WEIGHT("Height & Weight", "Altura & Peso", "Taille & Poids", "Altezza & Peso", "Größe & Gewicht", "たかさ & おもさ", "身高 & 体重", "키 & 몸무게"),
 		EV_YIELD("EV Yield","Puntos de Esfuerzo", "Points Effort", "PA Ceduti", "FP", "獲得努力値", "取得基础点数", "노력치"),

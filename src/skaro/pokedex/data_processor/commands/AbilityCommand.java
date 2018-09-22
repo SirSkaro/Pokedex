@@ -97,13 +97,13 @@ public class AbilityCommand extends AbstractCommand
 					dataMap.add(obj.getClass().getName(), obj);
 			}
 			
+			this.addRandomExtraMessage(builder);
 			return formatter.format(input, dataMap, builder);
 		}
 		catch(Exception e)
 		{
-			Response response = new Response();
-			response.addToReply("Get back in there and figure out what you did wrong!");
-			e.printStackTrace();
+			Response response = new Response();;
+			this.addErrorMessage(response, input, "1003", e);
 			return response;
 		}
 	}

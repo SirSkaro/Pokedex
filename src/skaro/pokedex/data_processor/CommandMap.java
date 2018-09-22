@@ -17,7 +17,7 @@ public class CommandMap
 		CacheManager discordCacheManager = CacheManagerBuilder.newCacheManagerBuilder()
 				.withCache("discordCommandCache",
 						CacheConfigurationBuilder.newCacheConfigurationBuilder(String.class, AbstractCommand.class,
-								ResourcePoolsBuilder.heap(50))
+								ResourcePoolsBuilder.heap(1000))
 						.build())
 				.build(true);
 

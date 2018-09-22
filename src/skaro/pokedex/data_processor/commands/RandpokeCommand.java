@@ -57,7 +57,7 @@ public class RandpokeCommand extends AbstractCommand
 			//Format reply
 			reply.setEmbededReply(formatEmbed(pokemon));
 		} 
-		catch (Exception e) { this.addErrorMessage(reply, input, "1002", e); }
+		catch (Exception e) { this.addErrorMessage(reply, input, "1002", e);}
 				
 		return reply;
 	}

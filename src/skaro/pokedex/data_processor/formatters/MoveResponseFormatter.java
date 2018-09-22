@@ -32,7 +32,7 @@ public class MoveResponseFormatter implements IDiscordFormatter
 				response.addToReply("You must specify exactly one Move as input for this command.".intern());
 			break;
 			case INVALID_ARGUMENT:
-				response.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Move");
+				response.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Move in "+input.getLanguage().getName());
 			break;
 			default:
 				response.addToReply("A technical error occured (code 106)");
@@ -87,6 +87,9 @@ public class MoveResponseFormatter implements IDiscordFormatter
 	
 	private String formatContest(ContestType contest, Language lang)
 	{
+		if(contest == null)
+			return null;
+		
 		return TextFormatter.flexFormToProper(contest.getNameInLanguage(lang.getFlexKey()));
 	}
 	

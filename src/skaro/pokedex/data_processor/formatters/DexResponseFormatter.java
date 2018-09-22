@@ -9,6 +9,7 @@ import org.eclipse.jetty.util.MultiMap;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TTSConverter;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -19,6 +20,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class DexResponseFormatter implements IDiscordFormatter 
 {
+	private TTSConverter tts;
+	
+	public DexResponseFormatter() 
+	{
+		tts = new TTSConverter();
+	}
 
 	@Override
 	public Response invalidInputResponse(Input input) 
@@ -62,18 +69,18 @@ public class DexResponseFormatter implements IDiscordFormatter
 		
 		if(!entry.isPresent())
 		{
-			String msg = DexField.NO_ENTRY.getNoEntryMessage("**__"+pokemonName+"__**","**__"+versionName+"__**", lang);
+			String msg = DexField.getNoEntryMessage("**__"+pokemonName+"__**","**__"+versionName+"__**", lang);
 			response.addToReply(msg);
 			return response;
 		}
 		
 		//Format reply
 		builder.setLenient(true);
-		String replyContent = TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+", the "+ species.getGeneraInLanguage(lang.getFlexKey())+": "
-				+ TextFormatter.formatDexEntry(entry.get());
+		String replyContent = DexField.getEntryTitle(pokemonName,
+				TextFormatter.flexFormToProper(species.getGeneraInLanguage(lang.getFlexKey())), lang ) +": " + TextFormatter.formatDexEntry(entry.get());
 		
-		response.addToReply("Pokedex entry for **"+TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+"** from **" 
-				+TextFormatter.flexFormToProper(version.getNameInLanguage(lang.getFlexKey()))+"**:");
+		response.addToReply("**__"+TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+" | " 
+				+TextFormatter.flexFormToProper(version.getNameInLanguage(lang.getFlexKey()))+"__**");
 		
 		builder.withDescription(replyContent);
 		builder.withColor(ColorTracker.getColorForVersion(input.getArg(1).getDbForm()));
@@ -81,6 +88,9 @@ public class DexResponseFormatter implements IDiscordFormatter
 		//Add thumbnail
 		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
 		
+		//Add audio reply (English only)
+		if(lang == Language.ENGLISH)
+			response.setPlayBack(tts.convertToAudio(replyContent));
 		
 		response.setEmbededReply(builder.build());
 		return response;
@@ -96,6 +106,15 @@ public class DexResponseFormatter implements IDiscordFormatter
 				"<version>の<pokemon>のエントリが見つかりません",
 				"在<version>中找不到<pokemon>的条目",
 				"<version>에 <pokemon> 항목이 없습니다"),
+		
+		ENTRY_TITLE("<pokemon>, the <genera>",
+				"<pokemon>, el <genera>",
+				"<pokemon>, le <genera>",
+				"<pokemon>, il <genera>",
+				"<pokemon>, das <genera>",
+				"<pokemon>、<genera>",
+				"<pokemon>，<genera>",
+				"<pokemon>, <genera>"),
 		;
 		
 		private Map<Language, String> titleMap;
@@ -114,9 +133,14 @@ public class DexResponseFormatter implements IDiscordFormatter
 			titleMap.put(Language.KOREAN, korean);
 		}
 		
-		public String getNoEntryMessage(String pokemon, String version, Language lang)
+		public static String getNoEntryMessage(String pokemon, String version, Language lang)
 		{
-			return titleMap.get(lang).replace("<pokemon>", pokemon).replace("<version>", version);
+			return NO_ENTRY.titleMap.get(lang).replace("<pokemon>", pokemon).replace("<version>", version);
+		}
+		
+		public static String getEntryTitle(String pokemon, String genera, Language lang)
+		{
+			return ENTRY_TITLE.titleMap.get(lang).replace("<pokemon>", pokemon).replace("<genera>", "\"" + genera + "\"");
 		}
 	}
 }
