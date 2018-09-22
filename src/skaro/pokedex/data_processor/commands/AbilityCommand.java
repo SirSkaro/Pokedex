@@ -60,8 +60,6 @@ public class AbilityCommand extends AbstractCommand
 		if(!input.isValid())
 			return formatter.invalidInputResponse(input);
 		
-		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
-		List<Object> flexData = new ArrayList<Object>();
 		MultiMap<Object> dataMap = new MultiMap<Object>();
 		EmbedBuilder builder = new EmbedBuilder();
 		
@@ -74,6 +72,9 @@ public class AbilityCommand extends AbstractCommand
 			}
 			else//if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
 			{
+				List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
+				List<Object> flexData = new ArrayList<Object>();
+				
 				//Pokemon
 				Pokemon pokemon = (Pokemon)factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
 				dataMap.put(Pokemon.class.getName(), pokemon);

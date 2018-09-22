@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.eclipse.jetty.util.MultiMap;
+
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
@@ -16,6 +18,9 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.PokeFlexRequest;
+import skaro.pokeflex.api.Request;
+import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.FlavorTextEntry;
 import skaro.pokeflex.objects.pokemon_species.Genera;
@@ -69,6 +74,58 @@ public class DexCommand extends AbstractCommand
 		}
 		
 		return true;
+	}
+	
+	public Response discordReply2(Input input, IUser requester)
+	{
+		if(!input.isValid())
+			return formatter.invalidInputResponse(input);
+		
+		MultiMap<Object> dataMap = new MultiMap<Object>();
+		EmbedBuilder builder = new EmbedBuilder();
+		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
+		List<Object> flexData = new ArrayList<Object>();
+		Request request;
+		RequestURL requestURL;
+		
+		//Obtain data
+		try
+		{
+			//Pokemon
+			request = new Request(Endpoint.POKEMON);
+			request.addParam(input.getArg(0).getFlexForm());
+			concurrentRequestList.add(request);
+			
+			//Version
+			request = new Request(Endpoint.VERSION);
+			request.addParam(input.getArg(1).getFlexForm());
+			concurrentRequestList.add(request);
+			
+			//Make PokeFlex request
+			flexData = factory.createFlexObjects(concurrentRequestList);
+			
+			//Add all data to the map
+			for(Object obj : flexData)
+				dataMap.add(obj.getClass().getName(), obj);
+			
+			//PokemonSpecies
+			Pokemon pokemon = (Pokemon)dataMap.getValue(Pokemon.class.getName(), 0);
+			requestURL = new RequestURL(pokemon.getSpecies().getUrl(), Endpoint.POKEMON_SPECIES);
+			PokemonSpecies species = (PokemonSpecies)factory.createFlexObject(requestURL);
+			dataMap.put(PokemonSpecies.class.getName(), species);
+			
+			//Add adopter
+			this.addAdopter(pokemon, builder);
+			
+			return formatter.format(input, dataMap, builder);
+		}
+		catch(Exception e)
+		{
+			Response response = new Response();
+			response.addToReply("Get back in there and figure out what you did wrong!");
+			e.printStackTrace();
+			return response;
+		}
 	}
 	
 	public Response discordReply(Input input, IUser requester)

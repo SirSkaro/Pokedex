@@ -120,8 +120,8 @@ public class AbilityResponseFormatter implements IDiscordFormatter
 	
 	private enum AbilityField
 	{
-		SLOT1("Ability 1", "Habilidad 1", "Talent n° 1 ", "Prima Abilità", "Primäre Fähigkeit", "特性1", "第一特性", "숨겨진 특성 1"),
-		SLOT2("Ability 2", "Habilidad 2", "Talent n° 2 ", "Seconda Abilità", "Sekundäre Fähigkeit", "特性2", "第二特性", "숨겨진 특성 2"),
+		SLOT1("Ability 1", "Habilidad 1", "Talent n° 1", "Prima Abilità", "Primäre Fähigkeit", "特性1", "第一特性", "숨겨진 특성 1"),
+		SLOT2("Ability 2", "Habilidad 2", "Talent n° 2", "Seconda Abilità", "Sekundäre Fähigkeit", "特性2", "第二特性", "숨겨진 특성 2"),
 		HIDDEN("Hidden Ability", "Habilidad Oculta", "Talent Caché", "Abilità Nascosta", "Versteckte Fähigkeit", "かくれとくせい", "隱藏特性", "숨겨진 특성"),
 		
 		DEBUT("Debut", "Debut", "Début", "Debutto", "Debüt", "デビュー", "出道", "데뷔"),
