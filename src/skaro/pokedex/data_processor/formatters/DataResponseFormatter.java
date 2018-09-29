@@ -11,6 +11,7 @@ import org.eclipse.jetty.util.MultiMap;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.objects.ability.Ability;
@@ -105,7 +106,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 			builder.append(TextFormatter.flexFormToProper(tempGroup.getNameInLanguage(lang.getFlexKey()) + "*/* "));
 		}
 		
-		return builder.substring(0, builder.length() - 4);
+		return builder.substring(0, builder.length() - 3);
 	}
 	
 	private boolean hasMultipleForms(List<Object> forms)
@@ -230,12 +231,13 @@ public class DataResponseFormatter implements IDiscordFormatter
 	{
 		StringBuilder builder = new StringBuilder();
 		Statistic statName[] = {Statistic.HP, Statistic.ATK, Statistic.DEF, Statistic.SP_ATK, Statistic.SP_DEF, Statistic.SPE}; 
+		int value;
 		
-		for(int i = 0; i < 6; i++)
+		for(Statistic stat : statName)
 		{
-			int stat = pokemon.getStats().get(5-i).getEffort();
-			if(stat != 0)
-				builder.append(stat + " " + statName[i].getInLanguage(lang) + "*/* ");
+			value = pokemon.getEffotStat(stat.getAPIKey());
+			if(value > 0)
+				builder.append(value + " " + stat.getInLanguage(lang) + "*/* ");
 		}
 		
 		return builder.substring(0, builder.length() - 4);
@@ -243,13 +245,14 @@ public class DataResponseFormatter implements IDiscordFormatter
 	
 	private String formatBaseStats(Pokemon pokemon, Language lang)
 	{
-		int[] stats = new int[6];
-		
-		for(int i = 0; i < 6; i++)
-			stats[5-i] = pokemon.getStats().get(i).getBaseStat();
-		
-		String stats1 = String.format("%s%s%d\n", StringUtils.rightPad(Integer.toString(stats[0]), 9, " "), StringUtils.rightPad(Integer.toString(stats[1]), 9, " "), stats[2]);
-		String stats2 = String.format("%s%s%d\n", StringUtils.rightPad(Integer.toString(stats[3]), 9, " "), StringUtils.rightPad(Integer.toString(stats[4]), 9, " "), stats[5]);
+		String stats1 = String.format("%s%s%d\n",
+									StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.HP.getAPIKey())), 9, " "),
+									StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.ATK.getAPIKey())), 9, " "),
+									pokemon.getStat(Statistic.DEF.getAPIKey()));
+		String stats2 = String.format("%s%s%d\n",
+									StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.SP_ATK.getAPIKey())), 9, " "),
+									StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.SP_DEF.getAPIKey())), 9, " "),
+									pokemon.getStat(Statistic.SPE.getAPIKey()));
 		String baseStats = "__`"+DataField.STAT_HEADER1.getFieldTitle(lang)+"`__\n`"+stats1+"`"
 				+ "\n__`"+ DataField.STAT_HEADER2.getFieldTitle(lang)+"`__\n`"+stats2+"`";
 		
@@ -283,10 +286,12 @@ public class DataResponseFormatter implements IDiscordFormatter
 		for(Object type : types)
 		{
 			tempType = (Type)type;
-			builder.append(TextFormatter.flexFormToProper(tempType.getNameInLanguage(lang.getFlexKey())) + "*/* ");
+			builder.append(EmojiTracker.getTypeEmoji(TypeData.getByName(tempType.getName())));
+			builder.append(" ");
+			builder.append(TextFormatter.flexFormToProper(tempType.getNameInLanguage(lang.getFlexKey())) + "\n");
 		}
 		
-		return builder.substring(0, builder.length() - 4);
+		return builder.substring(0, builder.length());
 	}
 	
 	private String formatEvolutionDetails(EvolutionChain evolutionData, String thisPokemon)

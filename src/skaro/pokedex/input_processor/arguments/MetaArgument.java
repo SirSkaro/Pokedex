@@ -26,7 +26,7 @@ public class MetaArgument extends AbstractArgument
 	public void setUp(String argument, Language lang) 
 	{
 		//Set up argument
-		this.dbForm = TextFormatter.dbFormat(argument);
+		this.dbForm = TextFormatter.dbFormat(argument, lang);
 		this.cat = ArgumentCategory.META;
 		this.rawInput = argument;
 		

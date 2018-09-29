@@ -22,7 +22,7 @@ public class PokemonArgument extends AbstractArgument
 		SpellChecker sc = SpellChecker.getInstance();
 		
 		//Set up argument
-		this.dbForm = TextFormatter.dbFormat(argument);
+		this.dbForm = TextFormatter.dbFormat(argument, lang);
 		this.cat = ArgumentCategory.POKEMON;
 		this.rawInput = argument;
 		
@@ -39,7 +39,7 @@ public class PokemonArgument extends AbstractArgument
 				return;
 			}
 			
-			this.dbForm = TextFormatter.dbFormat(correction).intern();
+			this.dbForm = TextFormatter.dbFormat(correction, lang).intern();
 			this.rawInput = correction.intern();
 			this.spellChecked = true;
 		}

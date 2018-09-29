@@ -14,7 +14,7 @@ public class GenArgument extends AbstractArgument
 	public void setUp(String argument, Language lang) 
 	{
 		//Set up argument
-		this.dbForm = TextFormatter.dbFormat(argument).replaceAll("[^0-9]", "");
+		this.dbForm = TextFormatter.dbFormat(argument, lang).replaceAll("[^0-9]", "");
 		this.cat = ArgumentCategory.GEN;
 		this.rawInput = argument;
 		

@@ -27,7 +27,7 @@ public class InviteCommand extends AbstractCommand
 		builder.setLenient(true);
 		builder.withColor(new Color(0xD60B01));
 		
-		builder.appendField("Invite Pokdex to your server!", "[Click to invite Pokedex](https://discordapp.com/oauth2/authorize?client_id=206147222746824704&scope=bot&permissions=36817920)", false);
+		builder.appendField("Invite Pokdex to your server!", "[Click to invite Pokedex](https://discordapp.com/oauth2/authorize?client_id=206147222746824704&scope=bot&permissions=37080128)", false);
 		builder.appendField("Join Pokedex's home server!", "[Click to join Pokedex's server](https://discord.gg/D5CfFkN)", false);
 		
 		staticDiscordReply.setEmbededReply(builder.build());

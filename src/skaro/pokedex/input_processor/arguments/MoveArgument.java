@@ -18,7 +18,7 @@ public class MoveArgument extends AbstractArgument {
 		SpellChecker sc = SpellChecker.getInstance();
 		
 		//Set up argument
-		this.dbForm = TextFormatter.dbFormat(argument);
+		this.dbForm = TextFormatter.dbFormat(argument, lang);
 		this.cat = ArgumentCategory.MOVE;
 		this.rawInput = argument;
 		
@@ -29,7 +29,7 @@ public class MoveArgument extends AbstractArgument {
 			String correction;
 			correction = sc.spellCheckMove(argument, lang);
 			
-			this.dbForm = TextFormatter.dbFormat(correction).intern();
+			this.dbForm = TextFormatter.dbFormat(correction, lang).intern();
 			if(!isMove(this.dbForm, lang))
 			{
 				this.valid = false;

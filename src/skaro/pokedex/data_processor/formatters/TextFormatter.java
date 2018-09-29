@@ -94,7 +94,7 @@ public class TextFormatter
 	 * @param s - pokemon name
 	 * @return formatted String
 	 */
-	public static String dbFormat(String s)
+	public static String dbFormat(String s, Language lang)
 	{
 		if(s == null)
 			return "";
@@ -159,7 +159,8 @@ public class TextFormatter
 			s = s.replace("'", "");
 		
 		//Remove accents
-		s = StringUtils.stripAccents(s);
+		if(lang != Language.KOREAN)
+			s = StringUtils.stripAccents(s);
 		
 		return s.intern();
 	}

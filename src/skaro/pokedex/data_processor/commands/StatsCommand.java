@@ -8,12 +8,14 @@ import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.formatters.Statistic;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
+import skaro.pokeflex.objects.pokemon.Stat;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
@@ -90,18 +92,23 @@ public class StatsCommand extends AbstractCommand
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setLenient(true);
-		int stats[] = extractStats(pokemon);
 		String type;
 		
-		String stats1 = String.format("%s%d\n", StringUtils.rightPad(Integer.toString(stats[5]), 12, " "), stats[4]);
-		String stats2 = String.format("%s%d\n", StringUtils.rightPad(Integer.toString(stats[3]), 12, " "), stats[2]);
-		String stats3 = String.format("%s%d\n", StringUtils.rightPad(Integer.toString(stats[1]), 12, " "), stats[0]);
+		String stats1 = String.format("%s%d\n",
+									StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.HP.getAPIKey())), 12, " "),
+									pokemon.getStat(Statistic.ATK.getAPIKey()));
+		String stats2 = String.format("%s%d\n",
+									StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.DEF.getAPIKey())), 12, " "),
+									pokemon.getStat(Statistic.SP_ATK.getAPIKey()));
+		String stats3 = String.format("%s%d\n",
+									StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.SP_DEF.getAPIKey())), 12, " "),
+									pokemon.getStat(Statistic.SPE.getAPIKey()));
 		
 		builder.withDescription("__`"+statHeader1+"`__\n`"+stats1+"`"
 								+ "\n\n__`"+ statHeader2+"`__\n`"+stats2+"`"
 								+ "\n\n__`"+ statHeader3+"`__\n`"+stats3 +"`");
 		
-		builder.withTitle("Base Stat Total: "+ getBaseStatTotal(stats));
+		builder.withTitle("Base Stat Total: "+ getBaseStatTotal(pokemon));
 		
 		//Set embed color
 		type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
@@ -117,23 +124,13 @@ public class StatsCommand extends AbstractCommand
 		return builder.build();
 	}
 	
-	private int getBaseStatTotal(int stats[])
+	private int getBaseStatTotal(Pokemon pokemon)
 	{
 		int total = 0;
 		
-		for(int i = 0; i < stats.length; i++)
-			total += stats[i];
+		for(Stat stat : pokemon.getStats())
+			total += stat.getBaseStat();
 		
 		return total;
-	}
-	
-	private int[] extractStats(Pokemon poke)
-	{
-		int[] stats = new int[6];
-		
-		for(int i = 0; i < 6; i++)
-			stats[i] = poke.getStats().get(i).getBaseStat();
-		
-		return stats;
 	}
 }

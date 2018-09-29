@@ -9,9 +9,11 @@ import org.eclipse.jetty.util.MultiMap;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.objects.contest_type.ContestType;
+import skaro.pokeflex.objects.move.Image;
 import skaro.pokeflex.objects.move.Move;
 import skaro.pokeflex.objects.move_damage_class.MoveDamageClass;
 import skaro.pokeflex.objects.move_target.MoveTarget;
@@ -48,18 +50,25 @@ public class MoveResponseFormatter implements IDiscordFormatter
 		Language lang = input.getLanguage();
 		builder.setLenient(true);
 		Move move = (Move)data.get(Move.class.getName()).get(0);
+		Type type = (Type)data.getValue(Type.class.getName(), 0);
+		Optional<Image> image = move.getImage("en", 7);
+		
+		//Header
+		response.addToReply("**__"+
+				TextFormatter.flexFormToProper(move.getNameInLanguage(lang.getFlexKey()))+
+				" | " + TextFormatter.formatGeneration(move.getGeneration().getName(), lang) + "__**");
 		
 		//Data for attacking moves
 		if(!move.getDamageClass().getName().equals("status"))
 		{
 			builder.appendField(MoveField.BASE_POWER.getFieldTitle(lang), Integer.toString(move.getPower()), true);
-			builder.appendField(MoveField.Z_POWER.getFieldTitle(lang), Integer.toString(move.getZPower()), true);
+			builder.appendField(MoveField.Z_POWER.getFieldTitle(lang), formatZPower(type, move.getZPower()), true);
 		}
 		
 		//Data for all Moves
 		builder.appendField(MoveField.ACCURACY.getFieldTitle(lang), (move.getAccuracy() != 0 ? Integer.toString(move.getAccuracy()) : "-"), true);
 		builder.appendField(MoveField.CATEGORY.getFieldTitle(lang), formatCategory((MoveDamageClass)data.getValue(MoveDamageClass.class.getName(), 0), lang), true);
-		builder.appendField(MoveField.TYPE.getFieldTitle(lang), formatType((Type)data.getValue(Type.class.getName(), 0), lang), true);
+		builder.appendField(MoveField.TYPE.getFieldTitle(lang), formatType(type, lang), true);
 		builder.appendField(MoveField.PP.getFieldTitle(lang), formatPP(move), true);
 		builder.appendField(MoveField.PRIORITY.getFieldTitle(lang), Integer.toString(move.getPriority()), true);
 		builder.appendField(MoveField.TARGET.getFieldTitle(lang), formatTarget((MoveTarget)data.getValue(MoveTarget.class.getName(), 0), lang), true);
@@ -80,9 +89,18 @@ public class MoveResponseFormatter implements IDiscordFormatter
 				builder.appendField("Other Properties", formatFlags(move), false);
 		}
 		
+		//Image
+		if(image.isPresent())
+			builder.withImage(image.get().getUrl());
+		
 		builder.withColor(ColorTracker.getColorForType(move.getType().getName()));
 		response.setEmbededReply(builder.build());
 		return response;
+	}
+	
+	private String formatZPower(Type type, int power)
+	{
+		return EmojiTracker.getCrystalEmoji(TypeData.getByName(type.getName())) + " " + power;
 	}
 	
 	private String formatContest(ContestType contest, Language lang)
@@ -90,7 +108,13 @@ public class MoveResponseFormatter implements IDiscordFormatter
 		if(contest == null)
 			return null;
 		
-		return TextFormatter.flexFormToProper(contest.getNameInLanguage(lang.getFlexKey()));
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append(EmojiTracker.getContestEmoji(contest.getName()));
+		builder.append(" ");
+		builder.append(TextFormatter.flexFormToProper(contest.getNameInLanguage(lang.getFlexKey())));
+		
+		return builder.toString();
 	}
 	
 	private String formatFlags(Move move)
@@ -124,12 +148,24 @@ public class MoveResponseFormatter implements IDiscordFormatter
 	
 	private String formatType(Type type, Language lang)
 	{
-		return TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey()));
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append(EmojiTracker.getTypeEmoji(TypeData.getByName(type.getName())));
+		builder.append(" ");
+		builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
+		
+		return builder.toString();
 	}
 	
 	private String formatCategory(MoveDamageClass category, Language lang)
 	{
-		return TextFormatter.flexFormToProper(category.getNameInLanguage(lang.getFlexKey()));
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append(EmojiTracker.getDamageEmoji(category.getName()));
+		builder.append(" ");
+		builder.append(TextFormatter.flexFormToProper(category.getNameInLanguage(lang.getFlexKey())));
+		
+		return builder.toString();
 	}
 
 	private enum MoveField

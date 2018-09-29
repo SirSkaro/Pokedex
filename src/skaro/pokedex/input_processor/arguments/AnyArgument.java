@@ -14,7 +14,7 @@ public class AnyArgument extends AbstractArgument
 	@Override
 	public void setUp(String argument, Language lang)
 	{
-		this.dbForm = TextFormatter.dbFormat(argument);
+		this.dbForm = TextFormatter.dbFormat(argument, lang);
 		this.cat = ArgumentCategory.ANY_NONE;
 		this.rawInput = argument;
 		this.valid = true;

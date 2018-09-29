@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>Pokedex</groupId>
   <artifactId>Pokedex</artifactId>
-  <version>5.4.1</version>
+  <version>5.4.4</version>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
@@ -107,7 +107,7 @@
     <dependency>
       <groupId>com.patreon</groupId>
       <artifactId>patreon</artifactId>
-      <version>0.4.1</version>
+      <version>0.4.2</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
