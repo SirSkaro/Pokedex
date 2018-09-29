@@ -1,6 +1,8 @@
 package skaro.pokedex.core;
 
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -48,6 +50,9 @@ public class Pokedex
 		IDiscordClient discordClient;
 		PatreonAPI patreonClient;
 		
+		ScheduledExecutorService pokedexThreadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 4);
+		PokeFlexFactory factory;
+		
 		//Parse command line arguments
 		if(args.length != 2)
 		{
@@ -94,22 +99,23 @@ public class Pokedex
 		 * PUBLISHER SETUP
 		 */
 		System.out.println("[Pokedex main] Setting up Publisher");
-		publisher = new Publisher(shardIDToManage, totalShards);
+		publisher = new Publisher(shardIDToManage, totalShards, pokedexThreadPool);
 		
 		/**
 		 * DISCORD SETUP
 		 */
 		//Initialize resources
 		System.out.println("[Pokedex main] Establishing Discord client");
-		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), checker);
-		pleh = new PreLoginEventHandler(library, publisher);
+		factory = new PokeFlexFactory(configurator.getPokeFlexURL(), pokedexThreadPool);
+		library = initCompleteLibrary(factory, checker);
+		pleh = new PreLoginEventHandler(library, publisher, pokedexThreadPool);
 		discordToken = configurator.getAuthToken("discord");
 		discordClient = initClient(discordToken, shardIDToManage, totalShards);
 		checker.setDiscordClient(discordClient);
 		
 		//Login to Discord
 		System.out.println("[Pokedex main] Logging into Discord");
-		discordClient.getDispatcher().registerListener(pleh);
+		discordClient.getDispatcher().registerListener(pokedexThreadPool, pleh);
 		discordClient.login();
 	}
 	
@@ -136,7 +142,7 @@ public class Pokedex
 	 * This is used for the InputProcessor. Any commands not included here will 
 	 * not be recognized by the input processor, and therefore will not be
 	 * recognized by any command map.
-	 * @return a CommandLibrary of ICommands that are supported for Discord
+	 * @return a CommandLibrary of AbstractCommands that are supported for Discord
 	 */
 	private static CommandLibrary initCompleteLibrary(PokeFlexFactory factory, PerkChecker checker)
 	{

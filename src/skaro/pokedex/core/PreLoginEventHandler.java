@@ -2,8 +2,8 @@ package skaro.pokedex.core;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import skaro.pokedex.communicator.Publisher;
 import sx.blah.discord.api.IDiscordClient;
@@ -19,12 +19,14 @@ public class PreLoginEventHandler
 	private int statusIndex;			//count for booting tracking, statusIndex to iterate through status messages
 	private CommandLibrary library;
 	private Publisher publisher;
+	private ScheduledExecutorService executor;
 
-	public PreLoginEventHandler(CommandLibrary lib, Publisher pub)
+	public PreLoginEventHandler(CommandLibrary lib, Publisher pub, ScheduledExecutorService exe)
 	{
 		statusIndex = 0;
 		library = lib;
 		publisher = pub;
+		executor = exe;
 	}
 	
 	@EventSubscriber
@@ -39,8 +41,6 @@ public class PreLoginEventHandler
     public void onReadyEvent(ReadyEvent event) 
     {	    	    	
     	List<String> statusMessages = createStatusMessages();
-    	Timer statusTimer;					
-    	TimerTask statusTask;
     	PostLoginEventHandler plev;
     	IDiscordClient discordClient = event.getClient();
     	
@@ -49,22 +49,24 @@ public class PreLoginEventHandler
 		publisher.scheduleHoursPerPublishment(1);
 		
 		System.out.println("[DiscordEventHandler] Setting up status message rotation");
-    	statusTimer = new Timer(true);
-		statusTask = new TimerTask() {
-            @Override
-            public void run() 
-            {
-            	event.getClient().changePresence(StatusType.ONLINE, ActivityType.PLAYING, statusMessages.get(statusIndex % statusMessages.size()));
-            	statusIndex++;
-            }
-        };	
-    	
-    	statusTimer.scheduleAtFixedRate(statusTask, 1000, 1 * 60 * 1000); //1 minute
+		executor.scheduleAtFixedRate(new Runnable() 
+		{
+			@Override
+			public void run() {
+				try 
+				{
+					event.getClient().changePresence(StatusType.ONLINE, ActivityType.PLAYING, statusMessages.get(statusIndex % statusMessages.size()));
+	            	statusIndex++;
+				}
+				catch(Exception e) {/*noop*/}
+		}}
+		, 0, 60, TimeUnit.SECONDS);
+		
     	
     	System.out.println("[DiscordEventHandler] Finished logging into Discord. Trading event handlers");
     	plev = new PostLoginEventHandler(library, discordClient.getOurUser().getLongID());
     	discordClient.getDispatcher().unregisterListener(this);
-    	discordClient.getDispatcher().registerListener(plev);
+    	discordClient.getDispatcher().registerListener(executor, plev);
     }
     
     private List<String> createStatusMessages()

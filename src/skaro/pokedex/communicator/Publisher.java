@@ -3,8 +3,8 @@ package skaro.pokedex.communicator;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.ehcache.Cache;
 import org.ehcache.Cache.Entry;
@@ -21,12 +21,14 @@ import sx.blah.discord.api.IDiscordClient;
 public class Publisher 
 {
 	private Cache<String, AbstractPublicationRecipient> publicationRecipientCache;
-	int shardID, totalShards;
+	private int shardID, totalShards;
+	private ScheduledExecutorService executor;
 	
-	public Publisher(int shard, int shardCount)
+	public Publisher(int shard, int shardCount, ScheduledExecutorService ses)
 	{
 		shardID = shard;
 		totalShards = shardCount;
+		executor = ses;
 		
 		CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
 			.withCache("publicationRecipientCache",
@@ -54,12 +56,18 @@ public class Publisher
 	
 	public void scheduleHoursPerPublishment(int frequency)
 	{
-		//Create timer and task
-    	Timer timer = new Timer(true);
-		TimerTask task = createPublicationTimerTask();
-        
-        //Schedule task for every hour, starting in one hour
-        timer.scheduleAtFixedRate(task, frequency * 60 * 60 * 1000, frequency * 60 * 60 * 1000);
+		executor.scheduleAtFixedRate(new Runnable() 
+		{
+			@Override
+			public void run() { 
+				for(Iterator<Entry<String, AbstractPublicationRecipient>> itr = publicationRecipientCache.iterator(); itr.hasNext(); )
+				{
+					AbstractPublicationRecipient recipient = itr.next().getValue();
+					try {recipient.sendPublication(shardID);}
+					catch(Exception e) { System.out.println("[Publisher] failed to send publication for "+recipient.getConfigID());};
+				}
+		}}
+		, 1, 1, TimeUnit.HOURS);
 	}
 	
 	private List<AbstractPublicationRecipient> getRecipientList(IDiscordClient discordClient)
@@ -70,22 +78,5 @@ public class Publisher
 		result.add(new DiscordBotsRecipient(discordClient, totalShards));
 		result.add(new BotsDiscordRecipient(discordClient, totalShards));
 		return result;
-	}
-	
-	private TimerTask createPublicationTimerTask()
-	{
-		TimerTask task = new TimerTask()
-		{
-			public void run()
-			{
-				for(Iterator<Entry<String, AbstractPublicationRecipient>> itr = publicationRecipientCache.iterator(); itr.hasNext(); )
-				{
-					AbstractPublicationRecipient recipient = itr.next().getValue();
-					recipient.sendPublication(shardID);
-				}
-			}
-		};
-		
-		return task;
 	}
 }
