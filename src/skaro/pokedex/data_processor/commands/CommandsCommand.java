@@ -1,6 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.util.HashMap;
+import java.util.List;
 
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
@@ -14,7 +14,7 @@ public class CommandsCommand extends AbstractCommand
 {
 	private Response staticDiscordReply;
 	
-	public CommandsCommand(HashMap<String, AbstractCommand> library)
+	public CommandsCommand(List<AbstractCommand> commands)
 	{
 		super(null, null);
 		commandName = "commands".intern();
@@ -32,7 +32,7 @@ public class CommandsCommand extends AbstractCommand
 		staticDiscordReply.addToReply("Join the Pokedex Support Server!");
 		staticDiscordReply.addToReply("https://discord.gg/D5CfFkN");
 		builder.withColor(0xD60B01);
-		setStaticReplyFields(builder, library);
+		setStaticReplyFields(builder, commands);
 		
 		staticDiscordReply.setEmbededReply(builder.build());
 		this.createHelpMessage("https://i.imgur.com/QAMZRcf.gif");
@@ -42,7 +42,7 @@ public class CommandsCommand extends AbstractCommand
 	public String getArguments() { return "none"; }
 	public Response discordReply(Input input, IUser requester) { return staticDiscordReply; }
 
-	private void setStaticReplyFields(EmbedBuilder builder, HashMap<String, AbstractCommand> library)
+	private void setStaticReplyFields(EmbedBuilder builder, List<AbstractCommand> commands)
 	{
 		builder.appendField("Prefixes", "!command or %command", true);
 		builder.appendField("Postfix", "command(input)", true);
@@ -50,7 +50,7 @@ public class CommandsCommand extends AbstractCommand
 				+ ":small_blue_diamond:__Don't forget your commas!__\n"
 				+ ":small_blue_diamond:You don't need to include '[' or '<' characters.", false);
 		
-		for(AbstractCommand command : library.values())
+		for(AbstractCommand command : commands)
 			builder.appendField(":small_orange_diamond:"+command.getCommandName(), ("%"+command.getCommandName() + " ["+ command.getArguments()).intern() + "]", true);
 	}
 }

@@ -6,6 +6,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import skaro.pokedex.communicator.Publisher;
+import skaro.pokedex.data_processor.CommandMap;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.IShard;
 import sx.blah.discord.api.events.EventSubscriber;
@@ -17,11 +18,11 @@ import sx.blah.discord.handle.obj.StatusType;
 public class PreLoginEventHandler
 {
 	private int statusIndex;			//count for booting tracking, statusIndex to iterate through status messages
-	private CommandLibrary library;
+	private CommandMap library;
 	private Publisher publisher;
 	private ScheduledExecutorService executor;
 
-	public PreLoginEventHandler(CommandLibrary lib, Publisher pub, ScheduledExecutorService exe)
+	public PreLoginEventHandler(CommandMap lib, Publisher pub, ScheduledExecutorService exe)
 	{
 		statusIndex = 0;
 		library = lib;

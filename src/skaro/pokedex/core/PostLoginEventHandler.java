@@ -30,10 +30,10 @@ public class PostLoginEventHandler
 	private CommandMap commandMap;
 	private InputProcessor processor;
 	
-	public PostLoginEventHandler(CommandLibrary lib, Long botID)
+	public PostLoginEventHandler(CommandMap lib, Long botID)
 	{
 		processor = new InputProcessor(lib, botID);
-		commandMap = new CommandMap(lib);
+		commandMap = lib;
 	}
 	
 	 @EventSubscriber

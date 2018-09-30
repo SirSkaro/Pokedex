@@ -1,6 +1,9 @@
 package skaro.pokedex.core;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -10,6 +13,8 @@ import org.apache.log4j.Logger;
 import com.patreon.PatreonAPI;
 
 import skaro.pokedex.communicator.Publisher;
+import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.CommandMap;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
 import skaro.pokedex.data_processor.commands.CommandsCommand;
@@ -43,7 +48,7 @@ public class Pokedex
 		Configurator configurator;
 		Publisher publisher;
 		
-		CommandLibrary library;
+		CommandMap library;
 		PreLoginEventHandler pleh;
 		PerkChecker checker;
 		
@@ -107,7 +112,7 @@ public class Pokedex
 		//Initialize resources
 		System.out.println("[Pokedex main] Establishing Discord client");
 		factory = new PokeFlexFactory(configurator.getPokeFlexURL(), pokedexThreadPool);
-		library = initCompleteLibrary(factory, checker);
+		library = initCompleteLibrary(factory, checker, pokedexThreadPool);
 		pleh = new PreLoginEventHandler(library, publisher, pokedexThreadPool);
 		discordToken = configurator.getAuthToken("discord");
 		discordClient = initClient(discordToken, shardIDToManage, totalShards);
@@ -144,30 +149,32 @@ public class Pokedex
 	 * recognized by any command map.
 	 * @return a CommandLibrary of AbstractCommands that are supported for Discord
 	 */
-	private static CommandLibrary initCompleteLibrary(PokeFlexFactory factory, PerkChecker checker)
+	private static CommandMap initCompleteLibrary(PokeFlexFactory factory, PerkChecker checker, ExecutorService service)
 	{
-		CommandLibrary lib = new CommandLibrary();
+		List<AbstractCommand> commands = new ArrayList<AbstractCommand>();
 		
-		lib.addToLibrary(new RandpokeCommand(factory, checker));
-		lib.addToLibrary(new StatsCommand(factory, checker));
-		lib.addToLibrary(new DataCommand(factory, checker));
-		lib.addToLibrary(new AbilityCommand(factory, checker));
-		lib.addToLibrary(new ItemCommand(factory, checker));
-		lib.addToLibrary(new MoveCommand(factory, checker));
-		lib.addToLibrary(new LearnCommand(factory, checker));
-		lib.addToLibrary(new WeakCommand(factory, checker));
-		lib.addToLibrary(new CoverageCommand(factory, checker));
-		lib.addToLibrary(new DexCommand(factory, checker));
-		lib.addToLibrary(new SetCommand(factory, checker));
-		lib.addToLibrary(new LocationCommand(factory, checker));
-		lib.addToLibrary(new AboutCommand());
-		lib.addToLibrary(new PatreonCommand());
-		lib.addToLibrary(new InviteCommand());
-		lib.addToLibrary(new ShinyCommand(factory, checker));
+		commands.add(new RandpokeCommand(factory, checker));
+		commands.add(new StatsCommand(factory, checker));
+		commands.add(new DataCommand(factory, checker));
+		commands.add(new AbilityCommand(factory, checker));
+		commands.add(new ItemCommand(factory, checker));
+		commands.add(new MoveCommand(factory, checker));
+		commands.add(new LearnCommand(factory, checker));
+		commands.add(new WeakCommand(factory, checker));
+		commands.add(new CoverageCommand(factory, checker));
+		commands.add(new DexCommand(factory, checker));
+		commands.add(new SetCommand(factory, checker));
+		commands.add(new LocationCommand(factory, checker));
+		commands.add(new AboutCommand());
+		commands.add(new PatreonCommand());
+		commands.add(new InviteCommand());
+		commands.add(new ShinyCommand(factory, checker));
 		
-		lib.addToLibrary(new HelpCommand(lib.getLibrary()));
-		lib.addToLibrary(new CommandsCommand(lib.getLibrary()));
+		commands.add(new HelpCommand(commands));
+		commands.add(new CommandsCommand(commands));
 		
-		return lib;
+		CommandMap result = new CommandMap(commands, service);
+		
+		return result;
 	}
 }

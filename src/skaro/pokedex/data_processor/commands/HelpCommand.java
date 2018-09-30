@@ -2,6 +2,7 @@ package skaro.pokedex.data_processor.commands;
 
 import java.awt.Color;
 import java.util.HashMap;
+import java.util.List;
 
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
@@ -17,14 +18,18 @@ public class HelpCommand extends AbstractCommand
 	private Response staticDiscordReply;
 	private HashMap<String, AbstractCommand> library;
 	
-	public HelpCommand(HashMap<String, AbstractCommand> lib)
+	public HelpCommand(List<AbstractCommand> commands)
 	{
 		super(null, null);
 		commandName = "help".intern();
 		argCats.add(ArgumentCategory.ANY_NONE);
 		expectedArgRange = new ArgumentRange(0,1);
 		staticDiscordReply = new Response();
-		library = lib;
+		library = new HashMap<String, AbstractCommand>();
+		
+		for(AbstractCommand command : commands)
+			for(String alias : command.getAliases().keySet())
+				library.put(alias, command);
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);

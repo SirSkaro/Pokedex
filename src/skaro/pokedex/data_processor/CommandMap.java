@@ -1,43 +1,59 @@
 package skaro.pokedex.data_processor;
 
-import org.ehcache.Cache;
-import org.ehcache.CacheManager;
-import org.ehcache.config.builders.CacheConfigurationBuilder;
-import org.ehcache.config.builders.CacheManagerBuilder;
-import org.ehcache.config.builders.ResourcePoolsBuilder;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
 
-import skaro.pokedex.core.CommandLibrary;
+import org.ehcache.UserManagedCache;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.ehcache.config.builders.UserManagedCacheBuilder;
+import org.ehcache.config.units.EntryUnit;
 
 public class CommandMap 
 {
-	private Cache<String, AbstractCommand> discordCommandCache;
+	private UserManagedCache<String, AbstractCommand> cache;
 	
-	public CommandMap(CommandLibrary lib)
+	public CommandMap(List<AbstractCommand> commands, ExecutorService threadPool)
 	{
-		CacheManager discordCacheManager = CacheManagerBuilder.newCacheManagerBuilder()
-				.withCache("discordCommandCache",
-						CacheConfigurationBuilder.newCacheConfigurationBuilder(String.class, AbstractCommand.class,
-								ResourcePoolsBuilder.heap(1000))
-						.build())
-				.build(true);
-
-		discordCommandCache = discordCacheManager.getCache("discordCommandCache", String.class, AbstractCommand.class);
+		int cacheSize = getCacheEntrySize(commands);
 		
-		initializeCache(lib);
+		cache = UserManagedCacheBuilder.newUserManagedCacheBuilder(String.class, AbstractCommand.class)
+				.withEventExecutors(threadPool, threadPool)
+				.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(cacheSize, EntryUnit.ENTRIES))
+				.build(true);
+		
+		initializeCache(commands);
+	}
+	
+	public boolean hasCommand(String cmd)
+	{
+		return cache.containsKey(cmd);
 	}
 	
 	public AbstractCommand get(String key)
 	{
-		return discordCommandCache.get(key);
+		return cache.get(key);
 	}
 	
-	private void initializeCache(CommandLibrary lib)
-	{		
-		for(AbstractCommand icmd : lib.getLibrary().values())
+	private int getCacheEntrySize(List<AbstractCommand> commands)
+	{
+		int result = 0;
+		
+		for(AbstractCommand command : commands)
 		{
-			discordCommandCache.put(icmd.getCommandName(), icmd);
-			for(String alias : icmd.getAliases().keySet())
-				discordCommandCache.put(alias, icmd);
+			result++;
+			result += command.getAliases().size();
+		}
+		
+		return result;
+	}
+	
+	private void initializeCache(List<AbstractCommand> commands)
+	{		
+		for(AbstractCommand command : commands)
+		{
+			cache.put(command.getCommandName(), command);
+			for(String alias : command.getAliases().keySet())
+				cache.put(alias, command);
 		}
 	}
 }

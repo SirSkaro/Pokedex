@@ -6,19 +6,19 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import skaro.pokedex.core.CommandLibrary;
 import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.CommandMap;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.ParsedText;
 
 public class InputProcessor 
 {
-	private CommandLibrary commandLibrary;
+	private CommandMap commandLibrary;
 	private Pattern prefixPattern, postfixPattern, mentionPattern;
 	private long botID;
 	
-	public InputProcessor(CommandLibrary lib, Long id)
+	public InputProcessor(CommandMap lib, Long id)
 	{
 		commandLibrary = lib;
 		botID = id;
@@ -46,7 +46,7 @@ public class InputProcessor
 		if(!commandLibrary.hasCommand(parsedText.getFunction()))
 			return Optional.empty();
 		
-		command = commandLibrary.getCommand(parsedText.getFunction());
+		command = commandLibrary.get(parsedText.getFunction());
 		lang = command.getLanguageOfAlias(parsedText.getFunction());
 		result = new Input(parsedText.getFunction(), lang);
 		
