@@ -78,6 +78,8 @@ Builds are described by the three sections in the version number X.Y.Z. Upon inc
 * 5.1.0 - Blast Burn
 * 5.2.0 - Core Enforcer
 * 5.3.0 - Dragon Ascent
+* 5.4.0 - Extreme Evoboost
+* 5.5.0 - Fire Blast
 
 ## Authors
 
