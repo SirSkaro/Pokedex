@@ -27,6 +27,7 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageUpdateEve
 import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelJoinEvent;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IVoiceChannel;
+import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RequestBuffer;
@@ -59,11 +60,7 @@ public class PostLoginEventHandler
 		try
 		{ handleTextResponse(event.getMessage()); }
 		catch(Exception e) 
-		{ 
-			System.out.println("[DiscordEventHandler] text event error: "+e.getClass().getName());
-			e.printStackTrace();
-			event.getChannel().sendMessage("Some error occured and I could not recover. Please report this in the support server: https://discord.gg/D5CfFkN");
-		}
+		{ handleResponseError(event.getMessage(), e); }
     }
     
     @EventSubscriber
@@ -75,16 +72,37 @@ public class PostLoginEventHandler
     	try 
     	{ handleTextResponse(event.getNewMessage()); }
     	catch(Exception e) 
-		{
-    		System.out.println("[DiscordEventHandler] update text event error: "+e.getClass().getName());
-    		event.getChannel().sendMessage("Some error occured and I could not recover. Please report this in the support server: https://discord.gg/D5CfFkN");
-    	}
+		{ handleResponseError(event.getMessage(), e); }
     }
     
     @EventSubscriber
     public void onTrackFinishEvent(TrackFinishEvent event)
     {
     	event.getPlayer().getGuild().getConnectedVoiceChannel().leave();
+    }
+    
+    private void handleResponseError(IMessage message, Exception e)
+    {
+    	if(e instanceof MissingPermissionsException)
+    	{
+    		MissingPermissionsException mpe = (MissingPermissionsException)e;
+			StringBuilder builder = new StringBuilder();
+			builder.append("I don't have required permissions to respond in `");
+			builder.append(message.getGuild().getName() +"`'s ");
+			builder.append("`#" + message.getChannel().getName() + "` channel. ");
+			builder.append("Please inform an admin that I'm missing the following permissions:\n");
+			
+			for(Permissions perm: mpe.getMissingPermissions())
+				builder.append(":diamonds:" + perm.name() + "\n");
+			
+    		message.getAuthor().getOrCreatePMChannel().sendMessage(builder.toString());
+    	}
+    	else
+    	{
+			System.out.println("[DiscordEventHandler] text event error: "+e.getClass().getName());
+			e.printStackTrace();
+			message.getChannel().sendMessage("Some error occured and I could not recover. Please report this in the support server: https://discord.gg/D5CfFkN");
+		}
     }
     
     private void handleTextResponse(IMessage userMsg)
@@ -107,7 +125,7 @@ public class PostLoginEventHandler
         	return;
         
         //Enfore rate limit
-        if(guildIsRateLimited(userMsg.getGuild().getLongID()))
+        if(channelIsRateLimited(userMsg.getChannel().getLongID()))
         {
         	System.out.println("[DiscordEventHandler] Rate limit exceeded for user " + userMsg.getAuthor().getLongID());
         	return;
@@ -138,25 +156,25 @@ public class PostLoginEventHandler
         }
     }
     
-    private boolean guildIsRateLimited(Long guildID)
+    private boolean channelIsRateLimited(Long channelID)
     {
     	//Check if bucket exists for a guild
-    	Bucket bucketForGuild = bucketCache.getIfPresent(guildID);
+    	Bucket bucketForChannel = bucketCache.getIfPresent(channelID);
     	
     	//If the bucket does not exist, make one and take a token
-    	if(bucketForGuild == null)
+    	if(bucketForChannel == null)
     	{
-    		bucketForGuild = createBucketForGuild(guildID);
-    		bucketCache.put(guildID, bucketForGuild);
-    		bucketForGuild.tryConsume(1);
+    		bucketForChannel = createBucketForChannel(channelID);
+    		bucketCache.put(channelID, bucketForChannel);
+    		bucketForChannel.tryConsume(1);
     		return false;
     	}
     	
     	//Otherwise, try to take a token
-    	return !bucketForGuild.tryConsume(1);
+    	return !bucketForChannel.tryConsume(1);
     }
     
-    private Bucket createBucketForGuild(Long guildID)
+    private Bucket createBucketForChannel(Long channelID)
     {
     	Bandwidth limit = Bandwidth.simple(3, Duration.ofSeconds(10));
     	Bucket bucket = Bucket4j.builder()
@@ -261,6 +279,10 @@ public class PostLoginEventHandler
 	    			reply.send();
 	    			System.out.println("\t[DiscordEventHandler] Response sent.");
 	    		}
+    		}
+    		catch(MissingPermissionsException mpe)
+    		{
+    			handleResponseError(userMsg, mpe);
     		}
     		catch (Exception e)
     		{
