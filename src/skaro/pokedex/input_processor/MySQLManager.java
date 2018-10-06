@@ -8,7 +8,6 @@ import java.sql.Statement;
 import java.util.Optional;
 
 import skaro.pokedex.core.Configurator;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 
 public class MySQLManager 
 {
@@ -31,7 +30,7 @@ public class MySQLManager
 			}
 			
 			Class.forName("com.mysql.jdbc.Driver");   
-			con = DriverManager.getConnection("jdbc:mysql://"+dbURI+"/"+dbName+"?autoReconnect=true&useSSL=false", dbUser, dbPassword);
+			con = DriverManager.getConnection("jdbc:mysql://"+dbURI+"/"+dbName+"?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false", dbUser, dbPassword);
 		}
 		catch(Exception e)
 		{  
@@ -63,23 +62,6 @@ public class MySQLManager
 		{ return Optional.empty(); }  
 	}
 	
-	public Optional<String> getFlexForm(String dbForm, ArgumentCategory cat)
-	{
-		switch(cat)
-		{
-			case ABILITY:
-				return getAbilityFlexForm(dbForm);
-			case ITEM:
-				return getItemFlexForm(dbForm);
-			case MOVE:
-				return getMoveFlexForm(dbForm);
-			case POKEMON:
-				return getPokemonFlexForm(dbForm);
-			default:
-				return Optional.empty();
-		}
-	}
-	
 	private Optional<String> getFlexForm(ResultSet resultSet)
 	{
 		try 
@@ -91,36 +73,36 @@ public class MySQLManager
 		{ return Optional.empty(); }
 	}
 	
-	public Optional<String> getPokemonFlexForm(String dbForm)
+	public Optional<String> getPokemonFlexForm(String dbForm, Language lang)
 	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Pokemon WHERE pid = '"+dbForm+"';");
+		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Pokemon WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
 		
 		if(!dataCheck.isPresent())
 			return Optional.empty();
 		return getFlexForm(dataCheck.get());
 	}
 	
-	public Optional<String> getAbilityFlexForm(String dbForm)
+	public Optional<String> getAbilityFlexForm(String dbForm, Language lang)
 	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Ability WHERE aid = '"+dbForm+"-a';");
+		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Ability WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
 		
 		if(!dataCheck.isPresent())
 			return Optional.empty();
 		return getFlexForm(dataCheck.get());
 	}
 	
-	public Optional<String> getMoveFlexForm(String dbForm)
+	public Optional<String> getMoveFlexForm(String dbForm, Language lang)
 	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Move WHERE mid = '"+dbForm+"-m';");
+		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Move WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
 		
 		if(!dataCheck.isPresent())
 			return Optional.empty();
 		return getFlexForm(dataCheck.get());
 	}
 	
-	public Optional<String> getItemFlexForm(String dbForm)
+	public Optional<String> getItemFlexForm(String dbForm, Language lang)
 	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Item WHERE iid = '"+dbForm+"-i';");
+		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Item WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
 		
 		if(!dataCheck.isPresent())
 			return Optional.empty();
@@ -137,5 +119,23 @@ public class MySQLManager
 		
 		try { return dataCheck.get().next(); } 
 		catch (SQLException e) { return false; }
+	}
+	
+	public Optional<Long> getPokemonsAdopter(String pokemon)
+	{
+		Optional<ResultSet> dataCheck = dbQuery("SELECT user_id FROM DiscordAdopter WHERE pokemon = \""+pokemon+"\";");
+		ResultSet rs;
+		
+		//If some error occurs, assume the data does not exist
+		if(!dataCheck.isPresent())
+			return Optional.empty();
+			
+		try
+		{ 
+			rs = dataCheck.get();
+			rs.next();
+			return Optional.of(rs.getLong(1)); 
+		} 
+		catch (SQLException e) { return Optional.empty(); }
 	}
 }

@@ -6,11 +6,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
-import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -24,32 +27,23 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class LocationCommand implements ICommand 
+public class LocationCommand extends AbstractCommand 
 {
-	private ArgumentRange expectedArgRange;
-	private String commandName;
-	private ArrayList<ArgumentCategory> argCats;
-	private PokeFlexFactory factory;
-	
-	public LocationCommand(PokeFlexFactory pff)
+	public LocationCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
+		super(pff, pc);
 		commandName = "location".intern();
-		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.VERSION);
 		expectedArgRange = new ArgumentRange(2,2);
-		factory = pff;
+		aliases.put("loc", Language.ENGLISH);
+		
+		createHelpMessage("fearow, blue", "Abra, Soul Silver", "Ditto, Yellow", "trubbish, black 2",
+				"https://i.imgur.com/CkPBiDT.gif");
 	}
 	
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
-	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	public boolean makesWebRequest() { return true; }
-	
-	public String getArguments()
-	{
-		return "<pokemon>, <version>";
-	}
+	public String getArguments() { return "<pokemon>, <version>"; }
 	
 	public boolean inputIsValid(Response reply, Input input)
 	{
@@ -124,12 +118,12 @@ public class LocationCommand implements ICommand
 		//Format reply
 		reply.addToReply("**"+TextFormatter.flexFormToProper(pokemon.getName())+"** can be found in **"+(encounterDataFromVersion.size())+
 				"** location(s) in **"+TextFormatter.flexFormToProper(versionDBForm)+"** version");
-		reply.setEmbededReply(formatEmbed(encounterDataFromVersion, versionDBForm));
+		reply.setEmbededReply(formatEmbed(encounterDataFromVersion, versionDBForm, pokemon));
 		
 		return reply;
 	}
 	
-	private EmbedObject formatEmbed(List<EncounterPotential> encounterDataFromVersion, String version) 
+	private EmbedObject formatEmbed(List<EncounterPotential> encounterDataFromVersion, String version, Pokemon pokemon) 
 	{
 		EmbedBuilder eBuilder = new EmbedBuilder();	
 		StringBuilder sBuilder;
@@ -157,6 +151,12 @@ public class LocationCommand implements ICommand
 			
 			eBuilder.appendField(TextFormatter.flexFormToProper(potential.getLocationArea().getName()), sBuilder.toString(), true);
 		}
+		
+		//Add thumbnail
+		eBuilder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		
+		//Add adopter
+		this.addAdopter(pokemon, eBuilder);
 		
 		eBuilder.withColor(ColorTracker.getColorForVersion(version));
 		return eBuilder.build();

@@ -1,28 +1,27 @@
 package skaro.pokedex.data_processor.commands;
 
 import java.awt.Color;
-import java.util.ArrayList;
 
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class PatreonCommand implements ICommand 
+public class PatreonCommand extends AbstractCommand 
 {
-	private ArgumentRange expectedArgRange;
-	private String commandName;
-	private ArrayList<ArgumentCategory> argCats;
 	private Response staticDiscordReply;
 	
 	public PatreonCommand()
 	{
+		super(null, null);
 		commandName = "patreon".intern();
-		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
+		aliases.put("donate", Language.ENGLISH);
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
@@ -32,25 +31,10 @@ public class PatreonCommand implements ICommand
 		builder.appendField("Patreon Link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);
 		
 		staticDiscordReply.setEmbededReply(builder.build());
+		this.createHelpMessage("https://i.imgur.com/Z7U2qkt.gif");
 	}
 	
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
-	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	public boolean makesWebRequest() { return false; }
-	
-	public String getArguments()
-	{
-		return "none";
-	}
-	
-	public boolean inputIsValid(Response reply, Input input)
-	{
-		return true;
-	}
-	
-	public Response discordReply(Input input, IUser requester)
-	{ 
-		return staticDiscordReply;
-	}
+	public String getArguments() { return "none"; }
+	public Response discordReply(Input input, IUser requester){ return staticDiscordReply; }
 }

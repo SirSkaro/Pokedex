@@ -2,12 +2,21 @@ package skaro.pokedex.core;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Bucket4j;
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.CommandMap;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.commands.ICommand;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.InputProcessor;
 import sx.blah.discord.api.IDiscordClient;
@@ -18,6 +27,7 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageUpdateEve
 import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelJoinEvent;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IVoiceChannel;
+import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RequestBuffer;
@@ -27,13 +37,18 @@ import sx.blah.discord.util.audio.events.TrackFinishEvent;
 
 public class PostLoginEventHandler 
 {
-	private CommandMap commandMap;
 	private InputProcessor processor;
+	private Cache<Long, Bucket> bucketCache;
 	
-	public PostLoginEventHandler(CommandLibrary lib, Long botID)
+	public PostLoginEventHandler(CommandMap lib, Executor threadPool, Long botID)
 	{
 		processor = new InputProcessor(lib, botID);
-		commandMap = new CommandMap(lib);
+		bucketCache = Caffeine.newBuilder()
+				.executor(threadPool)
+				.weakValues()
+				.expireAfterAccess(10, TimeUnit.SECONDS)
+				.maximumSize(50)
+				.build();
 	}
 	
 	 @EventSubscriber
@@ -45,7 +60,7 @@ public class PostLoginEventHandler
 		try
 		{ handleTextResponse(event.getMessage()); }
 		catch(Exception e) 
-		{ System.out.println("[DiscordEventHandler] text event error: "+e.getClass().getName());}
+		{ handleResponseError(event.getMessage(), e); }
     }
     
     @EventSubscriber
@@ -57,7 +72,7 @@ public class PostLoginEventHandler
     	try 
     	{ handleTextResponse(event.getNewMessage()); }
     	catch(Exception e) 
-		{ System.out.println("[DiscordEventHandler] update text event error: "+e.getClass().getName());}
+		{ handleResponseError(event.getMessage(), e); }
     }
     
     @EventSubscriber
@@ -66,11 +81,35 @@ public class PostLoginEventHandler
     	event.getPlayer().getGuild().getConnectedVoiceChannel().leave();
     }
     
+    private void handleResponseError(IMessage message, Exception e)
+    {
+    	if(e instanceof MissingPermissionsException)
+    	{
+    		MissingPermissionsException mpe = (MissingPermissionsException)e;
+			StringBuilder builder = new StringBuilder();
+			builder.append("I don't have required permissions to respond in `");
+			builder.append(message.getGuild().getName() +"`'s ");
+			builder.append("`#" + message.getChannel().getName() + "` channel. ");
+			builder.append("Please inform an admin that I'm missing the following permissions:\n");
+			
+			for(Permissions perm: mpe.getMissingPermissions())
+				builder.append(":diamonds:" + perm.name() + "\n");
+			
+    		message.getAuthor().getOrCreatePMChannel().sendMessage(builder.toString());
+    	}
+    	else
+    	{
+			System.out.println("[DiscordEventHandler] text event error: "+e.getClass().getName());
+			e.printStackTrace();
+			message.getChannel().sendMessage("Some error occured and I could not recover. Please report this in the support server: https://discord.gg/D5CfFkN");
+		}
+    }
+    
     private void handleTextResponse(IMessage userMsg)
     {
     	//Utility variable
 		Response response;
-		ICommand command;
+		AbstractCommand command;
 		Optional<Input> parseTest;
 		Input userInput;
 		Optional<IMessage> ackMsg = Optional.empty();
@@ -81,9 +120,16 @@ public class PostLoginEventHandler
         
         //If the message follows the syntax, find it in the command map
         userInput = parseTest.get();
-        command = commandMap.get(userInput.getFunction());
+        command = userInput.getCommand();
         if(command == null) //if the command isn't supported, return
         	return;
+        
+        //Enfore rate limit
+        if(channelIsRateLimited(userMsg.getChannel().getLongID()))
+        {
+        	System.out.println("[DiscordEventHandler] Rate limit exceeded for user " + userMsg.getAuthor().getLongID());
+        	return;
+        }
 
         //Send acknowledgement message to alert the user their response is being processed if a web request is being made
         if(command.makesWebRequest())
@@ -110,6 +156,34 @@ public class PostLoginEventHandler
         }
     }
     
+    private boolean channelIsRateLimited(Long channelID)
+    {
+    	//Check if bucket exists for a guild
+    	Bucket bucketForChannel = bucketCache.getIfPresent(channelID);
+    	
+    	//If the bucket does not exist, make one and take a token
+    	if(bucketForChannel == null)
+    	{
+    		bucketForChannel = createBucketForChannel(channelID);
+    		bucketCache.put(channelID, bucketForChannel);
+    		bucketForChannel.tryConsume(1);
+    		return false;
+    	}
+    	
+    	//Otherwise, try to take a token
+    	return !bucketForChannel.tryConsume(1);
+    }
+    
+    private Bucket createBucketForChannel(Long channelID)
+    {
+    	Bandwidth limit = Bandwidth.simple(3, Duration.ofSeconds(10));
+    	Bucket bucket = Bucket4j.builder()
+    						.addLimit(limit)
+    						.build();
+    	
+    	return bucket;
+    }
+    
     private Optional<IMessage> sendAcknowledgement(IMessage userMsg)
     {
     	MessageBuilder reply = new MessageBuilder(userMsg.getClient());
@@ -125,11 +199,7 @@ public class PostLoginEventHandler
     	//Send the audio to the voice channel a user is in. If they are not in a voice channel,
     	//then tell user to join an accessible voice channel
     	if(userMsg.getAuthor().getVoiceStateForGuild(userMsg.getGuild()).getChannel() == null)
-    	{
-    		sendMessage(discordClient, userMsg.getChannel().getLongID(), userMsg.getAuthor().getName() +
-    				", connect to a voice channel to listen to this Pokedex entry!");
     		return false;
-    	}
     	
     	//If dex is already in a voice channel in the guild where the request is from, drop this request
     	List<IVoiceChannel> guildChannels = userMsg.getGuild().getVoiceChannels();
@@ -138,7 +208,7 @@ public class PostLoginEventHandler
         	{
         		sendMessage(discordClient, userMsg.getChannel().getLongID(), userMsg.getAuthor().mention() +
         				", I am currently speaking a dex entry in this server."
-        				+ " If you want to hear your entry spoken then please try again.");
+        				+ " If you want to hear your entry spoken then please wait and try again.");
         		return false;
         	}
     	
@@ -209,6 +279,10 @@ public class PostLoginEventHandler
 	    			reply.send();
 	    			System.out.println("\t[DiscordEventHandler] Response sent.");
 	    		}
+    		}
+    		catch(MissingPermissionsException mpe)
+    		{
+    			handleResponseError(userMsg, mpe);
     		}
     		catch (Exception e)
     		{

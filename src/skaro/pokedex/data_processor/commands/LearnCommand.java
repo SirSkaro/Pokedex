@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
-import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -19,32 +22,24 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class LearnCommand implements ICommand 
+public class LearnCommand extends AbstractCommand
 {
-	private ArgumentRange expectedArgRange;
-	private String commandName;
-	private ArrayList<ArgumentCategory> argCats;
-	private PokeFlexFactory factory;
-	
-	public LearnCommand(PokeFlexFactory pff)
+	public LearnCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
+		super(pff, pc);
 		commandName = "learn".intern();
-		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.MOVE_LIST);
 		expectedArgRange = new ArgumentRange(2,21);
-		factory = pff;
+		
+		aliases.put("knows", Language.ENGLISH);
+		
+		createHelpMessage("primal groudon, roar, attract", "Mew, Thunder, Iron tail, Ice Beam, Stealth Rock, Spikes", "Golurk, Fly", "gible, earthquake, dual chop",
+				"https://i.imgur.com/EkXAXCP.gif");
 	}
 	
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
-	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	public boolean makesWebRequest() { return true; }
-	
-	public String getArguments()
-	{
-		return "<pokemon>, <move>,...,<move>";
-	}
+	public String getArguments() { return "<pokemon>, <move>,...,<move>"; }
 	
 	@SuppressWarnings("incomplete-switch")
 	public boolean inputIsValid(Response reply, Input input)
@@ -134,6 +129,13 @@ public class LearnCommand implements ICommand
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.withColor(ColorTracker.getColorForType(type));
+		this.addRandomExtraMessage(builder);
+		
+		//Add thumbnail
+		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		
+		//Add adopter
+		this.addAdopter(pokemon, builder);
 		
 		return builder.build();
 	}

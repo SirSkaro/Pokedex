@@ -1,6 +1,11 @@
 package skaro.pokedex.core;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -8,6 +13,8 @@ import org.apache.log4j.Logger;
 import com.patreon.PatreonAPI;
 
 import skaro.pokedex.communicator.Publisher;
+import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.CommandMap;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
 import skaro.pokedex.data_processor.commands.CommandsCommand;
@@ -41,12 +48,15 @@ public class Pokedex
 		Configurator configurator;
 		Publisher publisher;
 		
-		CommandLibrary library;
+		CommandMap library;
 		PreLoginEventHandler pleh;
-		PrivilegeChecker checker;
+		PerkChecker checker;
 		
 		IDiscordClient discordClient;
 		PatreonAPI patreonClient;
+		
+		ScheduledExecutorService pokedexThreadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 6);
+		PokeFlexFactory factory;
 		
 		//Parse command line arguments
 		if(args.length != 2)
@@ -88,27 +98,29 @@ public class Pokedex
 		}
 		
 		patreonClient = new PatreonAPI(patreonAccessToken.get());
-		checker = new PrivilegeChecker(patreonClient);
+		checker = new PerkChecker(patreonClient, pokedexThreadPool);
 		
 		/**
 		 * PUBLISHER SETUP
 		 */
 		System.out.println("[Pokedex main] Setting up Publisher");
-		publisher = new Publisher(shardIDToManage, totalShards);
+		publisher = new Publisher(shardIDToManage, totalShards, pokedexThreadPool);
 		
 		/**
 		 * DISCORD SETUP
 		 */
 		//Initialize resources
 		System.out.println("[Pokedex main] Establishing Discord client");
-		library = initCompleteLibrary(new PokeFlexFactory(configurator.getPokeFlexURL()), checker);
-		pleh = new PreLoginEventHandler(library, publisher);
+		factory = new PokeFlexFactory(configurator.getPokeFlexURL(), pokedexThreadPool);
+		library = initCompleteLibrary(factory, checker, pokedexThreadPool);
+		pleh = new PreLoginEventHandler(library, publisher, pokedexThreadPool);
 		discordToken = configurator.getAuthToken("discord");
 		discordClient = initClient(discordToken, shardIDToManage, totalShards);
+		checker.setDiscordClient(discordClient);
 		
 		//Login to Discord
 		System.out.println("[Pokedex main] Logging into Discord");
-		discordClient.getDispatcher().registerListener(pleh);
+		discordClient.getDispatcher().registerListener(pokedexThreadPool, pleh);
 		discordClient.login();
 	}
 	
@@ -135,32 +147,34 @@ public class Pokedex
 	 * This is used for the InputProcessor. Any commands not included here will 
 	 * not be recognized by the input processor, and therefore will not be
 	 * recognized by any command map.
-	 * @return a CommandLibrary of ICommands that are supported for Discord
+	 * @return a CommandLibrary of AbstractCommands that are supported for Discord
 	 */
-	private static CommandLibrary initCompleteLibrary(PokeFlexFactory factory, PrivilegeChecker checker)
+	private static CommandMap initCompleteLibrary(PokeFlexFactory factory, PerkChecker checker, ExecutorService service)
 	{
-		CommandLibrary lib = new CommandLibrary();
+		List<AbstractCommand> commands = new ArrayList<AbstractCommand>();
 		
-		lib.addToLibrary(new RandpokeCommand(factory));
-		lib.addToLibrary(new StatsCommand(factory));
-		lib.addToLibrary(new DataCommand(factory));
-		lib.addToLibrary(new AbilityCommand(factory));
-		lib.addToLibrary(new ItemCommand(factory));
-		lib.addToLibrary(new MoveCommand(factory));
-		lib.addToLibrary(new LearnCommand(factory));
-		lib.addToLibrary(new WeakCommand(factory));
-		lib.addToLibrary(new CoverageCommand(factory));
-		lib.addToLibrary(new DexCommand(factory));
-		lib.addToLibrary(new SetCommand(factory));
-		lib.addToLibrary(new LocationCommand(factory));
-		lib.addToLibrary(new AboutCommand());
-		lib.addToLibrary(new HelpCommand());
-		lib.addToLibrary(new PatreonCommand());
-		lib.addToLibrary(new InviteCommand());
-		lib.addToLibrary(new ShinyCommand(factory, checker));
+		commands.add(new RandpokeCommand(factory, checker));
+		commands.add(new StatsCommand(factory, checker));
+		commands.add(new DataCommand(factory, checker));
+		commands.add(new AbilityCommand(factory, checker));
+		commands.add(new ItemCommand(factory, checker));
+		commands.add(new MoveCommand(factory, checker));
+		commands.add(new LearnCommand(factory, checker));
+		commands.add(new WeakCommand(factory, checker));
+		commands.add(new CoverageCommand(factory, checker));
+		commands.add(new DexCommand(factory, checker));
+		commands.add(new SetCommand(factory, checker));
+		commands.add(new LocationCommand(factory, checker));
+		commands.add(new AboutCommand());
+		commands.add(new PatreonCommand());
+		commands.add(new InviteCommand());
+		commands.add(new ShinyCommand(factory, checker));
 		
-		lib.addToLibrary(new CommandsCommand(lib.getLibrary()));
+		commands.add(new HelpCommand(commands));
+		commands.add(new CommandsCommand(commands));
 		
-		return lib;
+		CommandMap result = new CommandMap(commands, service);
+		
+		return result;
 	}
 }

@@ -4,19 +4,23 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.data_processor.AbstractCommand;
 
 public class Input 
 {
 	private List<AbstractArgument> args;
 	private String function;
-	private InputErrorStatus errorStatus;	//0 = no error, 1 = mismatch argument number, 2 = some invalid argument
+	private InputErrorStatus errorStatus;
+	private Language lang;
+	private AbstractCommand command;
 	
-	public Input(String func)
+	public Input(String func, AbstractCommand cmd, Language l)
 	{
 		args = new ArrayList<AbstractArgument>();
 		function = func;
 		errorStatus = InputErrorStatus.NO_ERROR;
+		lang = l;
+		command = cmd;
 	}
 	
 	//Get and Set methods
@@ -24,6 +28,8 @@ public class Input
 	public String getFunction() { return function; }
 	public boolean isValid() { return errorStatus == InputErrorStatus.NO_ERROR; }
 	public InputErrorStatus getError() { return errorStatus; }
+	public Language getLanguage() { return lang; }
+	public AbstractCommand getCommand() { return command; }
 	
 	public void setFunction(String function) { this.function = function; }
 	public void setErrorStatus(InputErrorStatus status) {this.errorStatus = status; }
@@ -50,6 +56,9 @@ public class Input
 	
 	public String argsToString()
 	{
+		if(args.isEmpty())
+			return "(no input)";
+		
 		StringBuilder builder = new StringBuilder();
 		
 		for(AbstractArgument arg : args)

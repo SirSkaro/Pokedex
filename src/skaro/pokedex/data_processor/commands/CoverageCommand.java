@@ -4,50 +4,49 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.Type;
+import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
+import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
-import skaro.pokedex.input_processor.arguments.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.move.Move;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class CoverageCommand implements ICommand 
+public class CoverageCommand extends AbstractCommand 
 {
-	private ArgumentRange expectedArgRange;
-	private String commandName;
-	private ArrayList<ArgumentCategory> argCats;
-	private PokeFlexFactory factory;
-	
-	public CoverageCommand(PokeFlexFactory pff)
+	public CoverageCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
+		super(pff, pc);
 		commandName = "coverage".intern();
-		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.MOVE_TYPE_LIST);
 		expectedArgRange = new ArgumentRange(1,4);
-		factory = pff;
+		aliases.put("strong", Language.ENGLISH);
+		aliases.put("cov", Language.ENGLISH);
+		aliases.put("effective", Language.ENGLISH);
+		
+		extraMessages.add("You may also like the %weak command!");
+		
+		createHelpMessage("ice, electric", "blizzard, thunder", "Ghost, Fire, Vine Whip, Hyper Beam", "Water",
+				"https://i.imgur.com/MLIpXYN.gif");
 	}
 	
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
-	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	public boolean makesWebRequest() { return true; }
+	public String getArguments() { return "<type/move>,...,<type/move>"; }
 	
-	public String getArguments()
-	{
-		return "<type/move>,...,<type/move>";
-	}
-	
-	public boolean inputIsValid(Response reply, Input input)
+	protected boolean inputIsValid(Response reply, Input input)
 	{
 		if(!input.isValid())
 		{
@@ -83,13 +82,13 @@ public class CoverageCommand implements ICommand
 		
 		//If argument is a move, get the typing
 		TypeInteractionWrapper wrapper;
-		ArrayList<Type> typeList = new ArrayList<Type>();
+		ArrayList<TypeData> typeList = new ArrayList<TypeData>();
 		ArrayList<String> moveNames = new ArrayList<String>();
 		
 		for(int i = 0; i < input.getArgs().size(); i++)
 		{
 			if(input.getArg(i).getCategory() == ArgumentCategory.TYPE)
-				typeList.add(Type.getByName(input.getArg(i).getDbForm()));
+				typeList.add(TypeData.getByName(input.getArg(i).getDbForm()));
 			else	//Category is ArgumentCategory.MOVE
 				moveNames.add(input.getArg(i).getFlexForm());
 		}
@@ -100,7 +99,7 @@ public class CoverageCommand implements ICommand
 		{
 			try
 			{
-				List<Type> typesFromMoves = getMoveTypes(moveNames);
+				List<TypeData> typesFromMoves = getMoveTypes(moveNames);
 				typeList.addAll(typesFromMoves);
 			}
 			catch(Exception e)
@@ -129,20 +128,21 @@ public class CoverageCommand implements ICommand
 		builder.appendField("Immune", getList(wrapper, 0.0), false);
 		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
 		
+		this.addRandomExtraMessage(builder);
 		return builder.build();
 	}
 	
-	private List<Type> getMoveTypes(List<String> moveNames) throws InterruptedException, PokeFlexException
+	private List<TypeData> getMoveTypes(List<String> moveNames) throws InterruptedException, PokeFlexException
 	{
 		List<Object> flexObjs = getMoveFlexObjs(moveNames);
-		List<Type> result = new ArrayList<Type>();
+		List<TypeData> result = new ArrayList<TypeData>();
 		Move move;
-		Type type;
+		TypeData type;
 		
 		for(Object obj : flexObjs)
 		{			
 			move = Move.class.cast(obj);
-			type = Type.getByName(move.getType().getName());
+			type = TypeData.getByName(move.getType().getName());
 			result.add(type);
 		}
 		
@@ -152,7 +152,7 @@ public class CoverageCommand implements ICommand
 	private List<Object> getMoveFlexObjs(List<String> moveNames) throws InterruptedException, PokeFlexException
 	{
 		ArrayList<String> urlParams;
-		List<Request> requests = new ArrayList<Request>();
+		List<PokeFlexRequest> requests = new ArrayList<PokeFlexRequest>();
 		
 		for(String move :moveNames)
 		{
