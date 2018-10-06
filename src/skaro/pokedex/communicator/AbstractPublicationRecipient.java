@@ -42,7 +42,7 @@ public abstract class AbstractPublicationRecipient
 		}
 		
 		authToken = token.get();
-		designatedShardID = configurator.getPublishDesignatedShard("carbonitex");
+		designatedShardID = configurator.getPublishDesignatedShard(configID);
 		return true;
 	}
 	

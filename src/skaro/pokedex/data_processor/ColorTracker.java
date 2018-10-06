@@ -19,7 +19,7 @@ public class ColorTracker
 	{
 		Color result = null;
 		
-		for(Type type : wrapper.getTypes())
+		for(TypeData type : wrapper.getTypes())
 			result = blend(type.toColor(), result);
 		
 		return result;

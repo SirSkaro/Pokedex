@@ -1,11 +1,13 @@
 package skaro.pokedex.data_processor.commands;
 
 import java.awt.Color;
-import java.util.ArrayList;
 
+import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -14,31 +16,22 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class ItemCommand implements ICommand 
+public class ItemCommand extends AbstractCommand
 {
-	private ArgumentRange expectedArgRange;
-	private String commandName;
-	private ArrayList<ArgumentCategory> argCats;
-	private PokeFlexFactory factory;
-	
-	public ItemCommand(PokeFlexFactory pff)
+	public ItemCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
+		super(pff, pc);
 		commandName = "item".intern();
-		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.ITEM);
 		expectedArgRange = new ArgumentRange(1,1);
-		factory = pff;
+		aliases.put("itm", Language.ENGLISH);
+		
+		createHelpMessage("Life Orb", "leftovers", "Choice Band", "eviolite",
+				"https://i.imgur.com/B1NlcYh.gif");
 	}
 	
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
-	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	public boolean makesWebRequest() { return true; }
-	
-	public String getArguments()
-	{
-		return "<item>";
-	}
+	public String getArguments() { return "<item>"; }
 	
 	public boolean inputIsValid(Response reply, Input input)
 	{
@@ -87,7 +80,6 @@ public class ItemCommand implements ICommand
 	private EmbedObject formatEmbed(Item item)
 	{
 		//Organize the data and add it to the reply
-		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
 		
@@ -107,6 +99,7 @@ public class ItemCommand implements ICommand
 		builder.withColor(new Color(0xE89800));
 		builder.withThumbnail(item.getSprites().getDefault());
 		
+		this.addRandomExtraMessage(builder);
 		return builder.build();
 	}
 }

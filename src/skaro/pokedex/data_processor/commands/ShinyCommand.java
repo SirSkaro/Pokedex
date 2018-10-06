@@ -6,10 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import skaro.pokedex.core.Configurator;
-import skaro.pokedex.core.PrivilegeChecker;
+import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
@@ -20,35 +21,24 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class ShinyCommand implements ICommand
+public class ShinyCommand extends AbstractCommand 
 {
-	private ArgumentRange expectedArgRange;
-	private String commandName;
-	private ArrayList<ArgumentCategory> argCats;
-	private PokeFlexFactory factory;
 	private String baseModelPath;
-	private PrivilegeChecker checker;
 	
-	public ShinyCommand(PokeFlexFactory pff, PrivilegeChecker pc)
+	public ShinyCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
+		super(pff, pc);
 		commandName = "shiny".intern();
-		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
-		factory = pff;
 		baseModelPath = Configurator.getInstance().get().getModelBasePath();
-		checker = pc;
+		
+		createHelpMessage("Ponyta", "Solgaleo", "Keldeo resolute", "eevee",
+				"https://i.imgur.com/FLBOsD5.gif");
 	}
 
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
-	public String getCommandName() { return commandName; }
-	public ArrayList<ArgumentCategory> getArgumentCats() { return argCats; }
 	public boolean makesWebRequest() { return true; }
-	
-	public String getArguments()
-	{
-		return "<pokemon>";
-	}
+	public String getArguments() { return "<pokemon>"; }
 	
 	public boolean inputIsValid(Response reply, Input input) 
 	{
@@ -80,7 +70,7 @@ public class ShinyCommand implements ICommand
 		if(!inputIsValid(reply, input))
 			return reply;
 				
-		if(checker.userIsPrivileged(requester))
+		if(checker.userHasCommandPrivileges(requester))
 			formatPrivilegedReply(reply, input);
 		else
 			formatNonPrivilegedReply(reply, input);
@@ -99,6 +89,7 @@ public class ShinyCommand implements ICommand
 			//format embed
 			builder.withImage("attachment://jirachi.gif");
 			builder.withColor(ColorTracker.getColorForType("psychic"));
+			builder.withThumbnail("https://c5.patreon.com/external/logo/become_a_patron_button.png");
 			
 			//specify file path
 			path = baseModelPath + "/jirachi.gif";
@@ -132,7 +123,6 @@ public class ShinyCommand implements ICommand
 			reply.addToReply("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+" | #" + Integer.toString(speciesData.getId()) 
 				+ " | " + TextFormatter.formatGeneration(speciesData.getGeneration().getName()) + "__**");
 			
-			
 			//Upload local file
 			path = baseModelPath + "/" + pokemon.getName() + ".gif";
 			image = new File(path);
@@ -154,6 +144,9 @@ public class ShinyCommand implements ICommand
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.withColor(ColorTracker.getColorForType(type));
+		
+		//Add adopter
+		addAdopter(pokemon, builder);
 		
 		return builder.build();
 	}

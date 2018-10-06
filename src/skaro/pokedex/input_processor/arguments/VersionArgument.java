@@ -3,7 +3,9 @@ package skaro.pokedex.input_processor.arguments;
 import java.util.ArrayList;
 import java.util.List;
 
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.SpellChecker;
 
 public class VersionArgument extends AbstractArgument
@@ -13,7 +15,7 @@ public class VersionArgument extends AbstractArgument
 	static
 	{
 		versions = new ArrayList<String>();
-		versions.add("red"); versions.add("blue"); versions.add("gold"); versions.add("silver");
+		versions.add("red"); versions.add("blue"); versions.add("yellow"); versions.add("gold"); versions.add("silver");
 		versions.add("crystal"); versions.add("ruby"); versions.add("sapphire");
 		versions.add("emerald"); versions.add("leafgreen"); versions.add("firered"); versions.add("diamond");
 		versions.add("pearl"); versions.add("platinum"); versions.add("black");
@@ -28,13 +30,13 @@ public class VersionArgument extends AbstractArgument
 		
 	}
 
-	public void setUp(String argument) 
+	public void setUp(String argument, Language lang) 
 	{
 		//Utility variables
 		SpellChecker sc = SpellChecker.getInstance();
 		
 		//Set up argument
-		this.dbForm = TextFormatter.dbFormat(argument);
+		this.dbForm = TextFormatter.dbFormat(argument, lang);
 		this.cat = ArgumentCategory.VERSION;
 		this.rawInput = argument;
 		
@@ -43,7 +45,7 @@ public class VersionArgument extends AbstractArgument
 		if(!isVersion(this.dbForm))
 		{
 			String correction;
-			correction = sc.spellCheckVersion(argument);
+			correction = sc.spellCheckVersion(argument, lang);
 			
 			if(!isVersion(correction))
 			{
@@ -51,7 +53,7 @@ public class VersionArgument extends AbstractArgument
 				return;
 			}
 			
-			this.dbForm = TextFormatter.dbFormat(correction).intern();
+			this.dbForm = TextFormatter.dbFormat(correction, lang).intern();
 			this.rawInput = correction.intern();
 			this.spellChecked = true;
 		}

@@ -37,14 +37,27 @@
 			"token": { 
 				"debug": "",
 				"production": ""
-			}
+			},
+			
+			"designated_shard": -1
+		},
+		
+		"bots_discord": {
+			"token": { 
+				"debug": "",
+				"production": ""
+			},
+			
+			"designated_shard": -1
 		},
 			
 		"carbonitex": {
 			"token": { 
 				"debug": "",
 				"production": ""
-			}
+			},
+			
+			"designated_shard": -1
 		}
 	},
 	

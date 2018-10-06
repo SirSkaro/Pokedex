@@ -6,36 +6,36 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import skaro.pokedex.core.CommandLibrary;
+import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.CommandMap;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
-import skaro.pokedex.data_processor.commands.ICommand;
-import skaro.pokedex.input_processor.arguments.AbstractArgument;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.ParsedText;
 
 public class InputProcessor 
 {
-	private CommandLibrary commandLibrary;
+	private CommandMap commandLibrary;
 	private Pattern prefixPattern, postfixPattern, mentionPattern;
 	private long botID;
 	
-	public InputProcessor(CommandLibrary lib, Long id)
+	public InputProcessor(CommandMap lib, Long id)
 	{
 		commandLibrary = lib;
 		botID = id;
 		prefixPattern = Pattern.compile("[!%][a-zA-Z]+[\\s]*.*");
 		postfixPattern = Pattern.compile("[a-zA-Z]+[\\s]*[(].*[)]");
-		mentionPattern = Pattern.compile("<@![0-9]+>[\\s]*[a-zA-Z]+[\\s]*.*");
+		mentionPattern = Pattern.compile("<@[0-9]+>[\\s]*[a-zA-Z]+[\\s]*.*");
 	}
 	public Optional<Input> processInput(String input)
 	{
 		//Utility variables
 		Optional<ParsedText> parseTest = parseTextMessage(input);
 		ParsedText parsedText;
-		ICommand command;
+		AbstractCommand command;
 		Input result;
 		List<AbstractArgument> argsFromParse;
 		Iterator<String> argItr;
+		Language lang;
 		
 		//If args is null, then the input does not match the command format. Discard.
 		if(!parseTest.isPresent())
@@ -46,8 +46,9 @@ public class InputProcessor
 		if(!commandLibrary.hasCommand(parsedText.getFunction()))
 			return Optional.empty();
 		
-		command = commandLibrary.getCommand(parsedText.getFunction());
-		result = new Input(parsedText.getFunction());
+		command = commandLibrary.get(parsedText.getFunction());
+		lang = command.getLanguageOfAlias(parsedText.getFunction());
+		result = new Input(parsedText.getFunction(), command, lang);
 		
 		//Check for a legal number of arguments
 		if(!hasExpectedNumberOfArguments(parsedText, command))
@@ -60,7 +61,7 @@ public class InputProcessor
 		argItr = parsedText.getArgumentIterator();
 		for(ArgumentCategory argCat : command.getArgumentCats())
 		{
-			argsFromParse = argCat.parse(argItr);
+			argsFromParse = argCat.parse(argItr, lang);
 			result.addArgs(argsFromParse);
 		}
 		
@@ -74,7 +75,7 @@ public class InputProcessor
 		return Optional.of(result);
 	}
 	
-	private boolean hasExpectedNumberOfArguments(ParsedText text, ICommand cmd)
+	private boolean hasExpectedNumberOfArguments(ParsedText text, AbstractCommand cmd)
 	{
 		ArgumentRange range = cmd.getExpectedArgumentRange();
 		int numArgs = text.getNumberOfArguments();
@@ -147,7 +148,7 @@ public class InputProcessor
     	String id;
     	int indexFunc, indexArgs;
     	
-    	id = msg.substring(msg.indexOf("!") + 1, msg.indexOf(">"));
+    	id = msg.substring(msg.indexOf("@") + 1, msg.indexOf(">"));
     	if(Long.parseLong(id) != botID)
     		return Optional.empty();
 		

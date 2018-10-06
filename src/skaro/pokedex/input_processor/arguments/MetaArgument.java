@@ -3,7 +3,9 @@ package skaro.pokedex.input_processor.arguments;
 import java.util.ArrayList;
 import java.util.List;
 
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 
 public class MetaArgument extends AbstractArgument 
 {
@@ -12,9 +14,8 @@ public class MetaArgument extends AbstractArgument
 	static
 	{
 		metas = new ArrayList<String>();
-		metas.add("ag"); metas.add("battlespotdoubles"); metas.add("battlespotsingles");
-		metas.add("doubles"); metas.add("lc"); metas.add("nu"); metas.add("uber");
-		metas.add("ou"); metas.add("pu"); metas.add("ru"); metas.add("uu"); metas.add("vgc");
+		metas.add("lc"); metas.add("nu"); metas.add("uber");
+		metas.add("ou"); metas.add("pu"); metas.add("ru"); metas.add("uu");
 	}
 	
 	public MetaArgument()
@@ -22,10 +23,10 @@ public class MetaArgument extends AbstractArgument
 		
 	}
 
-	public void setUp(String argument) 
+	public void setUp(String argument, Language lang) 
 	{
 		//Set up argument
-		this.dbForm = TextFormatter.dbFormat(argument);
+		this.dbForm = TextFormatter.dbFormat(argument, lang);
 		this.cat = ArgumentCategory.META;
 		this.rawInput = argument;
 		

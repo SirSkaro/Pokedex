@@ -3,43 +3,55 @@ package skaro.pokedex.input_processor;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.swabunga.spell.engine.SpellDictionary;
 import com.swabunga.spell.engine.SpellDictionaryHashMap;
 import com.swabunga.spell.engine.Word;
 
 import skaro.pokedex.core.ResourceManager;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 
 public class SpellChecker 
 {
-	private SpellDictionary pokeDict;
-	private SpellDictionary itemDict;
-	private SpellDictionary typeDict;
-	private SpellDictionary abilityDict;
-	private SpellDictionary moveDict;
-	private SpellDictionary versionDict;
-	private SpellDictionary regionDict;
+	private Map<Language, SpellDictionary> pokeDict;
+	private Map<Language, SpellDictionary> itemDict;
+	private Map<Language, SpellDictionary> typeDict;
+	private Map<Language, SpellDictionary> abilityDict;
+	private Map<Language, SpellDictionary> moveDict;
+	private Map<Language, SpellDictionary> versionDict;
 	private static SpellChecker instance;
 	
 	private SpellChecker() throws IOException
 	{
-		pokeDict = new SpellDictionaryHashMap();
-		itemDict = new SpellDictionaryHashMap();
-		typeDict = new SpellDictionaryHashMap();
-		abilityDict = new SpellDictionaryHashMap();
-		moveDict = new SpellDictionaryHashMap();
-		versionDict = new SpellDictionaryHashMap();
-		regionDict = new SpellDictionaryHashMap();
+		List<Language> supportedLanguages = new ArrayList<Language>();
+		supportedLanguages.add(Language.ENGLISH);
+		supportedLanguages.add(Language.SPANISH);
+		supportedLanguages.add(Language.FRENCH);
+		supportedLanguages.add(Language.ITALIAN);
+		supportedLanguages.add(Language.GERMAN);
+		supportedLanguages.add(Language.JAPANESE_HIR_KAT);
+		supportedLanguages.add(Language.CHINESE_SIMPMLIFIED);
+		supportedLanguages.add(Language.KOREAN);
 		
-		populateDict(pokeDict, "pokemon.txt");
-		populateDict(itemDict, "items.txt");
-		populateDict(typeDict, "types.txt");
-		populateDict(abilityDict, "abilities.txt");
-		populateDict(moveDict, "moves.txt");
-		populateDict(versionDict, "versions.txt");
-		populateDict(regionDict, "regions.txt");
+		pokeDict = new HashMap<Language, SpellDictionary>();
+		itemDict = new HashMap<Language, SpellDictionary>();
+		typeDict = new HashMap<Language, SpellDictionary>();
+		abilityDict = new HashMap<Language, SpellDictionary>();
+		moveDict = new HashMap<Language, SpellDictionary>();
+		versionDict = new HashMap<Language, SpellDictionary>();
+		
+		for(Language lang : supportedLanguages)
+		{
+			populateDict(pokeDict, "pokemon.txt", lang);
+			populateDict(itemDict, "items.txt", lang);
+			populateDict(typeDict, "types.txt", lang);
+			populateDict(abilityDict, "abilities.txt", lang);
+			populateDict(moveDict, "moves.txt", lang);
+			populateDict(versionDict, "versions.txt", lang);
+		}
 	}
 	
 	public static SpellChecker getInstance()
@@ -55,34 +67,6 @@ public class SpellChecker
 		return instance;
 	}
 	
-	/**
-	 * A method to spell check any String
-	 * @param arg - The string to spell check
-	 * @param ac - the category of the string to check
-	 * @return - the corrected String if a correction could be found. The same string if no correction could be found
-	 * 		null if no need to spell check
-	 */
-	public String spellCheckArgument(String arg, ArgumentCategory ac)
-	{
-		switch(ac)
-		{
-			case ABILITY:
-				return spellCheckAbility(arg);
-			case ITEM:
-				return spellCheckItem(arg);
-			case MOVE:
-				return spellCheckMove(arg);
-			case POKEMON:
-				return spellCheckPokemon(arg);
-			case TYPE:
-				return spellCheckType(arg);
-			case VERSION:
-				return spellCheckVersion(arg);
-			default:
-				return null;
-		}
-	}
-	
 	private String getBestSuggestion(SpellDictionary dict, String word)
 	{
 		List<?> suggestions = dict.getSuggestions(word, 5);
@@ -94,7 +78,7 @@ public class SpellChecker
 	}
 	
 	//Spell checks a Pokemon
-	public String spellCheckPokemon(String poke)
+	public String spellCheckPokemon(String poke, Language lang)
 	{
 		poke = poke.toLowerCase();
 		String[] temp = null;
@@ -107,7 +91,7 @@ public class SpellChecker
 			if(temp.length > 3)
 				return null;
 			
-			temp[0] = getBestSuggestion(pokeDict, temp[0]);
+			temp[0] = getBestSuggestion(pokeDict.get(lang), temp[0]);
 			
 			//Check for slang that is often used
 			if(temp[1].equalsIgnoreCase("male")) //for nidoran male
@@ -126,7 +110,7 @@ public class SpellChecker
 			else if(temp[1].equalsIgnoreCase("H"))
 				temp[1] = "heat";
 			else
-				temp[1] = getBestSuggestion(pokeDict, temp[1]);
+				temp[1] = getBestSuggestion(pokeDict.get(lang), temp[1]);
 			
 			//System.out.println(temp[1]);
 			
@@ -140,7 +124,7 @@ public class SpellChecker
 			if(temp.length > 3)
 				return null;
 			
-			temp[0] = getBestSuggestion(pokeDict, temp[0]);
+			temp[0] = getBestSuggestion(pokeDict.get(lang), temp[0]);
 			
 			//Check for slang that is often used
 			if(temp[1].equalsIgnoreCase("male")) //for nidoran male
@@ -159,128 +143,87 @@ public class SpellChecker
 			else if(temp[1].equalsIgnoreCase("H"))
 				temp[1] = "heat";
 			else
-				temp[1] = getBestSuggestion(pokeDict, temp[1]);
+				temp[1] = getBestSuggestion(pokeDict.get(lang), temp[1]);
 			
 			return temp[0]+" "+temp[1]+((temp.length == 3) ? " "+temp[2] : "");
 		}
 		
 		else
-			return getBestSuggestion(pokeDict, poke);
+			return getBestSuggestion(pokeDict.get(lang), poke);
 	}
 	
 	//Spell checks abilities
-	public String spellCheckAbility(String abil)
+	public String spellCheckAbility(String abil, Language lang)
 	{
 		abil = abil.toLowerCase();
 		String[] temp = abil.split(" ");
 		StringBuilder output = new StringBuilder();
 		for(int i = 0; i < temp.length; i++)
-		output.append(getBestSuggestion(abilityDict, temp[i]) + " ");
+			output.append(getBestSuggestion(abilityDict.get(lang), temp[i]) + " ");
 		
 		return output.toString().trim();
 	}
 	
 	//Spell checks items
-	public String spellCheckItem(String item)
+	public String spellCheckItem(String item, Language lang)
 	{
 		item = item.toLowerCase();
 		String[] temp = item.split(" ");
 		StringBuilder output = new StringBuilder();
 		for(int i = 0; i < temp.length; i++)
-			output.append(getBestSuggestion(itemDict, temp[i]) + " ");
+			output.append(getBestSuggestion(itemDict.get(lang), temp[i]) + " ");
 			
 		return output.toString().trim();
 	}
 	
 	//Spell checks moves
-	public String spellCheckMove(String move)
+	public String spellCheckMove(String move, Language lang)
 	{
 		move = move.toLowerCase();
 		String[] temp = move.split(" ");
 		StringBuilder output = new StringBuilder();
 		for(int i = 0; i < temp.length; i++)
-			output.append(getBestSuggestion(moveDict, temp[i]) + " ");
+			output.append(getBestSuggestion(moveDict.get(lang), temp[i]) + " ");
 		
 		return output.toString().trim();
 	}
 	
 	//Spell checks types
-	public String spellCheckType(String type)
+	public String spellCheckType(String type, Language lang)
 	{
 		type = type.toLowerCase();
 		String[] temp = type.split(" ");
 		StringBuilder output = new StringBuilder();
 		for(int i = 0; i < temp.length; i++)
-			output.append(getBestSuggestion(typeDict, temp[i]) + " ");
+			output.append(getBestSuggestion(typeDict.get(lang), temp[i]) + " ");
 		
 		return output.toString().trim();
 	}
 	
-	//Spell checks region
-	@SuppressWarnings("unused")
-	public String spellCheckRegion(String reg)
+	public String spellCheckVersion(String ver, Language lang)
 	{
-		reg = reg.toLowerCase();
-		return getBestSuggestion(regionDict, reg);
-	}
-	
-	//Spell checks artist
-	public String spellCheckVersion(String ver)
-	{
-		StringBuilder version = new StringBuilder(ver.toLowerCase());
-		int index;
-		
-		//Check for abbreviations
-		if((index = version.indexOf("1")) != -1)
-			version.replace(index, index + 1, "");
-			//version.replace("1", "");
-		else if((index = version.indexOf("one")) != -1)
-			version.replace(index, index + 3, "");
-			//ver.replace("one", "");
-		else if((index = version.indexOf("two")) != -1)
-			version.replace(index, index + 3, "2");
-			//ver.replace("two", "2");
-		else if((index = version.indexOf("as")) != -1)
-			version.replace(index, index + 2, "alpha sapphire");
-			//ver.replace("as", "alpha sapphire");
-		else if((index = version.indexOf("or")) != -1)
-			version.replace(index, index + 2, "omega ruby");
-			//ver.replace("or", "omega ruby");
-		else if((index = version.indexOf("ss")) != -1)
-			version.replace(index, index + 2, "soul silver");
-			//ver.replace("ss", "soul silver");
-		else if((index = version.indexOf("hg")) != -1)
-			version.replace(index, index + 2, "heart gold");
-			//ver.replace("hg", "heart gold");
-		else if((index = version.indexOf("fr")) != -1)
-			version.replace(index, index + 2, "fire red");
-			//ver.replace("fr", "fire red");
-		else if((index = version.indexOf("lg")) != -1)
-			version.replace(index, index + 2, "leaf green");
-			//ver.replace("lg", "leaf green");
-		
-		String[] temp = version.toString().split(" ");
+		String[] temp = ver.split(" ");
 		StringBuilder output = new StringBuilder();
 		for(int i = 0; i < temp.length; i++)
-			output.append(getBestSuggestion(versionDict, temp[i]) + " ");
+			output.append(getBestSuggestion(versionDict.get(lang), temp[i]) + " ");
 
 		return output.toString().trim();
 	}
 	
 	//Helper method to train spell checkers
-	private void populateDict(SpellDictionary dict, String fileName) throws IOException
+	private void populateDict(Map<Language, SpellDictionary> dict, String fileName, Language lang) throws IOException
 	{
 		InputStreamReader reader;
 		BufferedReader bReader;
 		String line = null;
-		reader = new InputStreamReader(ResourceManager.getDictionaryResource(fileName));
+		SpellDictionary tempDict = new SpellDictionaryHashMap();
+		reader = new InputStreamReader(ResourceManager.getDictionaryResource(fileName, lang));
 		bReader = new BufferedReader(reader);
 		
 		while((line = bReader.readLine()) != null)
-		{
-			dict.addWord(line.toLowerCase());
-		}
+			tempDict.addWord(line.toLowerCase());
 		
+		dict.put(lang, tempDict);
 		bReader.close();
 	}
 }

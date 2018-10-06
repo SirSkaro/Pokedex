@@ -1,9 +1,12 @@
-package skaro.pokedex.data_processor;
+package skaro.pokedex.data_processor.formatters;
 
 import java.util.TreeMap;
 
 //import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import skaro.pokedex.input_processor.Language;
 
 public class TextFormatter 
 {
@@ -34,6 +37,14 @@ public class TextFormatter
 			string = "generation-vii";
 		String[] words = string.split("-");
 		return (WordUtils.capitalize(words[0]) + " " + words[1].toUpperCase()).intern();
+	}
+	
+	public static String formatGeneration(String string, Language lang)
+	{
+		if(string.contains("sun"))
+			string = "generation-vii";
+		String[] words = string.split("-");
+		return (CommonData.GENERATION.getInLanguage(lang) + " " + words[1].toUpperCase()).intern();
 	}
 	
 	public static String formatGeneration(int gen)
@@ -83,7 +94,7 @@ public class TextFormatter
 	 * @param s - pokemon name
 	 * @return formatted String
 	 */
-	public static String dbFormat(String s)
+	public static String dbFormat(String s, Language lang)
 	{
 		if(s == null)
 			return "";
@@ -146,6 +157,10 @@ public class TextFormatter
 			s = s.replace("\"", "");
 		if(s.contains("'"))
 			s = s.replace("'", "");
+		
+		//Remove accents
+		if(lang != Language.KOREAN)
+			s = StringUtils.stripAccents(s);
 		
 		return s.intern();
 	}

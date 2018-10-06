@@ -4,31 +4,33 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 
-import skaro.pokedex.data_processor.TextFormatter;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.SpellChecker;
 
 public class MoveArgument extends AbstractArgument {
 
 	@Override
-	public void setUp(String argument) 
+	public void setUp(String argument, Language lang) 
 	{
 		//Utility variables
 		SpellChecker sc = SpellChecker.getInstance();
 		
 		//Set up argument
-		this.dbForm = TextFormatter.dbFormat(argument);
+		this.dbForm = TextFormatter.dbFormat(argument, lang);
 		this.cat = ArgumentCategory.MOVE;
 		this.rawInput = argument;
 		
 		//Check if resource is recognized. If it is not recognized, attempt to spell check it.
 		//If it is still not recognized, then return the argument as invalid (default)
-		if(!isMove(this.dbForm))
+		if(!isMove(this.dbForm, lang))
 		{
 			String correction;
-			correction = sc.spellCheckMove(argument);
+			correction = sc.spellCheckMove(argument, lang);
 			
-			this.dbForm = TextFormatter.dbFormat(correction).intern();
-			if(!isMove(this.dbForm))
+			this.dbForm = TextFormatter.dbFormat(correction, lang).intern();
+			if(!isMove(this.dbForm, lang))
 			{
 				this.valid = false;
 				return;
@@ -39,12 +41,14 @@ public class MoveArgument extends AbstractArgument {
 		}
 		
 		this.valid = true;
-		this.flexForm = sqlManager.getMoveFlexForm(dbForm).get();
+		this.flexForm = sqlManager.getMoveFlexForm(dbForm, lang).get();
 	}
 
-	private boolean isMove(String s)
+	private boolean isMove(String s, Language lang)
 	{
-		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT mid FROM Move WHERE mid = '"+s+"-m';");
+		String attribute = lang.getSQLAttribute();
+		
+		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT "+attribute+" FROM Move WHERE "+attribute+" = '"+s+"';");
 		boolean resourceExists = false;
 		
 		if(resultOptional.isPresent())
