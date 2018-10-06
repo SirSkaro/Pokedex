@@ -54,7 +54,7 @@ public class AboutCommand extends AbstractCommand
 		builder.appendField("License","[Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/)",true);
 		builder.appendField("Recognitions", "Data provided by PokeAPI and Pokemon Showdown", true);
 		builder.appendField("Github", "[Pokedex is open source!](https://github.com/SirSkaro/Pokedex)", true);
-		builder.appendField("Libraries/Services", "Discord4J, MaryTTS, MySQL, EHCache, Jazzy, PokeAPI", false);
+		builder.appendField("Libraries/Services", "Discord4J, MaryTTS, MySQL, Caffine, Bucket4J, Jazzy, PokeAPI", false);
 		builder.appendField("Pledge on Patron!", "[Support Pokedex and get perks!](https://www.patreon.com/sirskaro)", true);
 		builder.appendField("Special Thanks", "PokeaimMD, Honko, the Pokemon Showdown Dev Team, "
 				+ "and the Bulbapedia Community", false);

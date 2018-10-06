@@ -4,19 +4,23 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import skaro.pokedex.data_processor.AbstractCommand;
+
 public class Input 
 {
 	private List<AbstractArgument> args;
 	private String function;
 	private InputErrorStatus errorStatus;
 	private Language lang;
+	private AbstractCommand command;
 	
-	public Input(String func, Language l)
+	public Input(String func, AbstractCommand cmd, Language l)
 	{
 		args = new ArrayList<AbstractArgument>();
 		function = func;
 		errorStatus = InputErrorStatus.NO_ERROR;
 		lang = l;
+		command = cmd;
 	}
 	
 	//Get and Set methods
@@ -25,6 +29,7 @@ public class Input
 	public boolean isValid() { return errorStatus == InputErrorStatus.NO_ERROR; }
 	public InputErrorStatus getError() { return errorStatus; }
 	public Language getLanguage() { return lang; }
+	public AbstractCommand getCommand() { return command; }
 	
 	public void setFunction(String function) { this.function = function; }
 	public void setErrorStatus(InputErrorStatus status) {this.errorStatus = status; }

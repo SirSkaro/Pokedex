@@ -2,16 +2,11 @@ package skaro.pokedex.core;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.ehcache.Cache;
-import org.ehcache.CacheManager;
-import org.ehcache.config.builders.CacheConfigurationBuilder;
-import org.ehcache.config.builders.CacheManagerBuilder;
-import org.ehcache.config.builders.ResourcePoolsBuilder;
-import org.ehcache.expiry.Duration;
-import org.ehcache.expiry.Expirations;
-
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.patreon.PatreonAPI;
 import com.patreon.resources.Campaign;
@@ -29,15 +24,13 @@ public class PerkChecker
 	private IDiscordClient discordClient;
 	private MySQLManager sqlManager;
 	
-	public PerkChecker(PatreonAPI pClient)
+	public PerkChecker(PatreonAPI pClient, ScheduledExecutorService ses)
 	{
-		CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder().withCache("privilegedUserCache",
-		        CacheConfigurationBuilder.newCacheConfigurationBuilder(Long.class, IUser.class,
-		            ResourcePoolsBuilder.heap(500))
-		            .withExpiry(Expirations.timeToLiveExpiration(new Duration(30, TimeUnit.MINUTES)))
-		            .build()).build(true);
-		
-		privilegedUserCache = cacheManager.getCache("privilegedUserCache", Long.class, IUser.class);
+		privilegedUserCache = Caffeine.newBuilder()
+				.maximumSize(5)
+				.executor(ses)
+				.expireAfterWrite(30, TimeUnit.MINUTES)
+				.build();
 		
 		patreonClient = pClient;
 		sqlManager = MySQLManager.getInstance();
@@ -50,15 +43,15 @@ public class PerkChecker
 	
 	public IUser fetchDiscordUser(long userID)
 	{
-		if(privilegedUserCache.containsKey(userID))
-			return privilegedUserCache.get(userID);
+		if(privilegedUserCache.asMap().containsKey(userID))
+			return privilegedUserCache.getIfPresent(userID);
 		
 		return discordClient.fetchUser(userID);
 	}
 	
 	public boolean userHasCommandPrivileges(IUser user)
 	{
-		if(privilegedUserCache.containsKey(user.getLongID()) || sqlManager.userIsDiscordVIP(user.getLongID()))
+		if(privilegedUserCache.asMap().containsKey(user.getLongID()) || sqlManager.userIsDiscordVIP(user.getLongID()))
 			return true;
 		
 		Optional<User> patronCheck = getPatronByDiscordID(user.getLongID());
@@ -88,7 +81,7 @@ public class PerkChecker
 			return Optional.empty();
 		
 		//Check if user is still a Patron. First check the cache
-		if(privilegedUserCache.containsKey(userID) || sqlManager.userIsDiscordVIP(userID))
+		if(privilegedUserCache.asMap().containsKey(userID) || sqlManager.userIsDiscordVIP(userID))
 			return result;
 			
 		//Ask Patreon's API if user is still pledged. If so, cache the user and return the adopted Pokemon

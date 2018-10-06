@@ -65,7 +65,7 @@ public class PreLoginEventHandler
 		
     	
     	System.out.println("[DiscordEventHandler] Finished logging into Discord. Trading event handlers");
-    	plev = new PostLoginEventHandler(library, discordClient.getOurUser().getLongID());
+    	plev = new PostLoginEventHandler(library, executor, discordClient.getOurUser().getLongID());
     	discordClient.getDispatcher().unregisterListener(this);
     	discordClient.getDispatcher().registerListener(executor, plev);
     }

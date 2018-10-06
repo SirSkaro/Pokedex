@@ -1,17 +1,12 @@
 package skaro.pokedex.communicator;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.ehcache.Cache;
-import org.ehcache.Cache.Entry;
-import org.ehcache.CacheManager;
-import org.ehcache.config.builders.CacheConfigurationBuilder;
-import org.ehcache.config.builders.CacheManagerBuilder;
-import org.ehcache.config.builders.ResourcePoolsBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 import skaro.pokedex.communicator.publish_recipients.BotsDiscordRecipient;
 import skaro.pokedex.communicator.publish_recipients.CarbonitexRecipient;
@@ -30,14 +25,10 @@ public class Publisher
 		totalShards = shardCount;
 		executor = ses;
 		
-		CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
-			.withCache("publicationRecipientCache",
-					CacheConfigurationBuilder.newCacheConfigurationBuilder(String.class, AbstractPublicationRecipient.class,
-							ResourcePoolsBuilder.heap(50))
-					.build())
-			.build(true);
-		
-		publicationRecipientCache = cacheManager.getCache("publicationRecipientCache", String.class, AbstractPublicationRecipient.class);
+		publicationRecipientCache = Caffeine.newBuilder()
+				.maximumSize(3)
+				.executor(ses)
+				.build();
 	}
 	
 	public void populatePublicationRecipients(IDiscordClient discordClient)
@@ -60,9 +51,8 @@ public class Publisher
 		{
 			@Override
 			public void run() { 
-				for(Iterator<Entry<String, AbstractPublicationRecipient>> itr = publicationRecipientCache.iterator(); itr.hasNext(); )
+				for(AbstractPublicationRecipient recipient : publicationRecipientCache.asMap().values())
 				{
-					AbstractPublicationRecipient recipient = itr.next().getValue();
 					try {recipient.sendPublication(shardID);}
 					catch(Exception e) { System.out.println("[Publisher] failed to send publication for "+recipient.getConfigID());};
 				}

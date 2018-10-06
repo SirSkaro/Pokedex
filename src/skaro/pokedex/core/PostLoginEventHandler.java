@@ -2,9 +2,18 @@ package skaro.pokedex.core;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Bucket4j;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.CommandMap;
 import skaro.pokedex.data_processor.Response;
@@ -27,13 +36,18 @@ import sx.blah.discord.util.audio.events.TrackFinishEvent;
 
 public class PostLoginEventHandler 
 {
-	private CommandMap commandMap;
 	private InputProcessor processor;
+	private Cache<Long, Bucket> bucketCache;
 	
-	public PostLoginEventHandler(CommandMap lib, Long botID)
+	public PostLoginEventHandler(CommandMap lib, Executor threadPool, Long botID)
 	{
 		processor = new InputProcessor(lib, botID);
-		commandMap = lib;
+		bucketCache = Caffeine.newBuilder()
+				.executor(threadPool)
+				.weakValues()
+				.expireAfterAccess(10, TimeUnit.SECONDS)
+				.maximumSize(50)
+				.build();
 	}
 	
 	 @EventSubscriber
@@ -88,9 +102,16 @@ public class PostLoginEventHandler
         
         //If the message follows the syntax, find it in the command map
         userInput = parseTest.get();
-        command = commandMap.get(userInput.getFunction());
+        command = userInput.getCommand();
         if(command == null) //if the command isn't supported, return
         	return;
+        
+        //Enfore rate limit
+        if(guildIsRateLimited(userMsg.getGuild().getLongID()))
+        {
+        	System.out.println("[DiscordEventHandler] Rate limit exceeded for user " + userMsg.getAuthor().getLongID());
+        	return;
+        }
 
         //Send acknowledgement message to alert the user their response is being processed if a web request is being made
         if(command.makesWebRequest())
@@ -115,6 +136,34 @@ public class PostLoginEventHandler
 	        			AudioPlayer.getAudioPlayerForGuild(userMsg.getGuild()), new AudioPlayer.Track(response.getAudioReply()),
 	        			userMsg.getChannel().getLongID(), userMsg.getAuthor().mention());
         }
+    }
+    
+    private boolean guildIsRateLimited(Long guildID)
+    {
+    	//Check if bucket exists for a guild
+    	Bucket bucketForGuild = bucketCache.getIfPresent(guildID);
+    	
+    	//If the bucket does not exist, make one and take a token
+    	if(bucketForGuild == null)
+    	{
+    		bucketForGuild = createBucketForGuild(guildID);
+    		bucketCache.put(guildID, bucketForGuild);
+    		bucketForGuild.tryConsume(1);
+    		return false;
+    	}
+    	
+    	//Otherwise, try to take a token
+    	return !bucketForGuild.tryConsume(1);
+    }
+    
+    private Bucket createBucketForGuild(Long guildID)
+    {
+    	Bandwidth limit = Bandwidth.simple(3, Duration.ofSeconds(10));
+    	Bucket bucket = Bucket4j.builder()
+    						.addLimit(limit)
+    						.build();
+    	
+    	return bucket;
     }
     
     private Optional<IMessage> sendAcknowledgement(IMessage userMsg)

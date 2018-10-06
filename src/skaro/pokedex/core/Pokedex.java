@@ -55,7 +55,7 @@ public class Pokedex
 		IDiscordClient discordClient;
 		PatreonAPI patreonClient;
 		
-		ScheduledExecutorService pokedexThreadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 4);
+		ScheduledExecutorService pokedexThreadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 6);
 		PokeFlexFactory factory;
 		
 		//Parse command line arguments
@@ -98,7 +98,7 @@ public class Pokedex
 		}
 		
 		patreonClient = new PatreonAPI(patreonAccessToken.get());
-		checker = new PerkChecker(patreonClient);
+		checker = new PerkChecker(patreonClient, pokedexThreadPool);
 		
 		/**
 		 * PUBLISHER SETUP

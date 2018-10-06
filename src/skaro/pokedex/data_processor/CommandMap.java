@@ -3,35 +3,33 @@ package skaro.pokedex.data_processor;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-import org.ehcache.UserManagedCache;
-import org.ehcache.config.builders.ResourcePoolsBuilder;
-import org.ehcache.config.builders.UserManagedCacheBuilder;
-import org.ehcache.config.units.EntryUnit;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 public class CommandMap 
 {
-	private UserManagedCache<String, AbstractCommand> cache;
+	private Cache<String, AbstractCommand> cache;
 	
 	public CommandMap(List<AbstractCommand> commands, ExecutorService threadPool)
 	{
 		int cacheSize = getCacheEntrySize(commands);
 		
-		cache = UserManagedCacheBuilder.newUserManagedCacheBuilder(String.class, AbstractCommand.class)
-				.withEventExecutors(threadPool, threadPool)
-				.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(cacheSize, EntryUnit.ENTRIES))
-				.build(true);
-		
+		cache = Caffeine.newBuilder()
+					.maximumSize(cacheSize)
+					.executor(threadPool)
+					.build();
+				
 		initializeCache(commands);
 	}
 	
 	public boolean hasCommand(String cmd)
 	{
-		return cache.containsKey(cmd);
+		return cache.asMap().containsKey(cmd);
 	}
 	
 	public AbstractCommand get(String key)
 	{
-		return cache.get(key);
+		return cache.getIfPresent(key);
 	}
 	
 	private int getCacheEntrySize(List<AbstractCommand> commands)
