@@ -50,11 +50,12 @@ Postfix: command()
 * Discord4J
 * SLF4J
 * MaryTTS
-* EHCache
+* Caffeine
 * MySQL Connector
 * Jazzy
 * PokeFlex Java API
 * Patreon-Java
+* Bucket4J
 
 ### External
 * PokeAPI
