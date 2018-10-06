@@ -79,7 +79,7 @@ public class Pokedex
 
 		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
-		configurator = Configurator.initializeConfigurator(true);
+		configurator = Configurator.initializeConfigurator(false);
 		
 		//Set logging level
 		Logger logger4j = org.apache.log4j.Logger.getRootLogger();
