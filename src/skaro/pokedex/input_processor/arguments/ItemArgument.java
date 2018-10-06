@@ -41,15 +41,14 @@ public class ItemArgument extends AbstractArgument {
 		}
 		
 		this.valid = true;
-		this.flexForm = sqlManager.getItemFlexForm(dbForm).get();
+		this.flexForm = sqlManager.getItemFlexForm(dbForm, lang).get();
 	}
 	
 	private boolean isItem(String s, Language lang)
 	{
-		String attribute = (lang == Language.ENGLISH ? "iid" : lang.getSQLAttribute());
-		String value = (lang == Language.ENGLISH ? s + "-i" : s);
+		String attribute = lang.getSQLAttribute();
 		
-		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT "+attribute+" FROM Item WHERE "+attribute+" = '"+value+"';");
+		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT "+attribute+" FROM Item WHERE "+attribute+" = '"+s+"';");
 		boolean resourceExists = false;
 		
 		if(resultOptional.isPresent())

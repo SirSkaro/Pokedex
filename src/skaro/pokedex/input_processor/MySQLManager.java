@@ -100,9 +100,9 @@ public class MySQLManager
 		return getFlexForm(dataCheck.get());
 	}
 	
-	public Optional<String> getItemFlexForm(String dbForm)
+	public Optional<String> getItemFlexForm(String dbForm, Language lang)
 	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Item WHERE iid = '"+dbForm+"-i';");
+		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Item WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
 		
 		if(!dataCheck.isPresent())
 			return Optional.empty();
