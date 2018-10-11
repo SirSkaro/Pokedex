@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -40,7 +40,7 @@ public class PostLoginEventHandler
 	private InputProcessor processor;
 	private Cache<Long, Bucket> bucketCache;
 	
-	public PostLoginEventHandler(CommandMap lib, Executor threadPool, Long botID)
+	public PostLoginEventHandler(CommandMap lib, ScheduledExecutorService threadPool, Long botID)
 	{
 		processor = new InputProcessor(lib, botID);
 		bucketCache = Caffeine.newBuilder()
@@ -49,6 +49,15 @@ public class PostLoginEventHandler
 				.expireAfterAccess(10, TimeUnit.SECONDS)
 				.maximumSize(50)
 				.build();
+		
+		//Schedule a task to clean up the cache every hour
+		threadPool.scheduleAtFixedRate(new Runnable() 
+		{
+			@Override
+			public void run() {
+					bucketCache.cleanUp();
+			}}
+		, 0, 60, TimeUnit.MINUTES);
 	}
 	
 	 @EventSubscriber
