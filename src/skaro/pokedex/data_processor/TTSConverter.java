@@ -25,7 +25,7 @@ public class TTSConverter
     		maryTTS = new LocalMaryInterface();
     		voiceMap = new HashMap<Language,String>();
     		
-    		voiceMap.put(Language.ENGLISH, "cmu-slt-hsmm");
+    		voiceMap.put(Language.ENGLISH, "dfki-spike-hsmm");
     		voiceMap.put(Language.FRENCH, "enst-dennys-hsmm");
     		voiceMap.put(Language.GERMAN, "dfki-pavoque-neutral-hsmm");
     		voiceMap.put(Language.ITALIAN, "istc-lucia-hsmm");

@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>Pokedex</groupId>
 	<artifactId>Pokedex</artifactId>
-	<version>5.5.0</version>
+	<version>5.5.1</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>
@@ -69,7 +69,7 @@
 		<!-- MaryTTS English -->
 		<dependency>
 			<groupId>de.dfki.mary</groupId>
-			<artifactId>voice-cmu-slt-hsmm</artifactId>
+			<artifactId>voice-dfki-spike-hsmm</artifactId>
 			<version>5.2</version>
 			<exclusions>
 				<exclusion>
