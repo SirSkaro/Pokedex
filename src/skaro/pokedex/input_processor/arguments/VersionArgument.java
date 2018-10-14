@@ -28,7 +28,7 @@ public class VersionArgument extends AbstractArgument
 		
 		//Check if resource is recognized. If it is not recognized, attempt to spell check it.
 		//If it is still not recognized, then return the argument as invalid (default)
-		if(!isVersion(this.getFlexForm(), lang))
+		if(!isVersion(this.dbForm, lang))
 		{
 			String correction;
 			correction = sc.spellCheckVersion(argument, lang);
