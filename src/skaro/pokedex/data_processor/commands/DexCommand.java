@@ -36,15 +36,16 @@ public class DexCommand extends AbstractCommand
 		
 		aliases.put("pokedex", Language.ENGLISH);
 		aliases.put("entry", Language.ENGLISH);
-//		aliases.put("giib", Language.KOREAN);
-//		aliases.put("entrada", Language.SPANISH);
-//		aliases.put("iscrizione", Language.ITALIAN);
-//		aliases.put("eintrag", Language.GERMAN);
-//		aliases.put("entrée", Language.FRENCH);
-//		aliases.put("tiáomù", Language.CHINESE_SIMPMLIFIED);
-//		aliases.put("entori", Language.JAPANESE_HIR_KAT);
+		aliases.put("giib", Language.KOREAN);
+		aliases.put("entrada", Language.SPANISH);
+		aliases.put("iscrizione", Language.ITALIAN);
+		aliases.put("eintrag", Language.GERMAN);
+		aliases.put("entrée", Language.FRENCH);
+		aliases.put("entree", Language.FRENCH);
+		aliases.put("tiáomù", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("entori", Language.JAPANESE_HIR_KAT);
 		
-		extraMessages.add("Connect to a voice channel to hear entries spoken! (English only)");
+		extraMessages.add("Connect to a voice channel to hear entries spoken! (English, German, Italian, and French only)");
 		
 		createHelpMessage("Mew, Red", "kadabra, fire red", "Phantump, y", "Darumaka, white",
 				"https://i.imgur.com/AvJMBpR.gif");

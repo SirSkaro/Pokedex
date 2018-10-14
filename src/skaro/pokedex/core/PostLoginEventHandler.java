@@ -49,15 +49,6 @@ public class PostLoginEventHandler
 				.expireAfterAccess(10, TimeUnit.SECONDS)
 				.maximumSize(50)
 				.build();
-		
-		//Schedule a task to clean up the cache every hour
-		threadPool.scheduleAtFixedRate(new Runnable() 
-		{
-			@Override
-			public void run() {
-					bucketCache.cleanUp();
-			}}
-		, 0, 60, TimeUnit.MINUTES);
 	}
 	
 	 @EventSubscriber

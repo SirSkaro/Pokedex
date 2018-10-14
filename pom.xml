@@ -66,7 +66,7 @@
 			<artifactId>slf4j-simple</artifactId>
 			<version>1.7.9</version>
 		</dependency>
-		<!-- MaryTTS -->
+		<!-- MaryTTS English -->
 		<dependency>
 			<groupId>de.dfki.mary</groupId>
 			<artifactId>voice-cmu-slt-hsmm</artifactId>
@@ -81,6 +81,24 @@
 					<artifactId>slf4j-log4j12</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<!-- MaryTTS French -->
+		<dependency>
+			<groupId>de.dfki.mary</groupId>
+			<artifactId>voice-enst-dennys-hsmm</artifactId>
+			<version>5.2</version>
+		</dependency>
+		<!-- MaryTTS German -->
+		<dependency>
+			<groupId>de.dfki.mary</groupId>
+			<artifactId>voice-dfki-pavoque-neutral-hsmm</artifactId>
+			<version>5.2</version>
+		</dependency>
+		<!-- MaryTTS Italian -->
+		<dependency>
+			<groupId>de.dfki.mary</groupId>
+			<artifactId>voice-istc-lucia-hsmm</artifactId>
+			<version>5.2</version>
 		</dependency>
 		<!-- Caffine Cache -->
 		<dependency>

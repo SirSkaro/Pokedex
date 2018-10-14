@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.sound.sampled.AudioInputStream;
+
 import org.eclipse.jetty.util.MultiMap;
 
 import skaro.pokedex.data_processor.ColorTracker;
@@ -59,6 +61,7 @@ public class DexResponseFormatter implements IDiscordFormatter
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		Version version = (Version)data.getValue(Version.class.getName(), 0);
 		Language lang = input.getLanguage();
+		Optional<AudioInputStream> audioCheck;
 		
 		//Format names of entities
 		String pokemonName = TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()));
@@ -83,14 +86,15 @@ public class DexResponseFormatter implements IDiscordFormatter
 				+TextFormatter.flexFormToProper(version.getNameInLanguage(lang.getFlexKey()))+"__**");
 		
 		builder.withDescription(replyContent);
-		builder.withColor(ColorTracker.getColorForVersion(input.getArg(1).getDbForm()));
+		builder.withColor(ColorTracker.getColorForVersion(input.getArg(1).getFlexForm().replace("-", "")));
 		
 		//Add thumbnail
 		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
 		
-		//Add audio reply (English only)
-		if(lang == Language.ENGLISH)
-			response.setPlayBack(tts.convertToAudio(replyContent));
+		//Add audio reply
+		audioCheck = tts.convertToAudio(lang, replyContent);
+		if(audioCheck.isPresent())
+			response.setPlayBack(audioCheck.get());
 		
 		response.setEmbededReply(builder.build());
 		return response;

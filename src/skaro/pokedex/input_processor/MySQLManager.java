@@ -109,6 +109,15 @@ public class MySQLManager
 		return getFlexForm(dataCheck.get());
 	}
 	
+	public Optional<String> getVersionFlexForm(String dbForm, Language lang) 
+	{
+		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Version WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
+		
+		if(!dataCheck.isPresent())
+			return Optional.empty();
+		return getFlexForm(dataCheck.get());
+	}
+	
 	public boolean userIsDiscordVIP(long id)
 	{
 		Optional<ResultSet> dataCheck = dbQuery("SELECT user_id FROM DiscordVIP WHERE user_id = "+id+";");
