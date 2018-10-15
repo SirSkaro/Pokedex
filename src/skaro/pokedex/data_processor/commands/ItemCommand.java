@@ -1,18 +1,23 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.jetty.util.MultiMap;
 
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.data_processor.formatters.ItemResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.PokeFlexRequest;
+import skaro.pokeflex.api.Request;
+import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.item.Item;
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
@@ -24,7 +29,18 @@ public class ItemCommand extends AbstractCommand
 		commandName = "item".intern();
 		argCats.add(ArgumentCategory.ITEM);
 		expectedArgRange = new ArgumentRange(1,1);
+		formatter = new ItemResponseFormatter();
+		
 		aliases.put("itm", Language.ENGLISH);
+		aliases.put("getragenes", Language.GERMAN);
+		aliases.put("strumento", Language.ITALIAN);
+		aliases.put("jinin", Language.KOREAN);
+		aliases.put("wùpǐn", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("wupin", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("objeto", Language.SPANISH);
+		aliases.put("dōgu", Language.JAPANESE_HIR_KAT);
+		aliases.put("dogu", Language.JAPANESE_HIR_KAT);
+		aliases.put("objet", Language.FRENCH);
 		
 		createHelpMessage("Life Orb", "leftovers", "Choice Band", "eviolite",
 				"https://i.imgur.com/B1NlcYh.gif");
@@ -33,73 +49,48 @@ public class ItemCommand extends AbstractCommand
 	public boolean makesWebRequest() { return true; }
 	public String getArguments() { return "<item>"; }
 	
-	public boolean inputIsValid(Response reply, Input input)
+	public Response discordReply(Input input, IUser requester)
 	{
 		if(!input.isValid())
+			return formatter.invalidInputResponse(input);
+		
+		try
 		{
-			switch(input.getError())
-			{
-				case ARGUMENT_NUMBER:
-					reply.addToReply("You must specify exactly one Item as input for this command.".intern());
-				break;
-				case INVALID_ARGUMENT:
-					reply.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Item");
-				break;
-				default:
-					reply.addToReply("A technical error occured (code 104)");
-			}
-			return false;
-		}
-		
-		return true;
-	}
-	
-	public Response discordReply(Input input, IUser requester)
-	{ 
-		Response reply = new Response();
-		
-		//Check if input is valid
-		if(!inputIsValid(reply, input))
-			return reply;
-		
-		try 
-		{
-			//Obtain data
-			Object flexObj = factory.createFlexObject(Endpoint.ITEM, input.argsAsList());
-			Item item = Item.class.cast(flexObj);
+			List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
+			List<Object> flexData = new ArrayList<Object>();
+			MultiMap<Object> dataMap = new MultiMap<Object>();
+			EmbedBuilder builder = new EmbedBuilder();
 			
-			//Format reply
-			reply.addToReply(("**__"+TextFormatter.flexFormToProper(item.getName())+"__**").intern());
-			reply.setEmbededReply(formatEmbed(item));
-		} 
-		catch (Exception e) { this.addErrorMessage(reply, input, "1004", e); }
-		
-		return reply;
-	}
-	
-	private EmbedObject formatEmbed(Item item)
-	{
-		//Organize the data and add it to the reply
-		EmbedBuilder builder = new EmbedBuilder();	
-		builder.setLenient(true);
-		
-		builder.appendField("Item Category", TextFormatter.flexFormToProper(item.getCategory().getName()), true);
-		builder.appendField("Debut", TextFormatter.formatGeneration(item.getDebut()), true);
-		
-		if(item.getFlingPower() > 0)
-			builder.appendField("Fling Base Power", Integer.toString(item.getFlingPower()), true);
-		if(item.getNgType() != null)
-			builder.appendField("Natural Gift Type", item.getNgType().toString(), true);
-		if((Integer)item.getNgPower() != null)
-			builder.appendField("Natural Gift Power", Integer.toString((Integer)item.getNgPower()), true);
-		
-		builder.appendField("Game Description", item.getSdesc(), false);
-		builder.appendField("Technical Description", item.getLdesc(), false);
-		
-		builder.withColor(new Color(0xE89800));
-		builder.withThumbnail(item.getSprites().getDefault());
-		
-		this.addRandomExtraMessage(builder);
-		return builder.build();
+			//Initial data - Item object
+			Item item = (Item)factory.createFlexObject(Endpoint.ITEM, input.argsAsList());
+			dataMap.put(Item.class.getName(), item);
+			
+			//item category
+			concurrentRequestList.add(new RequestURL(item.getCategory().getUrl(), Endpoint.ITEM_CATEGORY));
+			
+			//type
+			if(item.getNgType() != null)
+			{
+				Request request = new Request(Endpoint.TYPE);
+				request.addParam(item.getNgType().toLowerCase());
+				concurrentRequestList.add(request);
+			}
+			
+			//Make PokeFlex request
+			flexData = factory.createFlexObjects(concurrentRequestList);
+			
+			//Add all data to the map
+			for(Object obj : flexData)
+				dataMap.add(obj.getClass().getName(), obj);
+			
+			this.addRandomExtraMessage(builder);
+			return formatter.format(input, dataMap, builder);
+		}
+		catch(Exception e)
+		{
+			Response response = new Response();
+			this.addErrorMessage(response, input, "1004", e); 
+			return response;
+		}
 	}
 }

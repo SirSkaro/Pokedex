@@ -91,9 +91,8 @@ public class MoveCommand extends AbstractCommand
 		}
 		catch(Exception e)
 		{
-			Response response = new Response();;
+			Response response = new Response();
 			this.addErrorMessage(response, input, "1006", e); 
-			e.printStackTrace();
 			return response;
 		}
 	}

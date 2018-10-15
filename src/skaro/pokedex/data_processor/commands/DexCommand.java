@@ -127,8 +127,7 @@ public class DexCommand extends AbstractCommand
 		catch(Exception e)
 		{
 			Response response = new Response();
-			response.addToReply("Get back in there and figure out what you did wrong!");
-			e.printStackTrace();
+			this.addErrorMessage(response, input, "1010", e); 
 			return response;
 		}
 	}

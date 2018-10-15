@@ -52,6 +52,11 @@ public class TextFormatter
 		return ("Generation " + toRoman(gen)).intern();
 	}
 	
+	public static String formatGeneration(int gen, Language lang)
+	{
+		return (CommonData.GENERATION.getInLanguage(lang) + " " + toRoman(gen)).intern();
+	}
+	
 	public static String[] getURLComponents(String url)
 	{
 		return url.split("/");
