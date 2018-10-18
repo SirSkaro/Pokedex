@@ -9,8 +9,10 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.MultiMap;
 
 import skaro.pokedex.data_processor.ColorTracker;
+import skaro.pokedex.data_processor.EmojiTracker;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.Statistic;
 import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;

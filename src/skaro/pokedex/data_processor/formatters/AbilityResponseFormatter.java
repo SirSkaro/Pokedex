@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import skaro.pokedex.data_processor.AbilityList;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;

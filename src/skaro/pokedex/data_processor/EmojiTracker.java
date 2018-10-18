@@ -1,9 +1,7 @@
-package skaro.pokedex.data_processor.formatters;
+package skaro.pokedex.data_processor;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import skaro.pokedex.data_processor.TypeData;
 
 public enum EmojiTracker 
 {
