@@ -2,28 +2,24 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 
-import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.util.MultiMap;
 
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.Statistic;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
-import skaro.pokeflex.objects.pokemon.Stat;
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class StatsCommand extends AbstractCommand  
 {	
-	private String statHeader1, statHeader2, statHeader3;
-	
 	public StatsCommand(PokeFlexFactory pff, PerkChecker pc)
 	{
 		super(pff, pc);
@@ -32,10 +28,19 @@ public class StatsCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
 		factory = pff;
+		formatter = new StatsResponseFormatter();
 		
-		statHeader1 = String.format("%s%s\n", StringUtils.rightPad("HP", 12, " "), "Attack");
-		statHeader2 = String.format("%s%s\n", StringUtils.rightPad("Defense", 12, " "), "Sp.Attack");
-		statHeader3 = String.format("%s%s\n", StringUtils.rightPad("Sp.Defense", 12, " "), "Speed");
+		aliases.put("statistiken", Language.GERMAN);
+		aliases.put("statistica", Language.ITALIAN);
+		aliases.put("tonggye", Language.KOREAN);
+		aliases.put("tǒngjì", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("tongji", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("estadística", Language.SPANISH);
+		aliases.put("estadistica", Language.SPANISH);
+		aliases.put("estad", Language.SPANISH);
+		aliases.put("tōkei", Language.JAPANESE_HIR_KAT);
+		aliases.put("tokei", Language.JAPANESE_HIR_KAT);
+		aliases.put("statistiques", Language.FRENCH);
 		
 		createHelpMessage("Darmanitan", "Alolan Sandshrew", "Ninetales Alola", "Mega Venusaur",
 				"https://i.imgur.com/svFfe9Q.gif");
@@ -54,7 +59,7 @@ public class StatsCommand extends AbstractCommand
 					reply.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
 				break;
 				case INVALID_ARGUMENT:
-					reply.addToReply("\""+ input.getArg(0).getRawInput() +"\" is not a recognized Pokemon");
+					reply.addToReply("\""+ input.getArg(0).getRawInput() +"\" is not a recognized Pokemon in " + input.getLanguage().getName());
 				break;
 				default:
 					reply.addToReply("A technical error occured (code 101)");
@@ -67,70 +72,32 @@ public class StatsCommand extends AbstractCommand
 	
 	public Response discordReply(Input input, IUser requester)
 	{ 
-		Response reply = new Response();
+		if(!input.isValid())
+			return formatter.invalidInputResponse(input);
 		
-		//Check if input is valid
-		if(!inputIsValid(reply, input))
-			return reply;
-		
-		//Obtain data
-		try 
+		try
 		{
-			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
-			Pokemon pokemon = Pokemon.class.cast(flexObj);
+			MultiMap<Object> dataMap = new MultiMap<Object>();
+			EmbedBuilder builder = new EmbedBuilder();
+			Object flexObj;
 			
-			//Format reply
-			reply.addToReply(("**__"+TextFormatter.flexFormToProper(pokemon.getName())+"__**").intern());
-			reply.setEmbededReply(formatEmbed(pokemon));
-		} 
-		catch (Exception e) { this.addErrorMessage(reply, input, "1001", e); }
-		
-		return reply;
+			//Initial data - Item object
+			Pokemon pokemon = (Pokemon)factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
+			dataMap.put(Pokemon.class.getName(), pokemon);
+			
+			flexObj = factory.createFlexObject(pokemon.getSpecies().getUrl(), Endpoint.POKEMON_SPECIES);
+			dataMap.put(PokemonSpecies.class.getName(), flexObj);
+			
+			this.addAdopter(pokemon, builder);
+			this.addRandomExtraMessage(builder);
+			return formatter.format(input, dataMap, builder);
+		}
+		catch(Exception e)
+		{
+			Response response = new Response();
+			this.addErrorMessage(response, input, "1001", e); 
+			return response;
+		}
 	}
 	
-	private EmbedObject formatEmbed(Pokemon pokemon)
-	{
-		EmbedBuilder builder = new EmbedBuilder();
-		builder.setLenient(true);
-		String type;
-		
-		String stats1 = String.format("%s%d\n",
-									StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.HP.getAPIKey())), 12, " "),
-									pokemon.getStat(Statistic.ATK.getAPIKey()));
-		String stats2 = String.format("%s%d\n",
-									StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.DEF.getAPIKey())), 12, " "),
-									pokemon.getStat(Statistic.SP_ATK.getAPIKey()));
-		String stats3 = String.format("%s%d\n",
-									StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.SP_DEF.getAPIKey())), 12, " "),
-									pokemon.getStat(Statistic.SPE.getAPIKey()));
-		
-		builder.withDescription("__`"+statHeader1+"`__\n`"+stats1+"`"
-								+ "\n\n__`"+ statHeader2+"`__\n`"+stats2+"`"
-								+ "\n\n__`"+ statHeader3+"`__\n`"+stats3 +"`");
-		
-		builder.withTitle("Base Stat Total: "+ getBaseStatTotal(pokemon));
-		
-		//Set embed color
-		type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(ColorTracker.getColorForType(type));
-		
-		//Add thumbnail
-		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
-		
-		//Add adopter
-		this.addAdopter(pokemon, builder);
-		
-		this.addRandomExtraMessage(builder);
-		return builder.build();
-	}
-	
-	private int getBaseStatTotal(Pokemon pokemon)
-	{
-		int total = 0;
-		
-		for(Stat stat : pokemon.getStats())
-			total += stat.getBaseStat();
-		
-		return total;
-	}
 }
