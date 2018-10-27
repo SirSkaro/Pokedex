@@ -14,7 +14,7 @@ public enum EmojiTracker
 	
 	private EmojiTracker() {}
 	
-	static
+	public static void initialize()
 	{
 		typeEmojiMap.put(TypeData.BUG, "<:type_bug:495141042174033920>");
 		typeEmojiMap.put(TypeData.DARK, "<:type_dark:495141042299994122>");

@@ -82,6 +82,15 @@ public class MySQLManager
 		return getFlexForm(dataCheck.get());
 	}
 	
+	public Optional<String> getTypeFlexForm(String dbForm, Language lang)
+	{
+		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Type WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
+		
+		if(!dataCheck.isPresent())
+			return Optional.empty();
+		return getFlexForm(dataCheck.get());
+	}
+	
 	public Optional<String> getAbilityFlexForm(String dbForm, Language lang)
 	{
 		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Ability WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");

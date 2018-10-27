@@ -1,7 +1,8 @@
 package skaro.pokedex.input_processor.arguments;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Optional;
 
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.AbstractArgument;
@@ -10,19 +11,6 @@ import skaro.pokedex.input_processor.SpellChecker;
 
 public class TypeArgument extends AbstractArgument 
 {
-	private static List<String> types;
-	
-	static
-	{
-		types = new ArrayList<String>();
-		
-		types.add("normal"); types.add("fighting"); types.add("flying"); types.add("poison"); 
-		types.add("ground"); types.add("rock"); types.add("bug"); types.add("water");
-		types.add("ghost"); types.add("steel"); types.add("fire"); types.add("electric");
-		types.add("grass"); types.add("psychic"); types.add("ice"); types.add("dragon");
-		types.add("dark"); types.add("fairy");
-	}
-	
 	public TypeArgument()
 	{
 		
@@ -40,28 +28,44 @@ public class TypeArgument extends AbstractArgument
 		
 		//Check if resource is recognized. If it is not recognized, attempt to spell check it.
 		//If it is still not recognized, then return the argument as invalid (default)
-		if(!isType(this.dbForm))
+		if(!isType(this.dbForm, lang))
 		{
 			String correction;
 			correction = sc.spellCheckType(argument, lang);
 			
-			if(!isType(correction))
+			if(!isType(correction, lang))
 			{
 				this.valid = false;
 				return;
 			}
 			
-			this.dbForm = TextFormatter.dbFormat(correction, lang).intern();
+			this.dbForm = correction;
 			this.rawInput = correction.intern();
 			this.spellChecked = true;
 		}
 		
 		this.valid = true;
-		this.flexForm = this.dbForm;
+		this.flexForm = sqlManager.getTypeFlexForm(dbForm, lang).get();
 	}
 	
-	private boolean isType(String s)
+	private boolean isType(String s, Language lang)
 	{
-		return types.contains(s);
+		String attribute = lang.getSQLAttribute();
+		
+		Optional<ResultSet> resultOptional = sqlManager.dbQuery("SELECT "+attribute+" FROM Type WHERE "+attribute+" = '"+s+"';");
+		boolean resourceExists = false;
+		
+		if(resultOptional.isPresent())
+		{
+			try 
+			{ 
+				resourceExists = resultOptional.get().next();
+				resultOptional.get().close();
+			} 
+			catch(SQLException e)
+			{ return resourceExists; }
+		}
+
+		return resourceExists;
 	}
 }

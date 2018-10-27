@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 
+import skaro.pokedex.input_processor.Language;
+
 public class TypeInteractionWrapper 
 {
 	private HashMap<Double, ArrayList<TypeData>> interactions;
@@ -31,17 +33,17 @@ public class TypeInteractionWrapper
 	public ArrayList<TypeData> getTypes() { return types; }
 	public ArrayList<TypeData> getInteractionByMultiplier(Double mult) { return interactions.get(mult); }
 	
-	public String typesToString()
+	public String typesToString(Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
 		
 		for(TypeData type : types)
-			builder.append("/"+type.toProperName());
+			builder.append("/"+EmojiTracker.getTypeEmoji(type) + type.getNameInLanguage(lang) );
 		
 		return builder.substring(1);
 	}
 	
-	public Optional<String> interactionToString(Double mult)
+	public Optional<String> interactionToString(Double mult, Language lang)
 	{
 		if(interactions.get(mult).isEmpty())
 			return Optional.empty();
@@ -49,7 +51,7 @@ public class TypeInteractionWrapper
 		StringBuilder builder = new StringBuilder();
 		
 		for(TypeData type : interactions.get(mult))
-			builder.append(", "+type.toProperName());
+			builder.append(", "+type.getNameInLanguage(lang));
 		
 		return Optional.of(builder.substring(2));
 	}

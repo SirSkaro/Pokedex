@@ -1,7 +1,17 @@
 package skaro.pokedex.data_processor;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+
+import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.input_processor.Language;
+import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.PokeFlexRequest;
+import skaro.pokeflex.api.Request;
+import skaro.pokeflex.objects.type.Type;
 
 public enum TypeData 
 {	 		
@@ -23,12 +33,12 @@ public enum TypeData
 	DRAGON("Dragon", 15, 0x6F35FC),
 	DARK("Dark", 16, 0x705746),
 	FAIRY("Fairy", 17, 0xD685AD),
-	BIRD("Bird", 18, 0xA4BBB3),
 	;
 	
 	private final String properName;
 	private final int index;
 	private final Color color;
+	private Type type;
 	private final static HashMap<Integer, TypeData> indexMap = new HashMap<Integer, TypeData>();
 	public static double[][] effectiveness = new double[/*attacker*/][/*defender*/]{
 	  //  			   0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17	 18
@@ -53,10 +63,33 @@ public enum TypeData
 	  /*18Bird*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
 	    			};
 	
-	static
+	public static void initialize(PokeFlexFactory factory)
 	{
+		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
+		List<Object> types = new ArrayList<Object>();
+		
 		for(TypeData type : TypeData.values())
+		{
 			indexMap.put(type.index, type);
+			Request request = new Request(Endpoint.TYPE);
+			request.addParam(type.name().toLowerCase());
+			concurrentRequestList.add(request);
+		}
+		
+		try
+		{
+			types = factory.createFlexObjects(concurrentRequestList);
+			for(Object type : types)
+			{
+				Type tempType = (Type)type;
+				getByName(tempType.getName()).type = tempType;
+			}
+		}
+		catch (Exception e)
+		{
+			System.out.println("[TypeData] Unable to get all Types from external API");
+			System.exit(1);
+		}
 	}
 	
 	//Constructors
@@ -80,6 +113,11 @@ public enum TypeData
     public static TypeData getByIndex(int index)
     { 
     	return indexMap.get(index); 
+    }
+    
+    public String getNameInLanguage(Language lang)
+    {
+    	return TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey()));
     }
 }
 

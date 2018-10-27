@@ -176,7 +176,7 @@ public class PostLoginEventHandler
     
     private Bucket createBucketForChannel(Long channelID)
     {
-    	Bandwidth limit = Bandwidth.simple(3, Duration.ofSeconds(10));
+    	Bandwidth limit = Bandwidth.simple(2, Duration.ofSeconds(10));
     	Bucket bucket = Bucket4j.builder()
     						.addLimit(limit)
     						.build();

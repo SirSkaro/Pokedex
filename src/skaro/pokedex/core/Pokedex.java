@@ -14,7 +14,10 @@ import com.patreon.PatreonAPI;
 
 import skaro.pokedex.communicator.Publisher;
 import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.CommandMap;
+import skaro.pokedex.data_processor.EmojiTracker;
+import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
 import skaro.pokedex.data_processor.commands.CommandsCommand;
@@ -117,6 +120,13 @@ public class Pokedex
 		discordToken = configurator.getAuthToken("discord");
 		discordClient = initClient(discordToken, shardIDToManage, totalShards);
 		checker.setDiscordClient(discordClient);
+		
+		/**
+		 * INTERNAL SETUP
+		 */
+		TypeData.initialize(factory);
+		ColorTracker.initialize();
+		EmojiTracker.initialize();
 		
 		//Login to Discord
 		System.out.println("[Pokedex main] Logging into Discord");

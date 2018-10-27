@@ -14,6 +14,7 @@ import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
@@ -135,7 +136,7 @@ public class WeakCommand extends AbstractCommand
 		TypeInteractionWrapper wrapper = TypeTracker.onDefense(type1, type2);
 		builder.setLenient(true);
 		
-		builder.appendField("Weak:", combineLists(wrapper, 2.0, 4.0), false);
+		builder.appendField("Weak", combineLists(wrapper, 2.0, 4.0), false);
 		builder.appendField("Neutral", getList(wrapper, 1.0), false);
 		builder.appendField("Resist", combineLists(wrapper, 0.5, 0.25), false);
 		builder.appendField("Immune", getList(wrapper, 0.0), false);
@@ -161,10 +162,10 @@ public class WeakCommand extends AbstractCommand
 		String inter1, intern2;
 		StringBuilder builder = new StringBuilder();
 		
-		strCheck = wrapper.interactionToString(mult1);
+		strCheck = wrapper.interactionToString(mult1, Language.ENGLISH);
 		inter1 = strCheck.isPresent() ? strCheck.get() : null;
 		
-		strCheck = wrapper.interactionToString(mult2);
+		strCheck = wrapper.interactionToString(mult2, Language.ENGLISH);
 		intern2 = strCheck.isPresent() ? strCheck.get() : null;
 		
 		if(inter1 == null && intern2 == null)
@@ -183,7 +184,7 @@ public class WeakCommand extends AbstractCommand
 	
 	private String getList(TypeInteractionWrapper wrapper, double mult)
 	{
-		Optional<String> strCheck = wrapper.interactionToString(mult);
+		Optional<String> strCheck = wrapper.interactionToString(mult, Language.ENGLISH);
 		return (strCheck.isPresent() ? strCheck.get() : null);
 	}
 }

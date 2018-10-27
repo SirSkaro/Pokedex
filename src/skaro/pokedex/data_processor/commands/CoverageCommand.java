@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.eclipse.jetty.util.MultiMap;
+
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
@@ -11,6 +13,7 @@ import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
+import skaro.pokedex.data_processor.formatters.CoverageResponseFormatter;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -36,7 +39,17 @@ public class CoverageCommand extends AbstractCommand
 		aliases.put("strong", Language.ENGLISH);
 		aliases.put("cov", Language.ENGLISH);
 		aliases.put("effective", Language.ENGLISH);
+		aliases.put("yuhyohan", Language.KOREAN);
+		aliases.put("eficaz", Language.SPANISH);
+		aliases.put("efficace", Language.FRENCH);
+		aliases.put("forte", Language.ITALIAN);
+		aliases.put("yǒuxiào", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("youxiao", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("efekuto", Language.JAPANESE_HIR_KAT);
+		aliases.put("wirksam", Language.GERMAN);
 		
+		
+		formatter = new CoverageResponseFormatter();
 		extraMessages.add("You may also like the %weak command!");
 		
 		createHelpMessage("ice, electric", "blizzard, thunder", "Ghost, Fire, Vine Whip, Hyper Beam", "Water",
@@ -73,6 +86,55 @@ public class CoverageCommand extends AbstractCommand
 	}
 	
 	public Response discordReply(Input input, IUser requester)
+	{ 
+		if(!input.isValid())
+			return formatter.invalidInputResponse(input);
+		
+		MultiMap<Object> dataMap = new MultiMap<Object>();
+		EmbedBuilder builder = new EmbedBuilder();
+		List<PokeFlexRequest> concurrentMoveRequestList = new ArrayList<PokeFlexRequest>();
+		List<Object> flexData = new ArrayList<Object>();
+		Request request;
+		
+		try
+		{
+			//Sort between Move and Type arguments
+			for(AbstractArgument arg : input.getArgs())
+			{
+				if(arg.getCategory() == ArgumentCategory.TYPE)
+					dataMap.add(TypeData.class.getName(), TypeData.getByName(arg.getFlexForm()));
+				else	//Category is ArgumentCategory.MOVE
+				{
+					request = new Request(Endpoint.MOVE);
+					request.addParam(arg.getFlexForm());
+					concurrentMoveRequestList.add(request);
+				}
+			}
+			
+			//Get the Types of all Moves
+			if(!concurrentMoveRequestList.isEmpty())
+			{
+				flexData = factory.createFlexObjects(concurrentMoveRequestList);
+				for(Object move : flexData)
+				{
+					String type = ((Move)move).getType().getName();
+					dataMap.add(TypeData.class.getName(), TypeData.getByName(type));
+				}
+			}
+			
+			this.addRandomExtraMessage(builder);
+			return formatter.format(input, dataMap, builder);
+		}
+		catch(Exception e)
+		{
+			Response response = new Response();
+			this.addErrorMessage(response, input, "1007", e); 
+			e.printStackTrace();
+			return response;
+		}
+	}
+	
+	public Response discordReply2(Input input, IUser requester)
 	{ 
 		Response reply = new Response();
 		
@@ -111,7 +173,7 @@ public class CoverageCommand extends AbstractCommand
 		wrapper = TypeTracker.onOffense(typeList);
 		
 		//Build reply
-		reply.addToReply("**__"+wrapper.typesToString()+"__**");
+		reply.addToReply("**__"+wrapper.typesToString(Language.ENGLISH)+"__**");
 		reply.setEmbededReply(formatEmbed(wrapper));
 		
 		return reply;
@@ -166,7 +228,7 @@ public class CoverageCommand extends AbstractCommand
 	
 	private String getList(TypeInteractionWrapper wrapper, double mult)
 	{
-		Optional<String> strCheck = wrapper.interactionToString(mult);
+		Optional<String> strCheck = wrapper.interactionToString(mult, Language.ENGLISH);
 		return (strCheck.isPresent() ? strCheck.get() : null);
 	}
 }

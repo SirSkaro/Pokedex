@@ -1,9 +1,9 @@
 package skaro.pokedex.data_processor;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public class TypeTracker {
@@ -47,17 +47,16 @@ public class TypeTracker {
 	 * @param typeX: a typing to check for type interaction
 	 * @return The interaction between these four types and all other types
 	 */
-	public static TypeInteractionWrapper onOffense(ArrayList<TypeData> types)
+	public static TypeInteractionWrapper onOffense(List<TypeData> typeList)
 	{
 		TypeInteractionWrapper result = new TypeInteractionWrapper();
 		Set<TypeData> effective = new HashSet<TypeData>();
 		Set<TypeData> neutral = new HashSet<TypeData>();
 		Set<TypeData> resist = new HashSet<TypeData>();
 		Set<TypeData> immune = new HashSet<TypeData>();
-		Iterator<TypeData> iter = types.iterator();
+		Iterator<TypeData> iter = typeList.iterator();
 		
 		immune.addAll(Arrays.asList(TypeData.values()));
-		immune.remove(TypeData.BIRD);	//not a canon Type
 		
 		while (iter.hasNext())
 		{
@@ -95,7 +94,6 @@ public class TypeTracker {
 	{
 		Set<TypeData> types = new HashSet<TypeData>(Arrays.asList(TypeData.values()));
 		TypeData type;
-		types.remove(TypeData.BIRD);		//not a canon typing
 		
 		Iterator<TypeData> iter = types.iterator();
 		while (iter.hasNext())

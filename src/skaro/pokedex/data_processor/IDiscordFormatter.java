@@ -9,8 +9,8 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public interface IDiscordFormatter 
 {
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder);
 	public Response invalidInputResponse(Input input);
+	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder);
 	
 	default String listToItemizedString(List<?> list)
 	{

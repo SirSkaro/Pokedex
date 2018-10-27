@@ -4,8 +4,10 @@ import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ColorTracker 
+public enum ColorTracker 
 {
+	;
+	
 	private static Map<String, Color> typeColorMap = new HashMap<>();
 	private static Map<String, Color> versionColorMap = new HashMap<>();
 	
@@ -53,7 +55,7 @@ public class ColorTracker
 		return new Color((int) r, (int) g, (int) b, (int) a);
 	}
 	
-	static
+	public static void initialize()
 	{
 		typeColorMap.put("normal".intern(), new Color(0xA8A77A));
 		typeColorMap.put("fighting".intern(), new Color(0xC22E28));
