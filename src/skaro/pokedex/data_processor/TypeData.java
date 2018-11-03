@@ -103,6 +103,7 @@ public enum TypeData
     public String toProperName() { return this.properName; }
     public int toIndex() { return this.index; }
     public Color toColor() { return this.color; }
+    public Type getType() { return this.type; }
     
     public static TypeData getByName(String type)
     {

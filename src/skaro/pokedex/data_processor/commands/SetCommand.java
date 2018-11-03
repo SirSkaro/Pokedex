@@ -104,7 +104,7 @@ public class SetCommand extends AbstractCommand
 			else
 				reply.addToReply("Smogon doesn't have any sets for " +TextFormatter.flexFormToProper(pokemon)+ " in generation " + gen);
 		} 
-		catch (Exception e) { this.addErrorMessage(reply, input, "1007", e); e.printStackTrace();}
+		catch (Exception e) { this.addErrorMessage(reply, input, "1007", e);}
 		
 		return reply;
 	}
@@ -152,7 +152,6 @@ public class SetCommand extends AbstractCommand
 		
 		//Add adopter
 		this.addAdopter(pokemon, builder);
-		
 		this.addRandomExtraMessage(builder);
 		
 		return builder.build();

@@ -8,6 +8,7 @@ import org.eclipse.jetty.util.MultiMap;
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.formatters.DataResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -92,10 +93,6 @@ public class DataCommand extends AbstractCommand
 			//Evolution chain
 			concurrentRequestList.add(new RequestURL(species.getEvolutionChain().getUrl(), Endpoint.EVOLUTION_CHAIN));
 			
-			//Types
-			for(Type type : pokemon.getTypes())
-				concurrentRequestList.add(new RequestURL(type.getType().getUrl(), Endpoint.TYPE));
-			
 			//Abilities
 			for(Ability ability : pokemon.getAbilities())
 				concurrentRequestList.add(new RequestURL(ability.getAbility().getUrl(), Endpoint.ABILITY));
@@ -142,6 +139,10 @@ public class DataCommand extends AbstractCommand
 			//Add all data to the map again
 			for(Object obj : flexData)
 				dataMap.add(obj.getClass().getName(), obj);
+			
+			//Types
+			for(Type type : pokemon.getTypes())
+				dataMap.add(skaro.pokeflex.objects.type.Type.class.getName(), TypeData.getByName(type.getType().getName()).getType());
 			
 			//Format all data
 			addAdopter(pokemon, builder);

@@ -8,6 +8,7 @@ import org.eclipse.jetty.util.MultiMap;
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.formatters.MoveResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -17,6 +18,7 @@ import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.move.Move;
+import skaro.pokeflex.objects.type.Type;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
@@ -66,9 +68,6 @@ public class MoveCommand extends AbstractCommand
 			Move move = (Move)factory.createFlexObject(Endpoint.MOVE, input.argsAsList());
 			dataMap.put(Move.class.getName(), move);
 			
-			//Type
-			concurrentRequestList.add(new RequestURL(move.getType().getUrl(), Endpoint.TYPE));
-			
 			//Target
 			concurrentRequestList.add(new RequestURL(move.getTarget().getUrl(), Endpoint.MOVE_TARGET));
 			
@@ -85,6 +84,9 @@ public class MoveCommand extends AbstractCommand
 			//Add all data to the map
 			for(Object obj : flexData)
 				dataMap.add(obj.getClass().getName(), obj);
+			
+			//Type
+			dataMap.add(Type.class.getName(), TypeData.getByName(move.getType().getName()).getType());
 			
 			this.addRandomExtraMessage(builder);
 			return formatter.format(input, dataMap, builder);
