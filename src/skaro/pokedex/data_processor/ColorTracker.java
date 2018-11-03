@@ -38,6 +38,11 @@ public enum ColorTracker
 		return new Color(0x66E1FB);
 	}
 	
+	public static Color getColorForPatreon()
+	{
+		return new Color(0xF96854);
+	}
+	
 	private static Color blend(Color c0, Color c1) 
 	{
 		if(c1 == null)

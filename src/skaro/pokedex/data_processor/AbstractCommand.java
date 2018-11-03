@@ -166,7 +166,17 @@ public abstract class AbstractCommand
 		if(adopterCheck.isPresent())
 		{
 			builder.withAuthorName(adopterCheck.get().getName() + "'s "+TextFormatter.flexFormToProper(pokemon.getName()));
-			builder.withAuthorIcon("https://c5.patreon.com/external/logo/downloads_logomark_color_on_coral.png");
+			builder.withAuthorIcon(getPatreonLogo());
 		}
+	}
+
+	protected String getPatreonLogo()
+	{
+		return "https://c5.patreon.com/external/logo/downloads_logomark_color_on_coral.png".intern();
+	}
+	
+	protected String getPatreonBanner()
+	{
+		return "https://c5.patreon.com/external/logo/become_a_patron_button.png".intern();
 	}
 }

@@ -45,6 +45,7 @@ public class CoverageResponseFormatter implements IDiscordFormatter
 	}
 
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
 	{

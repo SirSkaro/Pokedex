@@ -39,7 +39,7 @@ public class PokemonArgument extends AbstractArgument
 				return;
 			}
 			
-			this.dbForm = TextFormatter.dbFormat(correction, lang).intern();
+			this.dbForm = correction;
 			this.rawInput = correction.intern();
 			this.spellChecked = true;
 		}

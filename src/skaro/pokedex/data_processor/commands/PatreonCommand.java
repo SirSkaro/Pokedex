@@ -1,8 +1,7 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.awt.Color;
-
 import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -25,7 +24,7 @@ public class PatreonCommand extends AbstractCommand
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
-		builder.withColor(new Color(0xF96854));
+		builder.withColor(ColorTracker.getColorForPatreon());
 		
 		builder.appendField("Become a Patron!", "Pledging is the best way to maximize your experience (*perks*) and involvement (*support*) with Pokedex!", false);
 		builder.appendField("Patreon Link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);

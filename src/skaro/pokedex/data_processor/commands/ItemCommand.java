@@ -16,7 +16,6 @@ import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.PokeFlexRequest;
-import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.item.Item;
 import skaro.pokeflex.objects.type.Type;
