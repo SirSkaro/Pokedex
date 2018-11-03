@@ -8,6 +8,7 @@ import org.eclipse.jetty.util.MultiMap;
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.formatters.ItemResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -18,6 +19,7 @@ import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.item.Item;
+import skaro.pokeflex.objects.type.Type;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
@@ -71,9 +73,7 @@ public class ItemCommand extends AbstractCommand
 			//type
 			if(item.getNgType() != null)
 			{
-				Request request = new Request(Endpoint.TYPE);
-				request.addParam(item.getNgType().toLowerCase());
-				concurrentRequestList.add(request);
+				dataMap.add(Type.class.getName(), TypeData.getByName(item.getNgType().toLowerCase()).getType());
 			}
 			
 			//Make PokeFlex request
