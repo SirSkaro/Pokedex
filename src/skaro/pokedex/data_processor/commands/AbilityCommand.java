@@ -46,6 +46,7 @@ public class AbilityCommand extends AbstractCommand
 		aliases.put("tokusei", Language.JAPANESE_HIR_KAT);
 		aliases.put("toku", Language.JAPANESE_HIR_KAT);
 		aliases.put("tèxìng", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("texing", Language.CHINESE_SIMPMLIFIED);
 		aliases.put("teugseong", Language.KOREAN);
 		
 		createHelpMessage("Starmie", "Flash Fire", "celebi", "natural cure",

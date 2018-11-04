@@ -43,6 +43,7 @@ public class MoveCommand extends AbstractCommand
 		aliases.put("mossa", Language.ITALIAN);
 		aliases.put("waza", Language.JAPANESE_HIR_KAT);
 		aliases.put("zhāoshì", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("zhaoshi", Language.CHINESE_SIMPMLIFIED);
 		aliases.put("gisul", Language.KOREAN);
 		
 		createHelpMessage("Ember", "dragon ascent", "aeroblast", "Blast Burn",
