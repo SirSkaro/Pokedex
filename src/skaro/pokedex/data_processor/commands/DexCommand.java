@@ -9,7 +9,6 @@ import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.DexResponseFormatter;
-import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -55,31 +54,6 @@ public class DexCommand extends AbstractCommand
 	
 	public boolean makesWebRequest() { return true; }
 	public String getArguments() { return "<pokemon>, <version>"; }
-	
-	public boolean inputIsValid(Response reply, Input input)
-	{
-		if(!input.isValid())
-		{
-			switch(input.getError())
-			{
-				case ARGUMENT_NUMBER:
-					reply.addToReply("You must specify a Pokemon and a Version as input for this command "
-							+ "(seperated by commas).");
-				break;
-				case INVALID_ARGUMENT:
-					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(AbstractArgument arg : input.getArgs())
-						if(!arg.isValid())
-							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
-				break;
-				default:
-					reply.addToReply("A technical error occured (code 110)");
-			}
-			return false;
-		}
-		
-		return true;
-	}
 	
 	public Response discordReply(Input input, IUser requester)
 	{
