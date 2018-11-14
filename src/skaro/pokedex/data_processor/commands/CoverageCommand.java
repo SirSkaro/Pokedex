@@ -2,29 +2,23 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.TypeInteractionWrapper;
-import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.data_processor.formatters.CoverageResponseFormatter;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.move.Move;
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
@@ -129,106 +123,7 @@ public class CoverageCommand extends AbstractCommand
 		{
 			Response response = new Response();
 			this.addErrorMessage(response, input, "1007", e); 
-			e.printStackTrace();
 			return response;
 		}
-	}
-	
-	public Response discordReply2(Input input, IUser requester)
-	{ 
-		Response reply = new Response();
-		
-		//Check if input is valid
-		if(!inputIsValid(reply, input))
-			return reply;
-		
-		//If argument is a move, get the typing
-		TypeInteractionWrapper wrapper;
-		ArrayList<TypeData> typeList = new ArrayList<TypeData>();
-		ArrayList<String> moveNames = new ArrayList<String>();
-		
-		for(int i = 0; i < input.getArgs().size(); i++)
-		{
-			if(input.getArg(i).getCategory() == ArgumentCategory.TYPE)
-				typeList.add(TypeData.getByName(input.getArg(i).getDbForm()));
-			else	//Category is ArgumentCategory.MOVE
-				moveNames.add(input.getArg(i).getFlexForm());
-		}
-		
-		//If the user included Moves in their input, then request the Move's data from the FlexAPI
-		//and add it to the list of types
-		if(!moveNames.isEmpty())
-		{
-			try
-			{
-				List<TypeData> typesFromMoves = getMoveTypes(moveNames);
-				typeList.addAll(typesFromMoves);
-			}
-			catch(Exception e)
-			{
-				this.addErrorMessage(reply, input, "1009", e);
-				return reply;
-			}
-		}
-		wrapper = TypeTracker.onOffense(typeList);
-		
-		//Build reply
-		reply.addToReply("**__"+wrapper.typesToString(Language.ENGLISH)+"__**");
-		reply.setEmbededReply(formatEmbed(wrapper));
-		
-		return reply;
-	}
-	
-	private EmbedObject formatEmbed(TypeInteractionWrapper wrapper)
-	{
-		EmbedBuilder builder = new EmbedBuilder();	
-		builder.setLenient(true);
-		
-		builder.appendField("Super Effective", getList(wrapper, 2.0), false);
-		builder.appendField("Neutral", getList(wrapper, 1.0), false);
-		builder.appendField("Resistant", getList(wrapper, 0.5), false);
-		builder.appendField("Immune", getList(wrapper, 0.0), false);
-		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
-		
-		this.addRandomExtraMessage(builder);
-		return builder.build();
-	}
-	
-	private List<TypeData> getMoveTypes(List<String> moveNames) throws InterruptedException, PokeFlexException
-	{
-		List<Object> flexObjs = getMoveFlexObjs(moveNames);
-		List<TypeData> result = new ArrayList<TypeData>();
-		Move move;
-		TypeData type;
-		
-		for(Object obj : flexObjs)
-		{			
-			move = Move.class.cast(obj);
-			type = TypeData.getByName(move.getType().getName());
-			result.add(type);
-		}
-		
-		return result;
-	}
-	
-	private List<Object> getMoveFlexObjs(List<String> moveNames) throws InterruptedException, PokeFlexException
-	{
-		ArrayList<String> urlParams;
-		List<PokeFlexRequest> requests = new ArrayList<PokeFlexRequest>();
-		
-		for(String move :moveNames)
-		{
-			urlParams = new ArrayList<String>();
-			urlParams.add(move);
-			requests.add(new Request(Endpoint.MOVE, urlParams));
-		}
-		
-		return factory.createFlexObjects(requests);
-	}
-	
-	private String getList(TypeInteractionWrapper wrapper, double mult)
-	{
-		Optional<String> strCheck = wrapper.interactionToString(mult, Language.ENGLISH);
-		return (strCheck.isPresent() ? strCheck.get() : null);
 	}
 }

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.eclipse.jetty.util.MultiMap;
+
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
@@ -12,13 +14,17 @@ import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.TypeInteractionWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.data_processor.formatters.WeakResponseFormatter;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.PokeFlexRequest;
+import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
+import skaro.pokeflex.objects.pokemon.Type;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
@@ -33,6 +39,16 @@ public class WeakCommand extends AbstractCommand
 		argCats.add(ArgumentCategory.POKE_TYPE_LIST);
 		expectedArgRange = new ArgumentRange(1,2);
 		factory = pff;
+		formatter = new WeakResponseFormatter();
+		
+		aliases.put("debilidad", Language.SPANISH);
+		aliases.put("faiblesses", Language.FRENCH);
+		aliases.put("debole", Language.ITALIAN);
+		aliases.put("schwach", Language.GERMAN);
+		aliases.put("yowai", Language.JAPANESE_HIR_KAT);
+		aliases.put("ruò", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("ruo", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("yagjeom", Language.KOREAN);
 		
 		extraMessages.add("You may also like the %coverage command");
 		
@@ -71,6 +87,60 @@ public class WeakCommand extends AbstractCommand
 	
 	public Response discordReply(Input input, IUser requester)
 	{ 
+		if(!input.isValid())
+			return formatter.invalidInputResponse(input);
+		
+		MultiMap<Object> dataMap = new MultiMap<Object>();
+		EmbedBuilder builder = new EmbedBuilder();
+		
+		try
+		{
+			//Gather data according to the argument case
+			if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON) //argument is a Pokemon
+			{	
+				List<PokeFlexRequest> concurrentRequsts = new ArrayList<PokeFlexRequest>();
+				concurrentRequsts.add(new Request(Endpoint.POKEMON, input.getArg(0).getFlexForm()));
+				concurrentRequsts.add(new Request(Endpoint.POKEMON_SPECIES, input.getArg(0).getFlexForm()));
+				List<Object> flexData = factory.createFlexObjects(concurrentRequsts);
+				
+				//Add all data to the map again
+				for(Object obj : flexData)
+					dataMap.add(obj.getClass().getName(), obj);
+				
+				//Get data for the Typing of the Pokemon
+				Pokemon pokemon = (Pokemon)dataMap.getValue(Pokemon.class.getName(), 0);
+				
+				for(Type type : pokemon.getTypes())
+				{
+					TypeData typeData = TypeData.getByName(type.getType().getName());
+					dataMap.add(TypeData.class.getName(), typeData);
+				}
+				
+				this.addAdopter(pokemon, builder);
+			}
+			else //data is a list of types
+			{
+				for(AbstractArgument arg : input.getArgs())
+				{
+					TypeData typeData = TypeData.getByName(arg.getFlexForm());
+					dataMap.add(TypeData.class.getName(), typeData);
+				}
+			}
+			
+			this.addRandomExtraMessage(builder);
+			return formatter.format(input, dataMap, builder);
+		}
+		catch(Exception e)
+		{
+			Response response = new Response();
+			this.addErrorMessage(response, input, "1006", e); 
+			e.printStackTrace();
+			return response;
+		}
+	}
+	
+	public Response discordReply2(Input input, IUser requester)
+	{ 
 		Response reply = new Response();
 		
 		//Check if input is valid
@@ -93,7 +163,7 @@ public class WeakCommand extends AbstractCommand
 				flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
 				pokemon = Pokemon.class.cast(flexObj);
 				model = Optional.ofNullable(pokemon.getSprites().getFrontDefault());
-				List<skaro.pokeflex.objects.pokemon.Type> types = pokemon.getTypes();
+				List<Type> types = pokemon.getTypes();
 				type1 = TypeData.getByName(types.get(0).getType().getName());
 				if(types.size() > 1)
 					type2 = TypeData.getByName(types.get(1).getType().getName());

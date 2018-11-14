@@ -49,7 +49,6 @@ public class CoverageResponseFormatter implements IDiscordFormatter
 	@Override
 	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
 	{
-		
 		Language lang = input.getLanguage();
 		List<TypeData> typeList = (List<TypeData>)(List<?>)data.get(TypeData.class.getName());
 		TypeInteractionWrapper wrapper = TypeTracker.onOffense(typeList);
