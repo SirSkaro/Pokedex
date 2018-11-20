@@ -17,6 +17,7 @@ import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorTracker;
 import skaro.pokedex.data_processor.CommandMap;
 import skaro.pokedex.data_processor.EmojiTracker;
+import skaro.pokedex.data_processor.LearnMethodData;
 import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
@@ -125,6 +126,7 @@ public class Pokedex
 		 * INTERNAL SETUP
 		 */
 		TypeData.initialize(factory);
+		LearnMethodData.initialize(factory);
 		ColorTracker.initialize();
 		EmojiTracker.initialize();
 		

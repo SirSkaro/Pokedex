@@ -152,7 +152,7 @@ public class DataCommand extends AbstractCommand
 		}
 		catch(Exception e)
 		{
-			Response response = new Response();;
+			Response response = new Response();
 			this.addErrorMessage(response, input, "1002", e);
 			return response;
 		}

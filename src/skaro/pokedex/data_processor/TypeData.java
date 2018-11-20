@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Language;
@@ -39,7 +40,7 @@ public enum TypeData
 	private final int index;
 	private final Color color;
 	private Type type;
-	private final static HashMap<Integer, TypeData> indexMap = new HashMap<Integer, TypeData>();
+	private final static Map<Integer, TypeData> indexMap = new HashMap<Integer, TypeData>();
 	public static double[][] effectiveness = new double[/*attacker*/][/*defender*/]{
 	  //  			   0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17	 18
 	  /*0Normal*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
@@ -68,6 +69,8 @@ public enum TypeData
 		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
 		List<Object> types = new ArrayList<Object>();
 		
+		System.out.println("[TypeData] Getting Type data from external API...");
+		
 		for(TypeData type : TypeData.values())
 		{
 			indexMap.put(type.index, type);
@@ -90,6 +93,8 @@ public enum TypeData
 			System.out.println("[TypeData] Unable to get all Types from external API");
 			System.exit(1);
 		}
+		
+		System.out.println("[TypeData] Done");
 	}
 	
 	//Constructors
