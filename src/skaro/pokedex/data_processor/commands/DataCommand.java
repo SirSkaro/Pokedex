@@ -52,6 +52,10 @@ public class DataCommand extends AbstractCommand
 		aliases.put("shùjù", Language.CHINESE_SIMPMLIFIED);
 		aliases.put("deiteo", Language.KOREAN);
 		
+		aliases.put("データ", Language.JAPANESE_HIR_KAT);
+		aliases.put("数据", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("데이터", Language.KOREAN);
+		
 		extraMessages.add("HD Shiny Pokemon are here! See the shiny with %shiny (Patreons only)");
 		
 		createHelpMessage("mew", "mega charizard x", "primal-kyogre", "Alolan Raichu",

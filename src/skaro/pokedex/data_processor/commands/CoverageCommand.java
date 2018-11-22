@@ -42,6 +42,9 @@ public class CoverageCommand extends AbstractCommand
 		aliases.put("efekuto", Language.JAPANESE_HIR_KAT);
 		aliases.put("wirksam", Language.GERMAN);
 		
+		aliases.put("有效", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("エフェクト", Language.JAPANESE_HIR_KAT);
+		aliases.put("유효한", Language.KOREAN);
 		
 		formatter = new CoverageResponseFormatter();
 		extraMessages.add("You may also like the %weak command!");

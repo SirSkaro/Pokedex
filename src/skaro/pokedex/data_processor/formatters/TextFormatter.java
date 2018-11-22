@@ -164,7 +164,7 @@ public class TextFormatter
 			s = s.replace("'", "");
 		
 		//Remove accents
-		if(lang != Language.KOREAN)
+		if(lang != Language.KOREAN && lang != Language.JAPANESE_HIR_KAT)
 			s = StringUtils.stripAccents(s);
 		
 		return s.intern();

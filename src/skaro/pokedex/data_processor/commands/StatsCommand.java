@@ -42,6 +42,10 @@ public class StatsCommand extends AbstractCommand
 		aliases.put("tokei", Language.JAPANESE_HIR_KAT);
 		aliases.put("statistiques", Language.FRENCH);
 		
+		aliases.put("統計", Language.JAPANESE_HIR_KAT);
+		aliases.put("통계량", Language.KOREAN);
+		aliases.put("统计", Language.CHINESE_SIMPMLIFIED);
+		
 		createHelpMessage("Darmanitan", "Alolan Sandshrew", "Ninetales Alola", "Mega Venusaur",
 				"https://i.imgur.com/svFfe9Q.gif");
 	}

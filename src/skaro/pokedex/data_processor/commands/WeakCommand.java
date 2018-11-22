@@ -44,6 +44,10 @@ public class WeakCommand extends AbstractCommand
 		aliases.put("ruo", Language.CHINESE_SIMPMLIFIED);
 		aliases.put("yagjeom", Language.KOREAN);
 		
+		aliases.put("弱い", Language.JAPANESE_HIR_KAT);
+		aliases.put("弱", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("약점", Language.KOREAN);
+		
 		extraMessages.add("You may also like the %coverage command");
 		
 		createHelpMessage("Ghost, Normal", "Scizor", "Swampert", "Fairy",

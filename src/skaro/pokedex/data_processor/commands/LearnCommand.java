@@ -55,6 +55,10 @@ public class LearnCommand extends AbstractCommand
 		aliases.put("xuexi", Language.CHINESE_SIMPMLIFIED);
 		aliases.put("baeuda", Language.KOREAN);
 		
+		aliases.put("学ぶ", Language.JAPANESE_HIR_KAT);
+		aliases.put("学习", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("배우다", Language.KOREAN);
+		
 		createHelpMessage("primal groudon, roar, attract", "Mew, Thunder, Iron tail, Ice Beam, Stealth Rock, Spikes", "Golurk, Fly", "gible, earthquake, dual chop",
 				"https://i.imgur.com/EkXAXCP.gif");
 	}

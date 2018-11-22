@@ -43,6 +43,10 @@ public class ItemCommand extends AbstractCommand
 		aliases.put("dogu", Language.JAPANESE_HIR_KAT);
 		aliases.put("objet", Language.FRENCH);
 		
+		aliases.put("ツール", Language.JAPANESE_HIR_KAT);
+		aliases.put("도구", Language.KOREAN);
+		aliases.put("物品", Language.CHINESE_SIMPMLIFIED);
+		
 		createHelpMessage("Life Orb", "leftovers", "Choice Band", "eviolite",
 				"https://i.imgur.com/B1NlcYh.gif");
 	}
