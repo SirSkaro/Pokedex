@@ -43,9 +43,13 @@ public class ShinyCommand extends AbstractCommand
 		aliases.put("cromatico", Language.ITALIAN);
 		aliases.put("irochi", Language.JAPANESE_HIR_KAT);
 		aliases.put("irochigai", Language.JAPANESE_HIR_KAT);
-		aliases.put("binnaneun", Language.KOREAN);
+		aliases.put("bichnaneun", Language.KOREAN);
 		aliases.put("variocolor", Language.SPANISH);
 		aliases.put("vario", Language.SPANISH);
+		
+		aliases.put("빛나는", Language.KOREAN);
+		aliases.put("色違い", Language.JAPANESE_HIR_KAT);
+		aliases.put("发光", Language.CHINESE_SIMPMLIFIED);
 
 		createHelpMessage("Ponyta", "Solgaleo", "Keldeo resolute", "eevee",
 				"https://i.imgur.com/FLBOsD5.gif");

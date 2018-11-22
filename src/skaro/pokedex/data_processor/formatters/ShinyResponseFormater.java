@@ -31,10 +31,10 @@ public class ShinyResponseFormater implements IDiscordFormatter
 		switch(input.getError())
 		{
 			case ARGUMENT_NUMBER:
-				response.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
+				response.addToReply("You must specify exactly one Pokemon as input for this command".intern());
 			break;
 			case INVALID_ARGUMENT:
-				response.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Pokemon.");
+				response.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Pokemon in "+input.getLanguage().getName());
 			break;
 			default:
 				response.addToReply("A technical error occured (code 112)");

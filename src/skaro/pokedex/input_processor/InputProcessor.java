@@ -22,9 +22,12 @@ public class InputProcessor
 	{
 		commandLibrary = lib;
 		botID = id;
-		prefixPattern = Pattern.compile("[!%][a-zA-Z]+[\\s]*.*");
-		postfixPattern = Pattern.compile("[a-zA-Z]+[\\s]*[(].*[)]");
-		mentionPattern = Pattern.compile("<@[0-9]+>[\\s]*[a-zA-Z]+[\\s]*.*");
+		
+		String multilingualWord = "\u3131-\uD79Da-zA-Z\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf";
+		
+		prefixPattern = Pattern.compile("[!%]["+multilingualWord+"]+[\\s]*.*");
+		postfixPattern = Pattern.compile("["+multilingualWord+"]+[\\s]*[(].*[)]");
+		mentionPattern = Pattern.compile("<@[0-9]+>[\\s]*["+multilingualWord+"]+[\\s]*.*");
 	}
 	public Optional<Input> processInput(String input)
 	{
