@@ -43,6 +43,10 @@ public class RandpokeCommand extends AbstractCommand
 		aliases.put("randamu", Language.JAPANESE_HIR_KAT);
 		aliases.put("hasard", Language.FRENCH);
 		
+		aliases.put("ランダム", Language.JAPANESE_HIR_KAT);
+		aliases.put("随机", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("무작위의", Language.KOREAN);
+		
 		formatter = new RandpokeResponseFormatter();
 		extraMessages.add("See the shiny with the %shiny command! (Patrons only)");
 		this.createHelpMessage("https://i.imgur.com/cOEo8jW.gif");
