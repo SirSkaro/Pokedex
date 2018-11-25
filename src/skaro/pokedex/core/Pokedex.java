@@ -29,7 +29,6 @@ import skaro.pokedex.data_processor.commands.HelpCommand;
 import skaro.pokedex.data_processor.commands.InviteCommand;
 import skaro.pokedex.data_processor.commands.ItemCommand;
 import skaro.pokedex.data_processor.commands.LearnCommand;
-import skaro.pokedex.data_processor.commands.LocationCommand;
 import skaro.pokedex.data_processor.commands.MoveCommand;
 import skaro.pokedex.data_processor.commands.PatreonCommand;
 import skaro.pokedex.data_processor.commands.RandpokeCommand;
@@ -176,7 +175,7 @@ public class Pokedex
 		commands.add(new CoverageCommand(factory, checker));
 		commands.add(new DexCommand(factory, checker));
 		commands.add(new SetCommand(factory, checker));
-		commands.add(new LocationCommand(factory, checker));
+		//commands.add(new LocationCommand(factory, checker)); //Not supported by personal deployment of PokeAPI anymore
 		commands.add(new AboutCommand());
 		commands.add(new PatreonCommand());
 		commands.add(new InviteCommand());
