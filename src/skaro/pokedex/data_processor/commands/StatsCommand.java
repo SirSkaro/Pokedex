@@ -13,6 +13,7 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import sx.blah.discord.handle.obj.IUser;
@@ -85,8 +86,8 @@ public class StatsCommand extends AbstractCommand
 			EmbedBuilder builder = new EmbedBuilder();
 			Object flexObj;
 			
-			//Initial data - Item object
-			Pokemon pokemon = (Pokemon)factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
+			//Initial data - Pokemon data
+			Pokemon pokemon = (Pokemon)factory.createFlexObject(new Request(Endpoint.POKEMON, input.getArg(0).getFlexForm()));
 			dataMap.put(Pokemon.class.getName(), pokemon);
 			
 			flexObj = factory.createFlexObject(pokemon.getSpecies().getUrl(), Endpoint.POKEMON_SPECIES);

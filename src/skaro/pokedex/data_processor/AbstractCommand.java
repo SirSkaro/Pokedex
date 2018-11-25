@@ -116,12 +116,8 @@ public abstract class AbstractCommand
 	protected void createHelpMessage(String ex1, String ex2, String ex3, String ex4, String imageURL)
 	{
 		EmbedBuilder builder = new EmbedBuilder();
-		StringBuilder aliasBuilder = new StringBuilder();
 		StringBuilder exampleBuilder = new StringBuilder();
 		builder.setLenient(true);
-		
-		for(Entry<String, Language> alias : aliases.entrySet())
-			aliasBuilder.append(alias.getKey() + " ("+alias.getValue().getName()+")\n");
 		
 		exampleBuilder.append("!"+commandName+" "+ex1+"\n");
 		exampleBuilder.append("%"+commandName+" "+ex2+"\n");
@@ -130,7 +126,7 @@ public abstract class AbstractCommand
 		
 		builder.appendField("Input", this.getArguments(), true);
 		builder.appendField("Min/Max Inputs", expectedArgRange.getMin()+"/"+expectedArgRange.getMax(), true);
-		builder.appendField("Aliases", aliasBuilder.toString(), true);
+		this.addAliasFields(builder);
 		builder.appendField("Examples", exampleBuilder.toString(), true);
 		builder.withImage(imageURL);
 		builder.withThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
@@ -143,14 +139,10 @@ public abstract class AbstractCommand
 	protected void createHelpMessage(String imageURL)
 	{
 		EmbedBuilder builder = new EmbedBuilder();
-		StringBuilder aliasBuilder = new StringBuilder();
 		builder.setLenient(true);
 		
-		for(Entry<String, Language> alias : aliases.entrySet())
-			aliasBuilder.append(alias.getKey() + " ("+alias.getValue().getName()+")\n");
-		
 		builder.appendField("Input", this.getArguments(), true);
-		builder.appendField("Aliases", aliasBuilder.toString(), true);
+		this.addAliasFields(builder);
 		builder.withImage(imageURL);
 		builder.withThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 		
@@ -178,5 +170,21 @@ public abstract class AbstractCommand
 	protected String getPatreonBanner()
 	{
 		return "https://c5.patreon.com/external/logo/become_a_patron_button.png".intern();
+	}
+	
+	private void addAliasFields(EmbedBuilder builder)
+	{
+		for(Language lang : Language.values())
+		{
+			StringBuilder sBuilder = new StringBuilder();
+			for(Entry<String, Language> alias : aliases.entrySet())
+			{
+				if(alias.getValue() == lang)
+					sBuilder.append(alias.getKey() + "\n");
+			}
+			
+			if(sBuilder.length() != 0)
+				builder.appendField(lang.getName() + " aliases", sBuilder.toString(), true);
+		}
 	}
 }

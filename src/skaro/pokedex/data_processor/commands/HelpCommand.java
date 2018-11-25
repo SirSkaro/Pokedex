@@ -28,8 +28,11 @@ public class HelpCommand extends AbstractCommand
 		library = new HashMap<String, AbstractCommand>();
 		
 		for(AbstractCommand command : commands)
+		{
+			library.put(command.getCommandName(), command);
 			for(String alias : command.getAliases().keySet())
 				library.put(alias, command);
+		}
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);

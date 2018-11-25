@@ -1,7 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
@@ -16,10 +15,10 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
-import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon.Type;
+import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
@@ -35,6 +34,7 @@ public class WeakCommand extends AbstractCommand
 		factory = pff;
 		formatter = new WeakResponseFormatter();
 		
+		aliases.put("weakness", Language.ENGLISH);
 		aliases.put("debilidad", Language.SPANISH);
 		aliases.put("faiblesses", Language.FRENCH);
 		aliases.put("debole", Language.ITALIAN);
@@ -70,17 +70,11 @@ public class WeakCommand extends AbstractCommand
 			//Gather data according to the argument case
 			if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON) //argument is a Pokemon
 			{	
-				List<PokeFlexRequest> concurrentRequsts = new ArrayList<PokeFlexRequest>();
-				concurrentRequsts.add(new Request(Endpoint.POKEMON, input.getArg(0).getFlexForm()));
-				concurrentRequsts.add(new Request(Endpoint.POKEMON_SPECIES, input.getArg(0).getFlexForm()));
-				List<Object> flexData = factory.createFlexObjects(concurrentRequsts);
+				Pokemon pokemon = (Pokemon)factory.createFlexObject(new Request(Endpoint.POKEMON, input.getArg(0).getFlexForm()));
+				dataMap.put(Pokemon.class.getName(), pokemon);
 				
-				//Add all data to the map again
-				for(Object obj : flexData)
-					dataMap.add(obj.getClass().getName(), obj);
-				
-				//Get data for the Typing of the Pokemon
-				Pokemon pokemon = (Pokemon)dataMap.getValue(Pokemon.class.getName(), 0);
+				Object flexObj = factory.createFlexObject(pokemon.getSpecies().getUrl(), Endpoint.POKEMON_SPECIES);
+				dataMap.put(PokemonSpecies.class.getName(), flexObj);
 				
 				for(Type type : pokemon.getTypes())
 				{
@@ -106,7 +100,6 @@ public class WeakCommand extends AbstractCommand
 		{
 			Response response = new Response();
 			this.addErrorMessage(response, input, "1006", e); 
-			e.printStackTrace();
 			return response;
 		}
 	}
