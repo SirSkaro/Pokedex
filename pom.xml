@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>Pokedex</groupId>
 	<artifactId>Pokedex</artifactId>
-	<version>5.5.8b</version>
+	<version>5.6.0</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>
@@ -53,12 +53,19 @@
 		</repository>
 	</repositories>
 	<dependencies>
-		<!-- Discord4j -->
+		<!-- Discord4j v2 -->
 		<dependency>
 			<!-- <groupId>com.github.austinv11</groupId> -->
 			<groupId>com.github.Discord4J</groupId>
 			<artifactId>Discord4j</artifactId>
 			<version>2.10.1</version>
+		</dependency>
+		<!-- Discord4j v3 -->
+		<dependency>
+			<!-- <groupId>com.github.austinv11</groupId> -->
+			<groupId>com.discord4j.discord4j</groupId>
+			<artifactId>discord4j-core</artifactId>
+			<version>v3-SNAPSHOT</version>
 		</dependency>
 		<!-- Logback Classic: SLF4J Binding -->
 		<dependency>
