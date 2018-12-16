@@ -101,7 +101,7 @@ public class PerkChecker
 		JSONAPIDocument<List<Campaign>> apiResponse;
 		Campaign campagin;
 		User user;
-		String userDiscordID;
+		Optional<String> userDiscordID;
 		List<Pledge> pledges;
 		
 		try 
@@ -113,8 +113,8 @@ public class PerkChecker
 			for(Pledge pledge : pledges)
 			{
 				user = pledge.getPatron();
-				userDiscordID = user.getSocialConnections().getDiscord().getUser_id();
-				if(userDiscordID != null && Long.parseLong(userDiscordID) == id)
+				userDiscordID = getDiscordID(user);
+				if(userDiscordID.isPresent() && Long.parseLong(userDiscordID.get()) == id)
 					return Optional.of(user);
 			}
 		} 
@@ -126,5 +126,26 @@ public class PerkChecker
 		}
 		
 		return Optional.empty();
+	}
+	
+	private Optional<String> getDiscordID(User user)
+	{
+		try
+		{
+			if(user.getSocialConnections() == null
+					|| user.getSocialConnections().getDiscord() == null)
+				return Optional.empty();
+			
+			String userDiscordID = user.getSocialConnections().getDiscord().getUser_id();
+			if(userDiscordID != null)
+				return Optional.of(userDiscordID);
+			
+			return Optional.empty();
+		}
+		catch(Exception e)
+		{
+			System.out.println("[PrivilegeChecker] Unable to get Discord data for patron "+ user.getFullName());
+			return Optional.empty();
+		}
 	}
 }
