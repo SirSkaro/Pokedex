@@ -14,9 +14,9 @@ import com.patreon.PatreonAPI;
 
 import skaro.pokedex.communicator.Publisher;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorTracker;
+import skaro.pokedex.data_processor.ColorService;
 import skaro.pokedex.data_processor.CommandMap;
-import skaro.pokedex.data_processor.EmojiTracker;
+import skaro.pokedex.data_processor.EmojiService;
 import skaro.pokedex.data_processor.LearnMethodData;
 import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
@@ -48,7 +48,7 @@ public class Pokedex
 		int totalShards = -1;
 		
 		Optional<String> discordToken, patreonAccessToken;
-		Configurator configurator;
+		ConfigurationService configurator;
 		Publisher publisher;
 		
 		CommandMap library;
@@ -82,7 +82,7 @@ public class Pokedex
 
 		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
-		configurator = Configurator.initializeConfigurator(true);
+		configurator = ConfigurationService.initializeConfigurator(true);
 		
 		//Set logging level
 		Logger logger4j = org.apache.log4j.Logger.getRootLogger();
@@ -126,8 +126,8 @@ public class Pokedex
 		 */
 		TypeData.initialize(factory);
 		LearnMethodData.initialize(factory);
-		ColorTracker.initialize();
-		EmojiTracker.initialize();
+		ColorService.initialize();
+		EmojiService.initialize();
 		
 		//Login to Discord
 		System.out.println("[Pokedex main] Logging into Discord");

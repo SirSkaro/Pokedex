@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.core.PokedexManager;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
@@ -24,14 +24,13 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class WeakCommand extends AbstractCommand 
 {
-	public WeakCommand(PokeFlexFactory pff, PerkChecker pc)
+	public WeakCommand()
 	{
-		super(pff, pc);
+		super();
 		commandName = "weak".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKE_TYPE_LIST);
 		expectedArgRange = new ArgumentRange(1,2);
-		factory = pff;
 		formatter = new WeakResponseFormatter();
 		
 		aliases.put("weakness", Language.ENGLISH);
@@ -62,6 +61,7 @@ public class WeakCommand extends AbstractCommand
 		if(!input.isValid())
 			return formatter.invalidInputResponse(input);
 		
+		PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
 		MultiMap<Object> dataMap = new MultiMap<Object>();
 		EmbedBuilder builder = new EmbedBuilder();
 		

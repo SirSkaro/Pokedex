@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.core.PokedexManager;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.AbilityResponseFormatter;
@@ -25,9 +25,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class AbilityCommand extends AbstractCommand 
 {	
-	public AbilityCommand(PokeFlexFactory pff, PerkChecker pc)
+	public AbilityCommand()
 	{
-		super(pff, pc);
+		super();
 		commandName = "ability".intern();
 		argCats.add(ArgumentCategory.POKE_ABIL);
 		expectedArgRange = new ArgumentRange(1,1);
@@ -67,6 +67,7 @@ public class AbilityCommand extends AbstractCommand
 		
 		MultiMap<Object> dataMap = new MultiMap<Object>();
 		EmbedBuilder builder = new EmbedBuilder();
+		PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
 		
 		try
 		{

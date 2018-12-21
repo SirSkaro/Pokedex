@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorTracker;
-import skaro.pokedex.data_processor.EmojiTracker;
+import skaro.pokedex.data_processor.ColorService;
+import skaro.pokedex.data_processor.EmojiService;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
@@ -78,7 +78,7 @@ public class WeakResponseFormatter implements IDiscordFormatter
 		builder.appendField(CommonData.IMMUNE.getInLanguage(lang), getList(wrapper, lang, 0.0), false);
 		
 		//Set color
-		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
+		builder.withColor(ColorService.getColorForWrapper(wrapper));
 		
 		response.setEmbededReply(builder.build());
 		return response;
@@ -89,9 +89,9 @@ public class WeakResponseFormatter implements IDiscordFormatter
 		StringBuilder builder = new StringBuilder();
 		
 		builder.append("**__"+TextFormatter.pokemonFlexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+" ");
-		builder.append("("+ EmojiTracker.getTypeEmoji(type1) + type1.getNameInLanguage(lang));
+		builder.append("("+ EmojiService.getTypeEmoji(type1) + type1.getNameInLanguage(lang));
 		builder.append(type2 != null 
-				? ("/"+EmojiTracker.getTypeEmoji(type2) + type2.getNameInLanguage(lang) +")__**") 
+				? ("/"+EmojiService.getTypeEmoji(type2) + type2.getNameInLanguage(lang) +")__**") 
 				: ")__**");
 		
 		return builder.toString();
@@ -101,8 +101,8 @@ public class WeakResponseFormatter implements IDiscordFormatter
 	{
 		StringBuilder builder = new StringBuilder();
 		
-		builder.append("**__" + EmojiTracker.getTypeEmoji(type1) + type1.getNameInLanguage(lang));
-		builder.append(type2 != null ? "/"+ EmojiTracker.getTypeEmoji(type2) + type2.getNameInLanguage(lang) +"__**": "__**");
+		builder.append("**__" + EmojiService.getTypeEmoji(type1) + type1.getNameInLanguage(lang));
+		builder.append(type2 != null ? "/"+ EmojiService.getTypeEmoji(type2) + type2.getNameInLanguage(lang) +"__**": "__**");
 		
 		return builder.toString();
 	}

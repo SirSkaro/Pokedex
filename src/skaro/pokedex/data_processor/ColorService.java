@@ -4,10 +4,10 @@ import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum ColorTracker 
+import skaro.pokedex.core.IService;
+
+public class ColorService implements IService
 {
-	;
-	
 	private static Map<String, Color> typeColorMap = new HashMap<>();
 	private static Map<String, Color> versionColorMap = new HashMap<>();
 	
@@ -60,7 +60,7 @@ public enum ColorTracker
 		return new Color((int) r, (int) g, (int) b, (int) a);
 	}
 	
-	public static void initialize()
+	public void initialize()
 	{
 		typeColorMap.put("normal".intern(), new Color(0xA8A77A));
 		typeColorMap.put("fighting".intern(), new Color(0xC22E28));

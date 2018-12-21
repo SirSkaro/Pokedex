@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.EmojiTracker;
+import skaro.pokedex.data_processor.EmojiService;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
@@ -90,7 +90,7 @@ public class ItemResponseFormatter implements IDiscordFormatter
 	{
 		StringBuilder builder = new StringBuilder();
 		
-		builder.append(EmojiTracker.getTypeEmoji(TypeData.getByName(type.getName())));
+		builder.append(EmojiService.getTypeEmoji(TypeData.getByName(type.getName())));
 		builder.append(" ");
 		builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
 		

@@ -38,7 +38,7 @@ public class TypeInteractionWrapper
 		StringBuilder builder = new StringBuilder();
 		
 		for(TypeData type : types)
-			builder.append("/"+EmojiTracker.getTypeEmoji(type) + type.getNameInLanguage(lang) );
+			builder.append("/"+EmojiService.getTypeEmoji(type) + type.getNameInLanguage(lang) );
 		
 		return builder.substring(1);
 	}

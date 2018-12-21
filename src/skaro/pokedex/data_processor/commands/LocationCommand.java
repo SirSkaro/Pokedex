@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.core.PokedexManager;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorTracker;
+import skaro.pokedex.data_processor.ColorService;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.AbstractArgument;
@@ -29,9 +29,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class LocationCommand extends AbstractCommand 
 {
-	public LocationCommand(PokeFlexFactory pff, PerkChecker pc)
+	public LocationCommand()
 	{
-		super(pff, pc);
+		super();
 		commandName = "location".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.VERSION);
@@ -86,6 +86,7 @@ public class LocationCommand extends AbstractCommand
 		try 
 		{
 			//Obtain Pokemon data
+			PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
 			List<String> urlParams = new ArrayList<String>();
 			urlParams.add(input.getArg(0).getFlexForm());
 			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, urlParams);
@@ -158,7 +159,7 @@ public class LocationCommand extends AbstractCommand
 		//Add adopter
 		this.addAdopter(pokemon, eBuilder);
 		
-		eBuilder.withColor(ColorTracker.getColorForVersion(version));
+		eBuilder.withColor(ColorService.getColorForVersion(version));
 		return eBuilder.build();
 	}
 	

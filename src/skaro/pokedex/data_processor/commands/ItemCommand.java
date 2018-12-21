@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.core.PokedexManager;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
@@ -24,9 +24,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class ItemCommand extends AbstractCommand
 {
-	public ItemCommand(PokeFlexFactory pff, PerkChecker pc)
+	public ItemCommand()
 	{
-		super(pff, pc);
+		super();
 		commandName = "item".intern();
 		argCats.add(ArgumentCategory.ITEM);
 		expectedArgRange = new ArgumentRange(1,1);
@@ -61,6 +61,7 @@ public class ItemCommand extends AbstractCommand
 		
 		try
 		{
+			PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
 			List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
 			List<Object> flexData = new ArrayList<Object>();
 			MultiMap<Object> dataMap = new MultiMap<Object>();

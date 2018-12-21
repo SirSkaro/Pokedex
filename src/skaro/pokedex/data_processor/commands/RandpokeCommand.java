@@ -6,7 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.core.PokedexManager;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.RandpokeResponseFormatter;
@@ -23,9 +23,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class RandpokeCommand extends AbstractCommand 
 {
-	public RandpokeCommand(PokeFlexFactory pff, PerkChecker pc)
+	public RandpokeCommand()
 	{
-		super(pff, pc);
+		super();
 		commandName = "randpoke".intern();
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
@@ -61,6 +61,7 @@ public class RandpokeCommand extends AbstractCommand
 	
 		try
 		{
+			PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
 			MultiMap<Object> dataMap = new MultiMap<Object>();
 			EmbedBuilder builder = new EmbedBuilder();
 			int randDexNum = ThreadLocalRandom.current().nextInt(1, 807 + 1);

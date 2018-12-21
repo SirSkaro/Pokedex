@@ -16,16 +16,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;			//in Discord4J's dependenc
  * is being tested; FALSE otherwise.
  *
  */
-public class Configurator 
+public class ConfigurationService
 {
 	private static String dataKey = "production".intern();
-	private static Configurator instance;
+	private static ConfigurationService instance;
 	private static JsonNode rootNode;
 	
-	private Configurator(boolean debug)
+	private ConfigurationService(ConfigurationType type)
 	{
-		if(debug)
-			dataKey = "debug".intern();
+		dataKey = type.getKey();
 		
 		try 
         {
@@ -40,16 +39,16 @@ public class Configurator
 		}
 	}
 	
-	public static Configurator initializeConfigurator(boolean debug)
+	public static ConfigurationService initialize(ConfigurationType type)
 	{
 		if(instance != null)
 			return instance;
 			
-		instance = new Configurator(debug);
+		instance = new ConfigurationService(type);
 		return instance;
 	}
 	
-	public static Optional<Configurator> getInstance()
+	public static Optional<ConfigurationService> getInstance()
 	{
 		return Optional.ofNullable(instance);
 	}

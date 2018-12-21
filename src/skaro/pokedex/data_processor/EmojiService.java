@@ -3,18 +3,18 @@ package skaro.pokedex.data_processor;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum EmojiTracker 
+import skaro.pokedex.core.IService;
+
+public class EmojiService implements IService
 {
-	TRACKER();
-	
 	private final static Map<TypeData, String> typeEmojiMap = new HashMap<TypeData, String>();
 	private final static Map<TypeData, String> crystalEmojiMap = new HashMap<TypeData, String>();
 	private final static Map<String, String> damageCategoryEmojiMap = new HashMap<String, String>();
 	private final static Map<String, String> contestCategoryEmojiMap = new HashMap<String, String>();
 	
-	private EmojiTracker() {}
+	private EmojiService() {}
 	
-	public static void initialize()
+	public void initialize()
 	{
 		typeEmojiMap.put(TypeData.BUG, "<:type_bug:495141042174033920>");
 		typeEmojiMap.put(TypeData.DARK, "<:type_dark:495141042299994122>");

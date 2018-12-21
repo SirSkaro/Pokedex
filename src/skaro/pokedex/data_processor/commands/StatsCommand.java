@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.core.PokedexManager;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
@@ -21,14 +21,13 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class StatsCommand extends AbstractCommand  
 {	
-	public StatsCommand(PokeFlexFactory pff, PerkChecker pc)
+	public StatsCommand()
 	{
-		super(pff, pc);
+		super();
 		commandName = "stats".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
-		factory = pff;
 		formatter = new StatsResponseFormatter();
 		
 		aliases.put("statistiken", Language.GERMAN);
@@ -82,6 +81,7 @@ public class StatsCommand extends AbstractCommand
 		
 		try
 		{
+			PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
 			MultiMap<Object> dataMap = new MultiMap<Object>();
 			EmbedBuilder builder = new EmbedBuilder();
 			Object flexObj;

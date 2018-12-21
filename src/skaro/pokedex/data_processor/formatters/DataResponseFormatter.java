@@ -8,8 +8,8 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorTracker;
-import skaro.pokedex.data_processor.EmojiTracker;
+import skaro.pokedex.data_processor.ColorService;
+import skaro.pokedex.data_processor.EmojiService;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Statistic;
@@ -90,7 +90,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 		//Extra
 		builder.withImage(pokemon.getModel().getUrl());
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(ColorTracker.getColorForType(type));
+		builder.withColor(ColorService.getColorForType(type));
 		
 		
 		response.setEmbededReply(builder.build());
@@ -288,7 +288,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 		for(Object type : types)
 		{
 			tempType = (Type)type;
-			builder.append(EmojiTracker.getTypeEmoji(TypeData.getByName(tempType.getName())));
+			builder.append(EmojiService.getTypeEmoji(TypeData.getByName(tempType.getName())));
 			builder.append(" ");
 			builder.append(TextFormatter.flexFormToProper(tempType.getNameInLanguage(lang.getFlexKey())) + "\n");
 		}

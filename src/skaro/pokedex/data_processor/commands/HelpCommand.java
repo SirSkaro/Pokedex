@@ -20,7 +20,7 @@ public class HelpCommand extends AbstractCommand
 	
 	public HelpCommand(List<AbstractCommand> commands)
 	{
-		super(null, null);
+		super();
 		commandName = "help".intern();
 		argCats.add(ArgumentCategory.ANY_NONE);
 		expectedArgRange = new ArgumentRange(0,1);

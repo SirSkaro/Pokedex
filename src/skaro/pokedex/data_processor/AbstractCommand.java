@@ -9,13 +9,12 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
-import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.core.PokedexManager;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
-import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
@@ -26,17 +25,13 @@ public abstract class AbstractCommand
 	protected ArgumentRange expectedArgRange;
 	protected String commandName;
 	protected List<ArgumentCategory> argCats;
-	protected PokeFlexFactory factory;
-	protected PerkChecker checker;
 	protected List<String> extraMessages;
 	protected EmbedObject helpMessage;
 	protected Map<String, Language> aliases;
 	protected IDiscordFormatter formatter;
 	
-	public AbstractCommand(PokeFlexFactory pff, PerkChecker pc)
+	public AbstractCommand()
 	{
-		factory = pff;
-		checker = pc;
 		argCats = new ArrayList<ArgumentCategory>();
 		aliases = new HashMap<String, Language>();
 		extraMessages = new ArrayList<String>();
@@ -153,7 +148,7 @@ public abstract class AbstractCommand
 	
 	protected void addAdopter(Pokemon pokemon, EmbedBuilder builder)
 	{
-		Optional<IUser> adopterCheck = checker.getPokemonsAdopter(pokemon.getName());
+		Optional<IUser> adopterCheck = PokedexManager.INSTANCE.PerkService().getPokemonsAdopter(pokemon.getName());
 		
 		if(adopterCheck.isPresent())
 		{

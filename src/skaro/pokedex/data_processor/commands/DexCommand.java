@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.core.PokedexManager;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.DexResponseFormatter;
@@ -24,9 +24,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class DexCommand extends AbstractCommand
 {
-	public DexCommand(PokeFlexFactory pff, PerkChecker pc)
+	public DexCommand()
 	{
-		super(pff, pc);
+		super();
 		commandName = "dex".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.VERSION);
@@ -64,6 +64,7 @@ public class DexCommand extends AbstractCommand
 		if(!input.isValid())
 			return formatter.invalidInputResponse(input);
 		
+		PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
 		MultiMap<Object> dataMap = new MultiMap<Object>();
 		EmbedBuilder builder = new EmbedBuilder();
 		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();

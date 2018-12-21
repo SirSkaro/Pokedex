@@ -2,7 +2,7 @@ package skaro.pokedex.communicator;
 
 import java.util.Optional;
 
-import skaro.pokedex.core.Configurator;
+import skaro.pokedex.core.ConfigurationService;
 import sx.blah.discord.api.IDiscordClient;
 
 public abstract class AbstractPublicationRecipient 
@@ -22,8 +22,8 @@ public abstract class AbstractPublicationRecipient
 	public String getConfigID() { return configID; }
 	public boolean configure()
 	{
-		Configurator configurator;
-		Optional<Configurator> configCheck = Configurator.getInstance();
+		ConfigurationService configurator;
+		Optional<ConfigurationService> configCheck = ConfigurationService.getInstance();
 		Optional<String> token;
 		
 		if(!configCheck.isPresent())

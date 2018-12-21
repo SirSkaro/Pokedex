@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorTracker;
+import skaro.pokedex.data_processor.ColorService;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
@@ -62,7 +62,7 @@ public class CoverageResponseFormatter implements IDiscordFormatter
 		builder.appendField(CommonData.NEUTRAL.getInLanguage(lang), getList(wrapper, 1.0, lang), false);
 		builder.appendField(CommonData.RESIST.getInLanguage(lang), getList(wrapper, 0.5, lang), false);
 		builder.appendField(CommonData.IMMUNE.getInLanguage(lang), getList(wrapper, 0.0, lang), false);
-		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
+		builder.withColor(ColorService.getColorForWrapper(wrapper));
 		
 		response.setEmbededReply(builder.build());
 		return response;

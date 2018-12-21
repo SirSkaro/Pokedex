@@ -8,7 +8,7 @@ import javax.sound.sampled.AudioInputStream;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorTracker;
+import skaro.pokedex.data_processor.ColorService;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TTSConverter;
@@ -86,7 +86,7 @@ public class DexResponseFormatter implements IDiscordFormatter
 				+TextFormatter.flexFormToProper(version.getNameInLanguage(lang.getFlexKey()))+"__**");
 		
 		builder.withDescription(replyContent);
-		builder.withColor(ColorTracker.getColorForVersion(input.getArg(1).getFlexForm().replace("-", "")));
+		builder.withColor(ColorService.getColorForVersion(input.getArg(1).getFlexForm().replace("-", "")));
 		
 		//Add thumbnail
 		builder.withThumbnail(pokemon.getSprites().getFrontDefault());

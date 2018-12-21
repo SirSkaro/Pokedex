@@ -16,7 +16,7 @@ public class CommandsCommand extends AbstractCommand
 	
 	public CommandsCommand(List<AbstractCommand> commands)
 	{
-		super(null, null);
+		super();
 		commandName = "commands".intern();
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);

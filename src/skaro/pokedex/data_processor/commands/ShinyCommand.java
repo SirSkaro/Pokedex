@@ -4,10 +4,10 @@ import java.io.File;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.Configurator;
-import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.core.ConfigurationService;
+import skaro.pokedex.core.PokedexManager;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorTracker;
+import skaro.pokedex.data_processor.ColorService;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.ShinyResponseFormater;
 import skaro.pokedex.input_processor.Input;
@@ -26,13 +26,13 @@ public class ShinyCommand extends AbstractCommand
 	private final String baseModelPath;
 	private final String defaultPokemon;
 	
-	public ShinyCommand(PokeFlexFactory pff, PerkChecker pc)
+	public ShinyCommand()
 	{
-		super(pff, pc);
+		super();
 		commandName = "shiny".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
-		baseModelPath = Configurator.getInstance().get().getModelBasePath();
+		baseModelPath = ConfigurationService.getInstance().get().getModelBasePath();
 		defaultPokemon = "jirachi";
 		formatter = new ShinyResponseFormater();
 		
@@ -64,11 +64,12 @@ public class ShinyCommand extends AbstractCommand
 		if(!input.isValid())
 			return formatter.invalidInputResponse(input);
 
-		if(!checker.userHasCommandPrivileges(requester))
+		if(!PokedexManager.INSTANCE.PerkService().userHasCommandPrivileges(requester))
 			return createNonPrivilegedReply(input);
 		
 		try
 		{
+			PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
 			MultiMap<Object> dataMap = new MultiMap<Object>();
 			EmbedBuilder builder = new EmbedBuilder();
 			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
@@ -108,7 +109,7 @@ public class ShinyCommand extends AbstractCommand
 			if(!input.getArg(0).getDbForm().equals(defaultPokemon))
 			{
 				builder.withImage("attachment://jirachi.gif");
-				builder.withColor(ColorTracker.getColorForType("psychic"));
+				builder.withColor(ColorService.getColorForType("psychic"));
 				path = baseModelPath + "/"+ defaultPokemon +".gif";
 				response.addImage(new File(path));
 				builder.withFooterIcon(this.getPatreonLogo());
@@ -116,7 +117,7 @@ public class ShinyCommand extends AbstractCommand
 			}
 			else
 			{
-				builder.withColor(ColorTracker.getColorForPatreon());
+				builder.withColor(ColorService.getColorForPatreon());
 				builder.withImage(this.getPatreonLogo());
 			}
 			

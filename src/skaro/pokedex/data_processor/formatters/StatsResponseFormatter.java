@@ -6,7 +6,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorTracker;
+import skaro.pokedex.data_processor.ColorService;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Statistic;
@@ -72,7 +72,7 @@ public class StatsResponseFormatter implements IDiscordFormatter
 		
 		//Set color
 		type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(ColorTracker.getColorForType(type));
+		builder.withColor(ColorService.getColorForType(type));
 		
 		//Add thumbnail
 		builder.withThumbnail(pokemon.getSprites().getFrontDefault());

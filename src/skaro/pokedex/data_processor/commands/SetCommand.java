@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.core.PokedexManager;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorTracker;
+import skaro.pokedex.data_processor.ColorService;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.AbstractArgument;
@@ -27,9 +27,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class SetCommand extends AbstractCommand 
 {
-	public SetCommand(PokeFlexFactory pff, PerkChecker pc)
+	public SetCommand()
 	{
-		super(pff, pc);
+		super();
 		commandName = "set".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.META);
@@ -89,6 +89,7 @@ public class SetCommand extends AbstractCommand
 		{
 			gen = Integer.parseInt(input.getArg(2).getDbForm());
 			
+			PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
 			List<Object> flexObj = factory.createFlexObjects(createRequests(pokemon, gen));
 			Set sets = Set.class.cast(flexObj.get(0) instanceof Set ? flexObj.get(0) : flexObj.get(1));
 			Pokemon pokemonData = Pokemon.class.cast(flexObj.get(0) instanceof Pokemon ? flexObj.get(0) : flexObj.get(1));
@@ -145,7 +146,7 @@ public class SetCommand extends AbstractCommand
 		
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(ColorTracker.getColorForType(type));
+		builder.withColor(ColorService.getColorForType(type));
 		
 		//Set thumbnail
 		builder.withThumbnail(pokemon.getSprites().getBackDefault());

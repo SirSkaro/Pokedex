@@ -6,8 +6,8 @@ import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorTracker;
-import skaro.pokedex.data_processor.EmojiTracker;
+import skaro.pokedex.data_processor.ColorService;
+import skaro.pokedex.data_processor.EmojiService;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
@@ -94,14 +94,14 @@ public class MoveResponseFormatter implements IDiscordFormatter
 		if(image.isPresent())
 			builder.withImage(image.get().getUrl());
 		
-		builder.withColor(ColorTracker.getColorForType(move.getType().getName()));
+		builder.withColor(ColorService.getColorForType(move.getType().getName()));
 		response.setEmbededReply(builder.build());
 		return response;
 	}
 	
 	private String formatZPower(Type type, int power)
 	{
-		return EmojiTracker.getCrystalEmoji(TypeData.getByName(type.getName())) + " " + power;
+		return EmojiService.getCrystalEmoji(TypeData.getByName(type.getName())) + " " + power;
 	}
 	
 	private String formatContest(ContestType contest, Language lang)
@@ -111,7 +111,7 @@ public class MoveResponseFormatter implements IDiscordFormatter
 		
 		StringBuilder builder = new StringBuilder();
 		
-		builder.append(EmojiTracker.getContestEmoji(contest.getName()));
+		builder.append(EmojiService.getContestEmoji(contest.getName()));
 		builder.append(" ");
 		builder.append(TextFormatter.flexFormToProper(contest.getNameInLanguage(lang.getFlexKey())));
 		
@@ -151,7 +151,7 @@ public class MoveResponseFormatter implements IDiscordFormatter
 	{
 		StringBuilder builder = new StringBuilder();
 		
-		builder.append(EmojiTracker.getTypeEmoji(TypeData.getByName(type.getName())));
+		builder.append(EmojiService.getTypeEmoji(TypeData.getByName(type.getName())));
 		builder.append(" ");
 		builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
 		
@@ -162,7 +162,7 @@ public class MoveResponseFormatter implements IDiscordFormatter
 	{
 		StringBuilder builder = new StringBuilder();
 		
-		builder.append(EmojiTracker.getDamageEmoji(category.getName()));
+		builder.append(EmojiService.getDamageEmoji(category.getName()));
 		builder.append(" ");
 		builder.append(TextFormatter.flexFormToProper(category.getNameInLanguage(lang.getFlexKey())));
 		

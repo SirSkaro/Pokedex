@@ -2,7 +2,7 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.Optional;
 
-import skaro.pokedex.core.Configurator;
+import skaro.pokedex.core.ConfigurationService;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
@@ -16,9 +16,9 @@ public class AboutCommand extends AbstractCommand
 	
 	public AboutCommand()
 	{
-		super(null, null);
+		super();
 		
-		Optional<Configurator> configurator = Configurator.getInstance();
+		Optional<ConfigurationService> configurator = ConfigurationService.getInstance();
 		String version;
 		
 		if(!configurator.isPresent())
