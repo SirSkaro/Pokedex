@@ -1,7 +1,9 @@
 package skaro.pokedex.core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -31,59 +33,45 @@ import skaro.pokedex.data_processor.commands.SetCommand;
 import skaro.pokedex.data_processor.commands.ShinyCommand;
 import skaro.pokedex.data_processor.commands.StatsCommand;
 import skaro.pokedex.data_processor.commands.WeakCommand;
-import skaro.pokeflex.api.PokeFlexFactory;
 
-public enum PokedexManager 
+public enum PokedexManager implements IServiceManager
 {
 	INSTANCE;
 	
-	private ColorService colorService;
-	private EmojiService emojiService;
-	private PokeFlexFactory pokeFlexService;
-	private PerkChecker perkService;
-	private DiscordClient discordService;
-	private ConfigurationService configurationService;
-	private CommandMap commandService;
-	
+	private Map<ServiceType, IService> services;	
 	private boolean initialized = false;
+	
+	public IService getService(ServiceType service) throws ServiceException
+	{
+		if(!services.containsKey(service))
+			throw new ServiceException("Service not supported or included");
+		
+		return services.get(service);
+	}
 	
 	private void build(PokedexConfigurator builder)
 	{
 		if(initialized)
 			throw new IllegalStateException("Pokedex application already configued!");
 		
-		pokeFlexService = builder.factory;
-		perkService = builder.perkService;
-		discordService = builder.discordClient;
-		configurationService = builder.configurationService;
-		commandService = builder.commandMap;
-		colorService.initialize();
-		emojiService.initialize();
+		builder.services.put(ServiceType.CONFIG, builder.configurationService);
+		this.services = builder.services;
 		initialized = true;
 	}
 	
-	public PokeFlexFactory PokeFlexService() { return pokeFlexService; }
-	public ConfigurationService ConfigurationService() { return configurationService; }
-	public DiscordClient DiscordService() { return discordService; }
-	public PerkChecker PerkService() { return perkService; }
-	public ColorService ColorService() { return colorService; }
-	public EmojiService EmojiService() { return emojiService; }
-	public CommandMap CommandService() { return commandService; }
-	
 	public static class PokedexConfigurator 
 	{
+		private Map<ServiceType, IService> services;
+		
 		private ConfigurationService configurationService;
-		private DiscordClient discordClient;
-		private PerkChecker perkService;
-		private CommandMap commandMap;
 		private ScheduledExecutorService threadPool;
-		private PokeFlexFactory factory;
 		
 		public static PokedexConfigurator newInstance(ConfigurationType configType, ScheduledExecutorService threadPool) 
 		{ 
 			PokedexConfigurator builder = new PokedexConfigurator(); 
 			builder.threadPool = threadPool;
 			builder.configurationService = ConfigurationService.initialize(configType);
+			builder.services = new HashMap<>();
 			
 			return builder;
 		}
@@ -117,18 +105,37 @@ public enum PokedexManager
 			commands.add(new HelpCommand(commands));
 			commands.add(new CommandsCommand(commands));
 			
-			this.commandMap = new CommandMap(commands, this.threadPool);
+			CommandMap commandMap = new CommandMap(commands, this.threadPool);
+			services.put(ServiceType.COMMAND, commandMap);
+			return this;
+		}
+		
+		public PokedexConfigurator buildColorService()
+		{
+			ColorService colorService = new ColorService();
+			services.put(ServiceType.COLOR, colorService);
+			
+			return this;
+		}
+		
+		public PokedexConfigurator buildEmojiService()
+		{
+			EmojiService emojiService = new EmojiService();
+			services.put(ServiceType.EMOJI, emojiService);
+			
 			return this;
 		}
 		
 		public PokedexConfigurator buildDiscordClient(int shardCount, int shardID)
 		{
 			Optional<String> discordToken = configurationService.getAuthToken("discord");
-			discordClient = new DiscordClientBuilder(discordToken.get())
+			DiscordClient discordClient = new DiscordClientBuilder(discordToken.get())
 								.setShardCount(shardCount)
 								.setShardIndex(shardID)
 								.setInitialPresence(Presence.online())
 								.build();
+			DiscordService service = new DiscordService(discordClient);
+			services.put(ServiceType.DISCORD, service);
 			
 			return this;
 		}
@@ -137,14 +144,16 @@ public enum PokedexManager
 		{
 			Optional<String> patreonAccessToken = configurationService.getConfigData("access_token", "patreon");
 			PatreonAPI patreonClient = new PatreonAPI(patreonAccessToken.get());
-			perkService = new PerkChecker(patreonClient, this.threadPool);
+			PerkChecker perkService = new PerkChecker(patreonClient, this.threadPool);
+			services.put(ServiceType.PERK, perkService);
 			
 			return this;
 		}
 		
 		public PokedexConfigurator initPokeFlexFactory()
 		{
-			factory = new PokeFlexFactory(configurationService.getPokeFlexURL(), this.threadPool);
+			PokeFlexService factory = new PokeFlexService(configurationService.getPokeFlexURL(), this.threadPool);
+			services.put(ServiceType.POKE_FLEX, factory);
 			return this;
 		}
 	}

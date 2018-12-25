@@ -23,10 +23,13 @@ public class PokedexV3
 								.buildCommandMap()
 								.buildDiscordClient(totalShards, shardIDToManage)
 								.buildPatreonClient()
+								.buildColorService()
+								.buildEmojiService()
 								.initPokeFlexFactory()
 								.configure();
 		
-		DiscordClient client = manager.DiscordService();
+		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
+		DiscordClient client = service.getV3Client();
 		Scheduler scheduler = Schedulers.fromExecutorService(pokedexThreadPool);
 		
 		client.getEventDispatcher().on(MessageCreateEvent.class).publishOn(scheduler) // This listens for all events that are of MessageCreateEvent

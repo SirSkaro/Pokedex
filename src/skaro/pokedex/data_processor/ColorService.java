@@ -8,16 +8,23 @@ import skaro.pokedex.core.IService;
 
 public class ColorService implements IService
 {
-	private static Map<String, Color> typeColorMap = new HashMap<>();
-	private static Map<String, Color> versionColorMap = new HashMap<>();
+	private final Map<String, Color> typeColorMap;
+	private final Map<String, Color> versionColorMap;
 	
-	public static Color getColorForType(String type)
+	public ColorService()
+	{
+		typeColorMap = new HashMap<>();
+		versionColorMap = new HashMap<>();
+		initialize();
+	}
+	
+	public Color getColorForType(String type)
 	{
 		type = type.toLowerCase();
 		return typeColorMap.get(type);
 	}
 	
-	public static Color getColorForWrapper(TypeInteractionWrapper wrapper)
+	public Color getColorForWrapper(TypeInteractionWrapper wrapper)
 	{
 		Color result = null;
 		
@@ -27,23 +34,23 @@ public class ColorService implements IService
 		return result;
 	}
 	
-	public static Color getColorForVersion(String ver)
+	public Color getColorForVersion(String ver)
 	{
 		ver = ver.toLowerCase();
 		return versionColorMap.get(ver);
 	}
 	
-	public static Color getColorForAbility()
+	public Color getColorForAbility()
 	{
 		return new Color(0x66E1FB);
 	}
 	
-	public static Color getColorForPatreon()
+	public Color getColorForPatreon()
 	{
 		return new Color(0xF96854);
 	}
 	
-	private static Color blend(Color c0, Color c1) 
+	private Color blend(Color c0, Color c1) 
 	{
 		if(c1 == null)
 			return c0;
@@ -60,7 +67,7 @@ public class ColorService implements IService
 		return new Color((int) r, (int) g, (int) b, (int) a);
 	}
 	
-	public void initialize()
+	private void initialize()
 	{
 		typeColorMap.put("normal".intern(), new Color(0xA8A77A));
 		typeColorMap.put("fighting".intern(), new Color(0xC22E28));

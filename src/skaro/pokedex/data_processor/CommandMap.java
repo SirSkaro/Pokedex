@@ -6,7 +6,9 @@ import java.util.concurrent.ExecutorService;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
-public class CommandMap 
+import skaro.pokedex.core.IService;
+
+public class CommandMap implements IService
 {
 	private Cache<String, AbstractCommand> cache;
 	

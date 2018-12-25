@@ -17,7 +17,7 @@ import skaro.pokedex.input_processor.MySQLManager;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.IUser;
 
-public class PerkChecker 
+public class PerkChecker implements IService
 {
 	private Cache<Long, IUser> privilegedUserCache;
 	private PatreonAPI patreonClient;

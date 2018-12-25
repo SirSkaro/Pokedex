@@ -7,14 +7,21 @@ import skaro.pokedex.core.IService;
 
 public class EmojiService implements IService
 {
-	private final static Map<TypeData, String> typeEmojiMap = new HashMap<TypeData, String>();
-	private final static Map<TypeData, String> crystalEmojiMap = new HashMap<TypeData, String>();
-	private final static Map<String, String> damageCategoryEmojiMap = new HashMap<String, String>();
-	private final static Map<String, String> contestCategoryEmojiMap = new HashMap<String, String>();
+	private final Map<TypeData, String> typeEmojiMap;
+	private final Map<TypeData, String> crystalEmojiMap;
+	private final Map<String, String> damageCategoryEmojiMap;
+	private final Map<String, String> contestCategoryEmojiMap;
 	
-	private EmojiService() {}
+	public EmojiService() 
+	{
+		typeEmojiMap = new HashMap<TypeData, String>();
+		crystalEmojiMap = new HashMap<TypeData, String>();
+		damageCategoryEmojiMap = new HashMap<String, String>();
+		contestCategoryEmojiMap = new HashMap<String, String>();
+		initialize();
+	}
 	
-	public void initialize()
+	private void initialize()
 	{
 		typeEmojiMap.put(TypeData.BUG, "<:type_bug:495141042174033920>");
 		typeEmojiMap.put(TypeData.DARK, "<:type_dark:495141042299994122>");
@@ -66,9 +73,9 @@ public class EmojiService implements IService
 		contestCategoryEmojiMap.put("tough", "<:contest_tough:495427549787324436>");
 	}
 	
-	public static String getTypeEmoji(TypeData type) { return typeEmojiMap.get(type); }
-	public static String getCrystalEmoji(TypeData type) { return crystalEmojiMap.get(type); }
-	public static String getDamageEmoji(String category) { return damageCategoryEmojiMap.get(category); }
-	public static String getContestEmoji(String category) { return contestCategoryEmojiMap.get(category); }
+	public String getTypeEmoji(TypeData type) { return typeEmojiMap.get(type); }
+	public String getCrystalEmoji(TypeData type) { return crystalEmojiMap.get(type); }
+	public String getDamageEmoji(String category) { return damageCategoryEmojiMap.get(category); }
+	public String getContestEmoji(String category) { return contestCategoryEmojiMap.get(category); }
 	
 }

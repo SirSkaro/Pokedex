@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;			//in Discord4J's dependenc
  * is being tested; FALSE otherwise.
  *
  */
-public class ConfigurationService
+public class ConfigurationService implements IService
 {
 	private static String dataKey = "production".intern();
 	private static ConfigurationService instance;
