@@ -1,38 +1,11 @@
 package skaro.pokedex.core;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ScheduledExecutorService;
 
-import com.patreon.PatreonAPI;
-
-import discord4j.core.DiscordClient;
-import discord4j.core.DiscordClientBuilder;
-import discord4j.core.object.presence.Presence;
-import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.ColorService;
 import skaro.pokedex.data_processor.CommandMap;
 import skaro.pokedex.data_processor.EmojiService;
-import skaro.pokedex.data_processor.commands.AbilityCommand;
-import skaro.pokedex.data_processor.commands.AboutCommand;
-import skaro.pokedex.data_processor.commands.CommandsCommand;
-import skaro.pokedex.data_processor.commands.CoverageCommand;
-import skaro.pokedex.data_processor.commands.DataCommand;
-import skaro.pokedex.data_processor.commands.DexCommand;
-import skaro.pokedex.data_processor.commands.HelpCommand;
-import skaro.pokedex.data_processor.commands.InviteCommand;
-import skaro.pokedex.data_processor.commands.ItemCommand;
-import skaro.pokedex.data_processor.commands.LearnCommand;
-import skaro.pokedex.data_processor.commands.MoveCommand;
-import skaro.pokedex.data_processor.commands.PatreonCommand;
-import skaro.pokedex.data_processor.commands.RandpokeCommand;
-import skaro.pokedex.data_processor.commands.SetCommand;
-import skaro.pokedex.data_processor.commands.ShinyCommand;
-import skaro.pokedex.data_processor.commands.StatsCommand;
-import skaro.pokedex.data_processor.commands.WeakCommand;
 
 public enum PokedexManager implements IServiceManager
 {
@@ -44,7 +17,7 @@ public enum PokedexManager implements IServiceManager
 	public IService getService(ServiceType service) throws ServiceException
 	{
 		if(!services.containsKey(service))
-			throw new ServiceException("Service not supported or included");
+			throw new ServiceException("Service not set up or included");
 		
 		return services.get(service);
 	}
@@ -54,7 +27,6 @@ public enum PokedexManager implements IServiceManager
 		if(initialized)
 			throw new IllegalStateException("Pokedex application already configued!");
 		
-		builder.services.put(ServiceType.CONFIG, builder.configurationService);
 		this.services = builder.services;
 		initialized = true;
 	}
@@ -63,14 +35,9 @@ public enum PokedexManager implements IServiceManager
 	{
 		private Map<ServiceType, IService> services;
 		
-		private ConfigurationService configurationService;
-		private ScheduledExecutorService threadPool;
-		
-		public static PokedexConfigurator newInstance(ConfigurationType configType, ScheduledExecutorService threadPool) 
+		public static PokedexConfigurator newInstance() 
 		{ 
 			PokedexConfigurator builder = new PokedexConfigurator(); 
-			builder.threadPool = threadPool;
-			builder.configurationService = ConfigurationService.initialize(configType);
 			builder.services = new HashMap<>();
 			
 			return builder;
@@ -82,78 +49,45 @@ public enum PokedexManager implements IServiceManager
 			return INSTANCE;
 		}
 		
-		public PokedexConfigurator buildCommandMap()
+		public PokedexConfigurator withConfigurationService(ConfigurationService service)
 		{
-			List<AbstractCommand> commands = new ArrayList<AbstractCommand>();
-			
-			commands.add(new RandpokeCommand());
-			commands.add(new StatsCommand());
-			commands.add(new DataCommand());
-			commands.add(new AbilityCommand());
-			commands.add(new ItemCommand());
-			commands.add(new MoveCommand());
-			commands.add(new LearnCommand());
-			commands.add(new WeakCommand());
-			commands.add(new CoverageCommand());
-			commands.add(new DexCommand());
-			commands.add(new SetCommand());
-			commands.add(new AboutCommand());
-			commands.add(new PatreonCommand());
-			commands.add(new InviteCommand());
-			commands.add(new ShinyCommand());
-			
-			commands.add(new HelpCommand(commands));
-			commands.add(new CommandsCommand(commands));
-			
-			CommandMap commandMap = new CommandMap(commands, this.threadPool);
-			services.put(ServiceType.COMMAND, commandMap);
+			services.put(ServiceType.CONFIG, service);
 			return this;
 		}
 		
-		public PokedexConfigurator buildColorService()
+		public PokedexConfigurator withCommandService(CommandMap service)
 		{
-			ColorService colorService = new ColorService();
-			services.put(ServiceType.COLOR, colorService);
-			
+			services.put(ServiceType.COMMAND, service);
 			return this;
 		}
 		
-		public PokedexConfigurator buildEmojiService()
+		public PokedexConfigurator withColorService(ColorService service)
 		{
-			EmojiService emojiService = new EmojiService();
-			services.put(ServiceType.EMOJI, emojiService);
-			
+			services.put(ServiceType.COLOR, service);
 			return this;
 		}
 		
-		public PokedexConfigurator buildDiscordClient(int shardCount, int shardID)
+		public PokedexConfigurator withEmojiService(EmojiService service)
 		{
-			Optional<String> discordToken = configurationService.getAuthToken("discord");
-			DiscordClient discordClient = new DiscordClientBuilder(discordToken.get())
-								.setShardCount(shardCount)
-								.setShardIndex(shardID)
-								.setInitialPresence(Presence.online())
-								.build();
-			DiscordService service = new DiscordService(discordClient);
+			services.put(ServiceType.EMOJI, service);
+			return this;
+		}
+		
+		public PokedexConfigurator withDiscordService(DiscordService service)
+		{
 			services.put(ServiceType.DISCORD, service);
-			
 			return this;
 		}
 		
-		public PokedexConfigurator buildPatreonClient()
+		public PokedexConfigurator buildPatreonClient(PerkChecker service)
 		{
-			Optional<String> patreonAccessToken = configurationService.getConfigData("access_token", "patreon");
-			PatreonAPI patreonClient = new PatreonAPI(patreonAccessToken.get());
-			PerkChecker perkService = new PerkChecker(patreonClient, this.threadPool);
-			services.put(ServiceType.PERK, perkService);
-			
+			services.put(ServiceType.PERK, service);
 			return this;
 		}
 		
-		public PokedexConfigurator initPokeFlexFactory()
+		public PokedexConfigurator withPokeFlexService(PokeFlexService service)
 		{
-			PokeFlexService factory = new PokeFlexService(configurationService.getPokeFlexURL(), this.threadPool);
-			services.put(ServiceType.POKE_FLEX, factory);
+			services.put(ServiceType.POKE_FLEX, service);
 			return this;
 		}
 	}
