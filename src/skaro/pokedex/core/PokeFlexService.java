@@ -10,4 +10,10 @@ public class PokeFlexService extends PokeFlexFactory implements IService
 	{
 		super(base, customExecutor);
 	}
+	
+	@Override
+	public ServiceType getServiceType() 
+	{
+		return ServiceType.POKE_FLEX;
+	}
 }

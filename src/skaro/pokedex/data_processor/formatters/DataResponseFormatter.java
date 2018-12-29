@@ -8,8 +8,8 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorService;
-import skaro.pokedex.data_processor.EmojiService;
+import skaro.pokedex.core.ColorService;
+import skaro.pokedex.core.EmojiService;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Statistic;

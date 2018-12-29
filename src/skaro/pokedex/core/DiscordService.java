@@ -10,6 +10,12 @@ public class DiscordService implements IService
 	{
 		this.v3Client = v3Client;
 	}
+
+	@Override
+	public ServiceType getServiceType() 
+	{
+		return ServiceType.DISCORD;
+	}
 	
 	public DiscordClient getV3Client() { return this.v3Client; }
 }

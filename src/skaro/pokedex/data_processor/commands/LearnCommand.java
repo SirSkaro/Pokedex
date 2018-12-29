@@ -7,11 +7,13 @@ import java.util.Map;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PokedexManager;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.LearnMethodWrapper;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.formatters.LearnResponseFormatter;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -31,14 +33,16 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class LearnCommand extends AbstractCommand
 {
-	public LearnCommand()
+	public LearnCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super();
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "learn".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.MOVE_LIST);
 		expectedArgRange = new ArgumentRange(2,5);
-		formatter = new LearnResponseFormatter();
 		
 		aliases.put("knows", Language.ENGLISH);
 		aliases.put("erlernen", Language.GERMAN);
@@ -60,6 +64,13 @@ public class LearnCommand extends AbstractCommand
 	
 	public boolean makesWebRequest() { return true; }
 	public String getArguments() { return "<pokemon>, <move>,...,<move>"; }
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
+	}
 	
 	public boolean inputIsValid(Response reply, Input input)
 	{
@@ -91,7 +102,7 @@ public class LearnCommand extends AbstractCommand
 		if(!inputIsValid(null, input))
 			return formatter.invalidInputResponse(input);
 		
-		PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
+		PokeFlexFactory factory;
 		MultiMap<Object> dataMap = new MultiMap<Object>();
 		EmbedBuilder builder = new EmbedBuilder();
 		List<PokeFlexRequest> concurrentRequsts = new ArrayList<PokeFlexRequest>();
@@ -101,6 +112,8 @@ public class LearnCommand extends AbstractCommand
 		
 		try
 		{
+			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			
 			//Get data of Pokemon
 			concurrentRequsts.add(new Request(Endpoint.POKEMON, input.getArg(0).getFlexForm()));
 			
@@ -175,8 +188,6 @@ public class LearnCommand extends AbstractCommand
 			e.printStackTrace();
 			return response;
 		}
-		
-		
 	}
 	
 	private Map<String, Move> getAllLearnableMoves(Pokemon thisPokemon, List<Object> preEvolutions)

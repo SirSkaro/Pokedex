@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,7 +8,11 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
-import skaro.pokedex.core.PokedexManager;
+import skaro.pokedex.core.ColorService;
+import skaro.pokedex.core.IServiceConsumer;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
@@ -20,7 +23,7 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 
-public abstract class AbstractCommand 
+public abstract class AbstractCommand implements IServiceConsumer
 {
 	protected ArgumentRange expectedArgRange;
 	protected String commandName;
@@ -29,9 +32,24 @@ public abstract class AbstractCommand
 	protected EmbedObject helpMessage;
 	protected Map<String, Language> aliases;
 	protected IDiscordFormatter formatter;
+	protected IServiceManager services;
 	
-	public AbstractCommand()
+	public AbstractCommand(IServiceManager serviceManager)
 	{
+		services = serviceManager;
+		argCats = new ArrayList<ArgumentCategory>();
+		aliases = new HashMap<String, Language>();
+		extraMessages = new ArrayList<String>();
+		
+		extraMessages.add("If you like Pokedex, consider becoming a Patreon for perks! (%patreon for link)");
+		extraMessages.add("Stay up to date with Pokedex: join the support server! (%invite for link)");
+		extraMessages.add("Want your name next to a Pokemon? Adopt a Pokemon with Patreon! (%patreon for link)");
+	}
+	
+	public AbstractCommand(IServiceManager serviceManager, IDiscordFormatter discordFormatter)
+	{
+		services = serviceManager;
+		formatter = discordFormatter;
 		argCats = new ArrayList<ArgumentCategory>();
 		aliases = new HashMap<String, Language>();
 		extraMessages = new ArrayList<String>();
@@ -56,6 +74,12 @@ public abstract class AbstractCommand
 			return Language.ENGLISH;
 		
 		return result;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR);
 	}
 	
 	abstract public boolean makesWebRequest();
@@ -111,6 +135,7 @@ public abstract class AbstractCommand
 	protected void createHelpMessage(String ex1, String ex2, String ex3, String ex4, String imageURL)
 	{
 		EmbedBuilder builder = new EmbedBuilder();
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		StringBuilder exampleBuilder = new StringBuilder();
 		builder.setLenient(true);
 		
@@ -126,13 +151,14 @@ public abstract class AbstractCommand
 		builder.withImage(imageURL);
 		builder.withThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 		
-		builder.withColor(new Color(0xD60B01));
+		builder.withColor(colorService.getPokedexColor());
 		
 		helpMessage = builder.build();
 	}
 	
 	protected void createHelpMessage(String imageURL)
 	{
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setLenient(true);
 		
@@ -141,14 +167,15 @@ public abstract class AbstractCommand
 		builder.withImage(imageURL);
 		builder.withThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 		
-		builder.withColor(new Color(0xD60B01));
+		builder.withColor(colorService.getPokedexColor());
 		
 		helpMessage = builder.build();
 	}
 	
 	protected void addAdopter(Pokemon pokemon, EmbedBuilder builder)
 	{
-		Optional<IUser> adopterCheck = PokedexManager.INSTANCE.PerkService().getPokemonsAdopter(pokemon.getName());
+		PerkChecker checker = (PerkChecker)services.getService(ServiceType.PERK);
+		Optional<IUser> adopterCheck = checker.getPokemonsAdopter(pokemon.getName());
 		
 		if(adopterCheck.isPresent())
 		{

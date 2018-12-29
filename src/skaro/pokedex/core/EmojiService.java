@@ -1,9 +1,9 @@
-package skaro.pokedex.data_processor;
+package skaro.pokedex.core;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import skaro.pokedex.core.IService;
+import skaro.pokedex.data_processor.TypeData;
 
 public class EmojiService implements IService
 {
@@ -19,6 +19,12 @@ public class EmojiService implements IService
 		damageCategoryEmojiMap = new HashMap<String, String>();
 		contestCategoryEmojiMap = new HashMap<String, String>();
 		initialize();
+	}
+	
+	@Override
+	public ServiceType getServiceType() 
+	{
+		return ServiceType.EMOJI;
 	}
 	
 	private void initialize()

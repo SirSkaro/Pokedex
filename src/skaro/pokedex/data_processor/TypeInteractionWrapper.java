@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 
+import skaro.pokedex.core.EmojiService;
 import skaro.pokedex.input_processor.Language;
 
 public class TypeInteractionWrapper 

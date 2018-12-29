@@ -15,9 +15,7 @@ import discord4j.core.object.presence.Presence;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorService;
-import skaro.pokedex.data_processor.CommandMap;
-import skaro.pokedex.data_processor.EmojiService;
+import skaro.pokedex.data_processor.CommandService;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
 import skaro.pokedex.data_processor.commands.CommandsCommand;
@@ -66,15 +64,18 @@ public class PokedexV3
 		System.out.println("[Pokedex main] Loading configurations...");
 		ScheduledExecutorService pokedexThreadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 6);
 		ConfigurationService configurationService = ConfigurationService.initialize(ConfigurationType.DEVELOP);
+		CommandService commandMap = new CommandService(pokedexThreadPool);
 		
 		PokedexManager manager = PokedexManager.PokedexConfigurator.newInstance()
-								.withCommandService(createCommandMap(pokedexThreadPool))
-								.withDiscordService(createDiscordService(configurationService, totalShards, shardIDToManage))
-								.buildPatreonClient(createPatreonService(configurationService, pokedexThreadPool))
-								.withColorService(new ColorService())
-								.withEmojiService(new EmojiService())
-								.withPokeFlexService(createPokeFlexService(configurationService, pokedexThreadPool))
+								.withService(commandMap)
+								.withService(createDiscordService(configurationService, totalShards, shardIDToManage))
+								.withService(createPatreonService(configurationService, pokedexThreadPool))
+								.withService(new ColorService())
+								.withService(new EmojiService())
+								.withService(createPokeFlexService(configurationService, pokedexThreadPool))
 								.configure();
+		
+		populateCommandMap(manager);
 		
 		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
 		DiscordClient client = service.getV3Client();
@@ -86,7 +87,7 @@ public class PokedexV3
 		client.login().block(); 
 	}
 	
-	private static CommandMap createCommandMap(ScheduledExecutorService threadPool)
+	private static void populateCommandMap(PokedexManager manager)
 	{
 		List<AbstractCommand> commands = new ArrayList<AbstractCommand>();
 		
@@ -109,7 +110,7 @@ public class PokedexV3
 		commands.add(new HelpCommand(commands));
 		commands.add(new CommandsCommand(commands));
 		
-		return new CommandMap(commands, threadPool);
+		return new CommandService(commands, threadPool);
 	}
 	
 	private static DiscordService createDiscordService(ConfigurationService configService, int shardID, int shardCount)

@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import skaro.pokedex.core.PokedexManager;
+import skaro.pokedex.core.ColorService;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorService;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.AbstractArgument;
@@ -27,9 +30,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class SetCommand extends AbstractCommand 
 {
-	public SetCommand()
+	public SetCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super();
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "set".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.META);
@@ -42,6 +48,13 @@ public class SetCommand extends AbstractCommand
 	
 	public boolean makesWebRequest() { return true; }
 	public String getArguments() { return "<pokemon>, <meta>, <generation>"; }
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.COLOR);
+	}
 	
 	public boolean inputIsValid(Response reply, Input input)
 	{
@@ -89,7 +102,7 @@ public class SetCommand extends AbstractCommand
 		{
 			gen = Integer.parseInt(input.getArg(2).getDbForm());
 			
-			PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
+			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 			List<Object> flexObj = factory.createFlexObjects(createRequests(pokemon, gen));
 			Set sets = Set.class.cast(flexObj.get(0) instanceof Set ? flexObj.get(0) : flexObj.get(1));
 			Pokemon pokemonData = Pokemon.class.cast(flexObj.get(0) instanceof Pokemon ? flexObj.get(0) : flexObj.get(1));
@@ -127,6 +140,7 @@ public class SetCommand extends AbstractCommand
 	
 	private EmbedObject formatEmbed(Pokemon pokemon, Set sets, String tier)
 	{
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setLenient(true);
 		
@@ -146,7 +160,7 @@ public class SetCommand extends AbstractCommand
 		
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(ColorService.getColorForType(type));
+		builder.withColor(colorService.getColorForType(type));
 		
 		//Set thumbnail
 		builder.withThumbnail(pokemon.getSprites().getBackDefault());

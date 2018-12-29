@@ -15,7 +15,7 @@ import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Bucket4j;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.CommandMap;
+import skaro.pokedex.data_processor.CommandService;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.InputProcessor;
@@ -40,7 +40,7 @@ public class PostLoginEventHandler
 	private InputProcessor processor;
 	private Cache<Long, Bucket> bucketCache;
 	
-	public PostLoginEventHandler(CommandMap lib, ScheduledExecutorService threadPool, Long botID)
+	public PostLoginEventHandler(CommandService lib, ScheduledExecutorService threadPool, Long botID)
 	{
 		processor = new InputProcessor(lib, botID);
 		bucketCache = Caffeine.newBuilder()

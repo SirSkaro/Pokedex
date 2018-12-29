@@ -5,11 +5,13 @@ import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PokedexManager;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.formatters.CoverageResponseFormatter;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -24,9 +26,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class CoverageCommand extends AbstractCommand 
 {
-	public CoverageCommand()
+	public CoverageCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super();
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "coverage".intern();
 		argCats.add(ArgumentCategory.MOVE_TYPE_LIST);
 		expectedArgRange = new ArgumentRange(1,4);
@@ -46,7 +51,6 @@ public class CoverageCommand extends AbstractCommand
 		aliases.put("エフェクト", Language.JAPANESE_HIR_KAT);
 		aliases.put("유효한", Language.KOREAN);
 		
-		formatter = new CoverageResponseFormatter();
 		extraMessages.add("You may also like the %weak command!");
 		
 		createHelpMessage("ice, electric", "blizzard, thunder", "Ghost, Fire, Vine Whip, Hyper Beam", "Water",
@@ -56,30 +60,11 @@ public class CoverageCommand extends AbstractCommand
 	public boolean makesWebRequest() { return true; }
 	public String getArguments() { return "<type/move>,...,<type/move>"; }
 	
-	protected boolean inputIsValid(Response reply, Input input)
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
 	{
-		if(!input.isValid())
-		{
-			switch(input.getError())
-			{
-				case ARGUMENT_NUMBER:
-					reply.addToReply("You must specify between 1 to 4 Types or Moves as input for this command "
-							+ "(seperated by commas).");
-				break;
-				case INVALID_ARGUMENT:
-					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(AbstractArgument arg : input.getArgs())
-						if(!arg.isValid())
-							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized Type or Move.");
-					reply.addToReply("\n*top suggestion*: did you include commas between inputs?");
-				break;
-				default:
-					reply.addToReply("A technical error occured (code 107)");
-			}
-			return false;
-		}
-		
-		return true;
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX);
 	}
 	
 	public Response discordReply(Input input, IUser requester)
@@ -87,7 +72,7 @@ public class CoverageCommand extends AbstractCommand
 		if(!input.isValid())
 			return formatter.invalidInputResponse(input);
 		
-		PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
+		PokeFlexFactory factory;
 		MultiMap<Object> dataMap = new MultiMap<Object>();
 		EmbedBuilder builder = new EmbedBuilder();
 		List<PokeFlexRequest> concurrentMoveRequestList = new ArrayList<PokeFlexRequest>();
@@ -96,6 +81,8 @@ public class CoverageCommand extends AbstractCommand
 		
 		try
 		{
+			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			
 			//Sort between Move and Type arguments
 			for(AbstractArgument arg : input.getArgs())
 			{
@@ -130,4 +117,5 @@ public class CoverageCommand extends AbstractCommand
 			return response;
 		}
 	}
+	
 }

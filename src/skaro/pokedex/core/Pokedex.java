@@ -14,9 +14,7 @@ import com.patreon.PatreonAPI;
 
 import skaro.pokedex.communicator.Publisher;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorService;
-import skaro.pokedex.data_processor.CommandMap;
-import skaro.pokedex.data_processor.EmojiService;
+import skaro.pokedex.data_processor.CommandService;
 import skaro.pokedex.data_processor.LearnMethodData;
 import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
@@ -51,7 +49,7 @@ public class Pokedex
 		ConfigurationService configurator;
 		Publisher publisher;
 		
-		CommandMap library;
+		CommandService library;
 		PreLoginEventHandler pleh;
 		PerkChecker checker;
 		
@@ -160,7 +158,7 @@ public class Pokedex
 	 * recognized by any command map.
 	 * @return a CommandLibrary of AbstractCommands that are supported for Discord
 	 */
-	private static CommandMap initCompleteLibrary(PokeFlexFactory factory, PerkChecker checker, ExecutorService service)
+	private static CommandService initCompleteLibrary(PokeFlexFactory factory, PerkChecker checker, ExecutorService service)
 	{
 		List<AbstractCommand> commands = new ArrayList<AbstractCommand>();
 		
@@ -184,7 +182,7 @@ public class Pokedex
 		commands.add(new HelpCommand(commands));
 		commands.add(new CommandsCommand(commands));
 		
-		CommandMap result = new CommandMap(commands, service);
+		CommandService result = new CommandService(commands, service);
 		
 		return result;
 	}

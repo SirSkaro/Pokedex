@@ -36,6 +36,12 @@ public class PerkChecker implements IService
 		sqlManager = MySQLManager.getInstance();
 	}
 	
+	@Override
+	public ServiceType getServiceType() 
+	{
+		return ServiceType.PERK;
+	}
+	
 	public void setDiscordClient(IDiscordClient client)
 	{
 		discordClient = client;

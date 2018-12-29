@@ -5,10 +5,12 @@ import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PokedexManager;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.formatters.AbilityResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -25,13 +27,15 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class AbilityCommand extends AbstractCommand 
 {	
-	public AbilityCommand()
+	public AbilityCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super();
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "ability".intern();
 		argCats.add(ArgumentCategory.POKE_ABIL);
 		expectedArgRange = new ArgumentRange(1,1);
-		formatter = new AbilityResponseFormatter();
 		
 		aliases.put("ab", Language.ENGLISH);
 		aliases.put("abil", Language.ENGLISH);
@@ -60,6 +64,13 @@ public class AbilityCommand extends AbstractCommand
 	public boolean makesWebRequest() { return true; }
 	public String getArguments() { return "<pokemon> or <ability>"; }
 	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
+	}
+	
 	public Response discordReply(Input input, IUser requester)
 	{
 		if(!input.isValid())
@@ -67,10 +78,12 @@ public class AbilityCommand extends AbstractCommand
 		
 		MultiMap<Object> dataMap = new MultiMap<Object>();
 		EmbedBuilder builder = new EmbedBuilder();
-		PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
+		PokeFlexFactory factory;
 		
 		try
 		{
+			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			
 			if(input.getArg(0).getCategory() == ArgumentCategory.ABILITY)
 			{
 				Object flexObj = factory.createFlexObject(Endpoint.ABILITY, input.argsAsList());
@@ -101,6 +114,8 @@ public class AbilityCommand extends AbstractCommand
 				//Add all data to the map
 				for(Object obj : flexData)
 					dataMap.add(obj.getClass().getName(), obj);
+				
+				this.addAdopter(pokemon, builder);
 			}
 			
 			this.addRandomExtraMessage(builder);
@@ -113,4 +128,5 @@ public class AbilityCommand extends AbstractCommand
 			return response;
 		}
 	}
+
 }

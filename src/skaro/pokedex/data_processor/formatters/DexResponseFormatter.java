@@ -8,7 +8,7 @@ import javax.sound.sampled.AudioInputStream;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorService;
+import skaro.pokedex.core.ColorService;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TTSConverter;

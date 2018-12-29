@@ -6,9 +6,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import skaro.pokedex.core.PokedexManager;
+import skaro.pokedex.core.ColorService;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorService;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.AbstractArgument;
@@ -29,9 +33,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class LocationCommand extends AbstractCommand 
 {
-	public LocationCommand()
+	public LocationCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super();
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "location".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		argCats.add(ArgumentCategory.VERSION);
@@ -44,6 +51,13 @@ public class LocationCommand extends AbstractCommand
 	
 	public boolean makesWebRequest() { return true; }
 	public String getArguments() { return "<pokemon>, <version>"; }
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.COLOR);
+	}
 	
 	public boolean inputIsValid(Response reply, Input input)
 	{
@@ -82,12 +96,14 @@ public class LocationCommand extends AbstractCommand
 		
 		Pokemon pokemon = null;
 		Encounter encounterData = null;
+		PokeFlexFactory factory;
+		List<String> urlParams = new ArrayList<String>();
 		
 		try 
 		{
+			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			
 			//Obtain Pokemon data
-			PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
-			List<String> urlParams = new ArrayList<String>();
 			urlParams.add(input.getArg(0).getFlexForm());
 			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, urlParams);
 			pokemon = Pokemon.class.cast(flexObj);
@@ -98,38 +114,39 @@ public class LocationCommand extends AbstractCommand
 			urlParams.add("encounters");
 			flexObj = factory.createFlexObject(Endpoint.ENCOUNTER, urlParams);
 			encounterData = Encounter.class.cast(flexObj);
+			
+			//Get encounter data from particular version
+			String versionDBForm = input.getArg(1).getDbForm();
+			List<EncounterPotential> encounterDataFromVersion = getEncounterDataFromVersion(encounterData, versionDBForm);
+			
+			if(encounterDataFromVersion.isEmpty())
+			{
+				reply.addToReply(TextFormatter.flexFormToProper(pokemon.getName())+" cannot be found by means of a normal encounter in "
+						+ TextFormatter.flexFormToProper(input.getArg(1).getRawInput())+" version");
+				return reply;
+			}
+			
+			//Format reply
+			reply.addToReply("**"+TextFormatter.flexFormToProper(pokemon.getName())+"** can be found in **"+(encounterDataFromVersion.size())+
+					"** location(s) in **"+TextFormatter.flexFormToProper(versionDBForm)+"** version");
+			reply.setEmbededReply(formatEmbed(encounterDataFromVersion, versionDBForm, pokemon));
+			
+			return reply;
 		} 
 		catch(Exception e)
 		{ 
 			this.addErrorMessage(reply, input, "1011", e); 
 			return reply;
 		}
-		
-		//Get encounter data from particular version
-		String versionDBForm = input.getArg(1).getDbForm();
-		List<EncounterPotential> encounterDataFromVersion = getEncounterDataFromVersion(encounterData, versionDBForm);
-		
-		if(encounterDataFromVersion.isEmpty())
-		{
-			reply.addToReply(TextFormatter.flexFormToProper(pokemon.getName())+" cannot be found by means of a normal encounter in "
-					+ TextFormatter.flexFormToProper(input.getArg(1).getRawInput())+" version");
-			return reply;
-		}
-		
-		//Format reply
-		reply.addToReply("**"+TextFormatter.flexFormToProper(pokemon.getName())+"** can be found in **"+(encounterDataFromVersion.size())+
-				"** location(s) in **"+TextFormatter.flexFormToProper(versionDBForm)+"** version");
-		reply.setEmbededReply(formatEmbed(encounterDataFromVersion, versionDBForm, pokemon));
-		
-		return reply;
 	}
 	
-	private EmbedObject formatEmbed(List<EncounterPotential> encounterDataFromVersion, String version, Pokemon pokemon) 
+	private EmbedObject formatEmbed(List<EncounterPotential> encounterDataFromVersion, String version, Pokemon pokemon) throws ServiceException 
 	{
 		EmbedBuilder eBuilder = new EmbedBuilder();	
 		StringBuilder sBuilder;
 		Set<String> detailsList; 
 		VersionDetail vDetails;
+		ColorService colorService;
 		eBuilder.setLenient(true);
 		
 		for(EncounterPotential potential : encounterDataFromVersion)
@@ -159,7 +176,8 @@ public class LocationCommand extends AbstractCommand
 		//Add adopter
 		this.addAdopter(pokemon, eBuilder);
 		
-		eBuilder.withColor(ColorService.getColorForVersion(version));
+		colorService = (ColorService)services.getService(ServiceType.COLOR);
+		eBuilder.withColor(colorService.getColorForVersion(version));
 		return eBuilder.build();
 	}
 	

@@ -6,8 +6,11 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PokedexManager;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.RandpokeResponseFormatter;
 import skaro.pokedex.input_processor.Input;
@@ -23,9 +26,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class RandpokeCommand extends AbstractCommand 
 {
-	public RandpokeCommand()
+	public RandpokeCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super();
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "randpoke".intern();
 		argCats.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
@@ -56,12 +62,18 @@ public class RandpokeCommand extends AbstractCommand
 	public String getArguments() { return "none"; }
 
 	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
+	}
+	
+	@Override
 	public Response discordReply(Input input, IUser requester)
 	{
-	
 		try
 		{
-			PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
+			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 			MultiMap<Object> dataMap = new MultiMap<Object>();
 			EmbedBuilder builder = new EmbedBuilder();
 			int randDexNum = ThreadLocalRandom.current().nextInt(1, 807 + 1);
@@ -90,6 +102,6 @@ public class RandpokeCommand extends AbstractCommand
 			this.addErrorMessage(response, input, "1002", e); 
 			return response;
 		}
-		
 	}
+	
 }

@@ -39,6 +39,12 @@ public class ConfigurationService implements IService
 		}
 	}
 	
+	@Override
+	public ServiceType getServiceType() 
+	{
+		return ServiceType.CONFIG;
+	}
+	
 	public static ConfigurationService initialize(ConfigurationType type)
 	{
 		if(instance != null)
@@ -161,4 +167,5 @@ public class ConfigurationService implements IService
 		
 		return dataNode.get(dataKey).asText();
 	}
+	
 }

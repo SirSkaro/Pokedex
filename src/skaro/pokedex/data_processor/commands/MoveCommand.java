@@ -5,11 +5,13 @@ import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PokedexManager;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.formatters.MoveResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -24,13 +26,15 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class MoveCommand extends AbstractCommand 
 {
-	public MoveCommand()
+	public MoveCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super();
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "move".intern();
 		argCats.add(ArgumentCategory.MOVE);
 		expectedArgRange = new ArgumentRange(1,1);
-		formatter = new MoveResponseFormatter();
 		
 		aliases.put("mv", Language.ENGLISH);
 		aliases.put("moves", Language.ENGLISH);
@@ -57,12 +61,19 @@ public class MoveCommand extends AbstractCommand
 	public boolean makesWebRequest() { return true; }
 	public String getArguments() { return "<move>"; }
 	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX);
+	}
+	
 	public Response discordReply(Input input, IUser requester)
 	{
 		if(!input.isValid())
 			return formatter.invalidInputResponse(input);
 		
-		PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
+		PokeFlexFactory factory;
 		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
 		List<Object> flexData = new ArrayList<Object>();
 		MultiMap<Object> dataMap = new MultiMap<Object>();
@@ -70,6 +81,8 @@ public class MoveCommand extends AbstractCommand
 		
 		try
 		{
+			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			
 			//Initial data - Move object
 			Move move = (Move)factory.createFlexObject(Endpoint.MOVE, input.argsAsList());
 			dataMap.put(Move.class.getName(), move);
@@ -104,4 +117,5 @@ public class MoveCommand extends AbstractCommand
 			return response;
 		}
 	}
+	
 }

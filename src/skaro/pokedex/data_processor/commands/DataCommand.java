@@ -5,11 +5,13 @@ import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PokedexManager;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.formatters.DataResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -32,13 +34,15 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class DataCommand extends AbstractCommand 
 {
-	public DataCommand()
+	public DataCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super();
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "data".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
-		formatter = new DataResponseFormatter();
 		
 		aliases.put("pokemon", Language.ENGLISH);
 		aliases.put("dt", Language.ENGLISH);
@@ -65,13 +69,20 @@ public class DataCommand extends AbstractCommand
 	public boolean makesWebRequest() { return true; }
 	public String getArguments(){ return "<pokemon>"; }
 	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
+	}
+	
 	@SuppressWarnings("unchecked")
 	public Response discordReply(Input input, IUser requester)
 	{
 		if(!input.isValid())
 			return formatter.invalidInputResponse(input);
 		
-		PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
+		PokeFlexFactory factory;
 		Request request;
 		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
 		List<Object> flexData = new ArrayList<Object>();
@@ -84,6 +95,8 @@ public class DataCommand extends AbstractCommand
 		//Obtain data
 		try
 		{
+			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			
 			//Pokemon
 			Pokemon pokemon = (Pokemon)factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
 			dataMap.put(Pokemon.class.getName(), pokemon);
@@ -150,7 +163,7 @@ public class DataCommand extends AbstractCommand
 				dataMap.add(skaro.pokeflex.objects.type.Type.class.getName(), TypeData.getByName(type.getType().getName()).getType());
 			
 			//Format all data
-			addAdopter(pokemon, builder);
+			this.addAdopter(pokemon, builder);
 			this.addRandomExtraMessage(builder);
 			
 			return formatter.format(input, dataMap, builder);

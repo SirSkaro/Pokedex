@@ -2,7 +2,11 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.Optional;
 
+import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.ConfigurationService;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
@@ -14,12 +18,15 @@ public class AboutCommand extends AbstractCommand
 {
 	private Response staticDiscordReply;
 	
-	public AboutCommand()
+	public AboutCommand(IServiceManager services) throws ServiceConsumerException
 	{
-		super();
+		super(services);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		Optional<ConfigurationService> configurator = ConfigurationService.getInstance();
 		String version;
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		
 		if(!configurator.isPresent())
 			version = "(unspecified)";
@@ -34,13 +41,20 @@ public class AboutCommand extends AbstractCommand
 		
 		EmbedBuilder builder = new EmbedBuilder();	
 		builder.setLenient(true);
-		builder.withColor(0xD60B01);
+		builder.withColor(colorService.getPokedexColor());
 		builder.withAuthorName("Pokedex "+version);
 		setStaticReplyFields(builder);
 		
 		staticDiscordReply.setEmbededReply(builder.build());
 		
 		this.createHelpMessage("https://i.imgur.com/gC3tMJQ.gif");
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{ 
+		return super.hasExpectedServices(services) &&
+					services.hasServices(ServiceType.COLOR, ServiceType.CONFIG); 
 	}
 	
 	public boolean makesWebRequest() { return false; }

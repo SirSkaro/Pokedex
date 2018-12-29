@@ -7,18 +7,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.CommandMap;
+import skaro.pokedex.data_processor.CommandService;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.ParsedText;
 
 public class InputProcessor 
 {
-	private CommandMap commandLibrary;
+	private CommandService commandLibrary;
 	private Pattern prefixPattern, postfixPattern, mentionPattern;
 	private long botID;
 	
-	public InputProcessor(CommandMap lib, Long id)
+	public InputProcessor(CommandService lib, Long id)
 	{
 		commandLibrary = lib;
 		botID = id;

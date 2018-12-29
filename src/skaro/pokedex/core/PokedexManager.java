@@ -3,32 +3,28 @@ package skaro.pokedex.core;
 import java.util.HashMap;
 import java.util.Map;
 
-import skaro.pokedex.data_processor.ColorService;
-import skaro.pokedex.data_processor.CommandMap;
-import skaro.pokedex.data_processor.EmojiService;
-
-public enum PokedexManager implements IServiceManager
+public class PokedexManager implements IServiceManager
 {
-	INSTANCE;
-	
 	private Map<ServiceType, IService> services;	
-	private boolean initialized = false;
 	
-	public IService getService(ServiceType service) throws ServiceException
+	@Override
+	public IService getService(ServiceType service) 
 	{
-		if(!services.containsKey(service))
-			throw new ServiceException("Service not set up or included");
-		
 		return services.get(service);
 	}
 	
-	private void build(PokedexConfigurator builder)
+	@Override
+	public boolean hasServices(ServiceType... services)
 	{
-		if(initialized)
-			throw new IllegalStateException("Pokedex application already configued!");
-		
+		for(ServiceType service: services)
+			if(!this.services.containsKey(service))
+				return false;
+		return true;
+	}
+	
+	private PokedexManager(PokedexConfigurator builder)
+	{
 		this.services = builder.services;
-		initialized = true;
 	}
 	
 	public static class PokedexConfigurator 
@@ -45,50 +41,14 @@ public enum PokedexManager implements IServiceManager
 		
 		public PokedexManager configure()
 		{
-			INSTANCE.build(this);
-			return INSTANCE;
+			return new PokedexManager(this);
 		}
 		
-		public PokedexConfigurator withConfigurationService(ConfigurationService service)
+		public PokedexConfigurator withService(IService service)
 		{
-			services.put(ServiceType.CONFIG, service);
-			return this;
-		}
-		
-		public PokedexConfigurator withCommandService(CommandMap service)
-		{
-			services.put(ServiceType.COMMAND, service);
-			return this;
-		}
-		
-		public PokedexConfigurator withColorService(ColorService service)
-		{
-			services.put(ServiceType.COLOR, service);
-			return this;
-		}
-		
-		public PokedexConfigurator withEmojiService(EmojiService service)
-		{
-			services.put(ServiceType.EMOJI, service);
-			return this;
-		}
-		
-		public PokedexConfigurator withDiscordService(DiscordService service)
-		{
-			services.put(ServiceType.DISCORD, service);
-			return this;
-		}
-		
-		public PokedexConfigurator buildPatreonClient(PerkChecker service)
-		{
-			services.put(ServiceType.PERK, service);
-			return this;
-		}
-		
-		public PokedexConfigurator withPokeFlexService(PokeFlexService service)
-		{
-			services.put(ServiceType.POKE_FLEX, service);
+			services.put(service.getServiceType(), service);
 			return this;
 		}
 	}
+	
 }

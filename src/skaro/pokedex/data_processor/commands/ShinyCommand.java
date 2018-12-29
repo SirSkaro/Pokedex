@@ -4,12 +4,15 @@ import java.io.File;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.ConfigurationService;
-import skaro.pokedex.core.PokedexManager;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorService;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.formatters.ShinyResponseFormater;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -26,15 +29,17 @@ public class ShinyCommand extends AbstractCommand
 	private final String baseModelPath;
 	private final String defaultPokemon;
 	
-	public ShinyCommand()
+	public ShinyCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super();
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "shiny".intern();
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
 		baseModelPath = ConfigurationService.getInstance().get().getModelBasePath();
 		defaultPokemon = "jirachi";
-		formatter = new ShinyResponseFormater();
 		
 		aliases.put("schillerndes", Language.GERMAN);
 		aliases.put("fāguāng", Language.CHINESE_SIMPMLIFIED);
@@ -57,6 +62,13 @@ public class ShinyCommand extends AbstractCommand
 
 	public boolean makesWebRequest() { return true; }
 	public String getArguments() { return "<pokemon>"; }
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.COLOR);
+	}
 
 	@Override
 	public Response discordReply(Input input, IUser requester) 
@@ -64,12 +76,14 @@ public class ShinyCommand extends AbstractCommand
 		if(!input.isValid())
 			return formatter.invalidInputResponse(input);
 
-		if(!PokedexManager.INSTANCE.PerkService().userHasCommandPrivileges(requester))
+		PerkChecker perkService = (PerkChecker)services.getService(ServiceType.PERK);
+		
+		if(!perkService.userHasCommandPrivileges(requester))
 			return createNonPrivilegedReply(input);
 		
 		try
 		{
-			PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
+			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 			MultiMap<Object> dataMap = new MultiMap<Object>();
 			EmbedBuilder builder = new EmbedBuilder();
 			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
@@ -98,6 +112,7 @@ public class ShinyCommand extends AbstractCommand
 	private Response createNonPrivilegedReply(Input input)
 	{
 		String path;
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Response response = new Response();
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setLenient(true);
@@ -109,7 +124,7 @@ public class ShinyCommand extends AbstractCommand
 			if(!input.getArg(0).getDbForm().equals(defaultPokemon))
 			{
 				builder.withImage("attachment://jirachi.gif");
-				builder.withColor(ColorService.getColorForType("psychic"));
+				builder.withColor(colorService.getColorForType("psychic"));
 				path = baseModelPath + "/"+ defaultPokemon +".gif";
 				response.addImage(new File(path));
 				builder.withFooterIcon(this.getPatreonLogo());
@@ -117,7 +132,7 @@ public class ShinyCommand extends AbstractCommand
 			}
 			else
 			{
-				builder.withColor(ColorService.getColorForPatreon());
+				builder.withColor(colorService.getColorForPatreon());
 				builder.withImage(this.getPatreonLogo());
 			}
 			

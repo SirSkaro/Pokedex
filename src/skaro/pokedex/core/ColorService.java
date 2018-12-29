@@ -1,10 +1,11 @@
-package skaro.pokedex.data_processor;
+package skaro.pokedex.core;
 
 import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
-import skaro.pokedex.core.IService;
+import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TypeInteractionWrapper;
 
 public class ColorService implements IService
 {
@@ -18,10 +19,21 @@ public class ColorService implements IService
 		initialize();
 	}
 	
+	@Override
+	public ServiceType getServiceType() 
+	{
+		return ServiceType.COLOR;
+	}
+	
 	public Color getColorForType(String type)
 	{
 		type = type.toLowerCase();
 		return typeColorMap.get(type);
+	}
+	
+	public int getPokedexColor()
+	{
+		return 0xD60B01;
 	}
 	
 	public Color getColorForWrapper(TypeInteractionWrapper wrapper)
@@ -40,14 +52,14 @@ public class ColorService implements IService
 		return versionColorMap.get(ver);
 	}
 	
-	public Color getColorForAbility()
+	public int getColorForAbility()
 	{
-		return new Color(0x66E1FB);
+		return 0x66E1FB;
 	}
 	
-	public Color getColorForPatreon()
+	public int getColorForPatreon()
 	{
-		return new Color(0xF96854);
+		return 0xF96854;
 	}
 	
 	private Color blend(Color c0, Color c1) 

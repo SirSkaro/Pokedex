@@ -4,10 +4,12 @@ import java.util.ArrayList;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PokedexManager;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -21,14 +23,16 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class StatsCommand extends AbstractCommand  
 {	
-	public StatsCommand()
+	public StatsCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super();
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "stats".intern();
 		argCats = new ArrayList<ArgumentCategory>();
 		argCats.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
-		formatter = new StatsResponseFormatter();
 		
 		aliases.put("statistiken", Language.GERMAN);
 		aliases.put("statistica", Language.ITALIAN);
@@ -53,25 +57,11 @@ public class StatsCommand extends AbstractCommand
 	public boolean makesWebRequest() { return true; }	
 	public String getArguments() { return "<pokemon>"; }
 	
-	public boolean inputIsValid(Response reply, Input input)
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
 	{
-		if(!input.isValid())
-		{
-			switch(input.getError())
-			{
-				case ARGUMENT_NUMBER:
-					reply.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
-				break;
-				case INVALID_ARGUMENT:
-					reply.addToReply("\""+ input.getArg(0).getRawInput() +"\" is not a recognized Pokemon in " + input.getLanguage().getName());
-				break;
-				default:
-					reply.addToReply("A technical error occured (code 101)");
-			}
-			return false;
-		}
-		
-		return true;
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
 	}
 	
 	public Response discordReply(Input input, IUser requester)
@@ -81,7 +71,7 @@ public class StatsCommand extends AbstractCommand
 		
 		try
 		{
-			PokeFlexFactory factory = PokedexManager.INSTANCE.PokeFlexService();
+			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 			MultiMap<Object> dataMap = new MultiMap<Object>();
 			EmbedBuilder builder = new EmbedBuilder();
 			Object flexObj;
