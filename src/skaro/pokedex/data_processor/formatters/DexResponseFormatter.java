@@ -8,6 +8,7 @@ import javax.sound.sampled.AudioInputStream;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceConsumer;
 import skaro.pokedex.core.IServiceManager;
@@ -22,7 +23,6 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.version.Version;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class DexResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
@@ -67,7 +67,7 @@ public class DexResponseFormatter implements IDiscordFormatter, IServiceConsumer
 	}
 	
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
@@ -93,18 +93,17 @@ public class DexResponseFormatter implements IDiscordFormatter, IServiceConsumer
 		}
 		
 		//Format reply
-		builder.setLenient(true);
 		String replyContent = DexField.getEntryTitle(pokemonName,
 				TextFormatter.flexFormToProper(species.getGeneraInLanguage(lang.getFlexKey())), lang ) +": " + TextFormatter.formatDexEntry(entry.get());
 		
 		response.addToReply("**__"+TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+" | " 
 				+TextFormatter.flexFormToProper(version.getNameInLanguage(lang.getFlexKey()))+"__**");
 		
-		builder.withDescription(replyContent);
-		builder.withColor(colorService.getColorForVersion(input.getArg(1).getFlexForm().replace("-", "")));
+		builder.setDescription(replyContent);
+		builder.setColor(colorService.getColorForVersion(input.getArg(1).getFlexForm().replace("-", "")));
 		
 		//Add thumbnail
-		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		builder.setThumbnail(pokemon.getSprites().getFrontDefault());
 		
 		//Add audio reply
 		tts = (TTSConverter)services.getService(ServiceType.TTS);
@@ -112,7 +111,7 @@ public class DexResponseFormatter implements IDiscordFormatter, IServiceConsumer
 		if(audioCheck.isPresent())
 			response.setPlayBack(audioCheck.get());
 		
-		response.setEmbededReply(builder.build());
+		response.setEmbed(builder);
 		return response;
 	}
 	

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
@@ -27,9 +28,7 @@ import skaro.pokeflex.objects.encounter.EncounterDetail;
 import skaro.pokeflex.objects.encounter.EncounterPotential;
 import skaro.pokeflex.objects.encounter.VersionDetail;
 import skaro.pokeflex.objects.pokemon.Pokemon;
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class LocationCommand extends AbstractCommand 
 {
@@ -129,7 +128,7 @@ public class LocationCommand extends AbstractCommand
 			//Format reply
 			reply.addToReply("**"+TextFormatter.flexFormToProper(pokemon.getName())+"** can be found in **"+(encounterDataFromVersion.size())+
 					"** location(s) in **"+TextFormatter.flexFormToProper(versionDBForm)+"** version");
-			reply.setEmbededReply(formatEmbed(encounterDataFromVersion, versionDBForm, pokemon));
+			reply.setEmbed(formatEmbed(encounterDataFromVersion, versionDBForm, pokemon));
 			
 			return reply;
 		} 
@@ -140,14 +139,13 @@ public class LocationCommand extends AbstractCommand
 		}
 	}
 	
-	private EmbedObject formatEmbed(List<EncounterPotential> encounterDataFromVersion, String version, Pokemon pokemon) throws ServiceException 
+	private EmbedCreateSpec formatEmbed(List<EncounterPotential> encounterDataFromVersion, String version, Pokemon pokemon) throws ServiceException 
 	{
-		EmbedBuilder eBuilder = new EmbedBuilder();	
+		EmbedCreateSpec eBuilder = new EmbedCreateSpec();	
 		StringBuilder sBuilder;
 		Set<String> detailsList; 
 		VersionDetail vDetails;
 		ColorService colorService;
-		eBuilder.setLenient(true);
 		
 		for(EncounterPotential potential : encounterDataFromVersion)
 		{
@@ -167,18 +165,18 @@ public class LocationCommand extends AbstractCommand
 			
 			detailsList.add(sBuilder.toString());
 			
-			eBuilder.appendField(TextFormatter.flexFormToProper(potential.getLocationArea().getName()), sBuilder.toString(), true);
+			eBuilder.addField(TextFormatter.flexFormToProper(potential.getLocationArea().getName()), sBuilder.toString(), true);
 		}
 		
 		//Add thumbnail
-		eBuilder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		eBuilder.setThumbnail(pokemon.getSprites().getFrontDefault());
 		
 		//Add adopter
 		this.addAdopter(pokemon, eBuilder);
 		
 		colorService = (ColorService)services.getService(ServiceType.COLOR);
-		eBuilder.withColor(colorService.getColorForVersion(version));
-		return eBuilder.build();
+		eBuilder.setColor(colorService.getColorForVersion(version));
+		return eBuilder;
 	}
 	
 	private String formatLevel(EncounterDetail details)

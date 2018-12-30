@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
@@ -23,9 +24,7 @@ import skaro.pokeflex.objects.set.Ev;
 import skaro.pokeflex.objects.set.Iv;
 import skaro.pokeflex.objects.set.Set;
 import skaro.pokeflex.objects.set.Set_;
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class SetCommand extends AbstractCommand 
 {
@@ -112,7 +111,7 @@ public class SetCommand extends AbstractCommand
 				reply.addToReply(("__**"+tier+
 						"** sets for **"+TextFormatter.flexFormToProper(pokemon)+
 						"** from Generation **"+gen+"**__").intern());
-				reply.setEmbededReply(formatEmbed(pokemonData, sets, tier));
+				reply.setEmbed(formatEmbed(pokemonData, sets, tier));
 			}
 			else
 				reply.addToReply("Smogon doesn't have any sets for " +TextFormatter.flexFormToProper(pokemon)+ " in generation " + gen);
@@ -137,38 +136,39 @@ public class SetCommand extends AbstractCommand
 		return result;
 	}
 	
-	private EmbedObject formatEmbed(Pokemon pokemon, Set sets, String tier)
+	private EmbedCreateSpec formatEmbed(Pokemon pokemon, Set sets, String tier)
 	{
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
-		EmbedBuilder builder = new EmbedBuilder();
-		builder.setLenient(true);
+		EmbedCreateSpec builder = new EmbedCreateSpec();
 		
-		for(Set_ set : sets.getSets())
+		if(sets.getSets().isEmpty())
 		{
-			if(set.getFormat().equalsIgnoreCase(tier))
-				builder.appendField(set.getName(), setToString(pokemon.getName(), set), true);
+			builder.setTitle(TextFormatter.flexFormToProper(pokemon.getName()) + " doesn't have any sets in " + tier +" for this generation");
+			builder.setDescription("Try another tier. The link below has an exhaustive list");
+		}
+		else
+		{
+			for(Set_ set : sets.getSets())
+			{
+				if(set.getFormat().equalsIgnoreCase(tier))
+					builder.addField(set.getName(), setToString(pokemon.getName(), set), true);
+			}
 		}
 		
-		if(builder.getFieldCount() == 0)
-		{
-			builder.withTitle(TextFormatter.flexFormToProper(pokemon.getName()) + " doesn't have any sets in " + tier +" for this generation");
-			builder.withDescription("Try another tier. The link below has an exhaustive list");
-		}
-		
-		builder.appendField("Learn more", "[Smogon Analysis]("+sets.getUrl()+")", false);
+		builder.addField("Learn more", "[Smogon Analysis]("+sets.getUrl()+")", false);
 		
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(colorService.getColorForType(type));
+		builder.setColor(colorService.getColorForType(type));
 		
 		//Set thumbnail
-		builder.withThumbnail(pokemon.getSprites().getBackDefault());
+		builder.setThumbnail(pokemon.getSprites().getBackDefault());
 		
 		//Add adopter
 		this.addAdopter(pokemon, builder);
 		this.addRandomExtraMessage(builder);
 		
-		return builder.build();
+		return builder;
 	}
 	
 	private String setToString(String name, Set_ set)

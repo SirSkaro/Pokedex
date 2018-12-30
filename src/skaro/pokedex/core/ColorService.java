@@ -31,9 +31,9 @@ public class ColorService implements IService
 		return typeColorMap.get(type);
 	}
 	
-	public int getPokedexColor()
+	public Color getPokedexColor()
 	{
-		return 0xD60B01;
+		return new Color(0xD60B01);
 	}
 	
 	public Color getColorForWrapper(TypeInteractionWrapper wrapper)
@@ -52,19 +52,19 @@ public class ColorService implements IService
 		return versionColorMap.get(ver);
 	}
 	
-	public int getColorForAbility()
+	public Color getColorForAbility()
 	{
-		return 0x66E1FB;
+		return new Color(0x66E1FB);
 	}
 	
-	public int getColorForPatreon()
+	public Color getColorForPatreon()
 	{
-		return 0xF96854;
+		return new Color(0xF96854);
 	}
 	
-	public int getColorForItem()
+	public Color getColorForItem()
 	{
-		return 0xE89800;
+		return new Color(0xE89800);
 	}
 	
 	private Color blend(Color c0, Color c1) 

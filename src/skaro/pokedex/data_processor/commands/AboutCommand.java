@@ -2,6 +2,7 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.Optional;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.ConfigurationService;
 import skaro.pokedex.core.IServiceManager;
@@ -12,7 +13,6 @@ import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class AboutCommand extends AbstractCommand 
 {
@@ -39,13 +39,12 @@ public class AboutCommand extends AbstractCommand
 		
 		staticDiscordReply = new Response();
 		
-		EmbedBuilder builder = new EmbedBuilder();	
-		builder.setLenient(true);
-		builder.withColor(colorService.getPokedexColor());
-		builder.withAuthorName("Pokedex "+version);
+		EmbedCreateSpec builder = new EmbedCreateSpec();	
+		builder.setColor(colorService.getPokedexColor());
+		builder.setAuthor("Pokedex "+version, null, null);
 		setStaticReplyFields(builder);
 		
-		staticDiscordReply.setEmbededReply(builder.build());
+		staticDiscordReply.setEmbed(builder);
 		
 		this.createHelpMessage("https://i.imgur.com/gC3tMJQ.gif");
 	}
@@ -61,20 +60,20 @@ public class AboutCommand extends AbstractCommand
 	public String getArguments() { return "none"; }
 	public Response discordReply(Input input, IUser requester) { return staticDiscordReply; }
 	
-	private void setStaticReplyFields(EmbedBuilder builder)
+	private void setStaticReplyFields(EmbedCreateSpec builder)
 	{
-		builder.appendField("Creator", "[Benjamin \"Sir Skaro\" Churchill](https://twitter.com/sirskaro)", true);
-		builder.appendField("Icon Artist", "[Domenic \"Jabberjock\" Serena](https://twitter.com/domenicserena)", true);
-		builder.appendField("License","[Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/)",true);
-		builder.appendField("Recognitions", "Data provided by PokeAPI and Pokemon Showdown", true);
-		builder.appendField("Github", "[Pokedex is open source!](https://github.com/SirSkaro/Pokedex)", true);
-		builder.appendField("Libraries/Services", "Discord4J, MaryTTS, MySQL, Caffine, Bucket4J, Jazzy, PokeAPI", false);
-		builder.appendField("Pledge on Patron!", "[Support Pokedex and get perks!](https://www.patreon.com/sirskaro)", true);
-		builder.appendField("Special Thanks", "PokeaimMD, Honko, the Pokemon Showdown Dev Team, "
+		builder.addField("Creator", "[Benjamin \"Sir Skaro\" Churchill](https://twitter.com/sirskaro)", true);
+		builder.addField("Icon Artist", "[Domenic \"Jabberjock\" Serena](https://twitter.com/domenicserena)", true);
+		builder.addField("License","[Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/)",true);
+		builder.addField("Recognitions", "Data provided by PokeAPI and Pokemon Showdown", true);
+		builder.addField("Github", "[Pokedex is open source!](https://github.com/SirSkaro/Pokedex)", true);
+		builder.addField("Libraries/Services", "Discord4J, MaryTTS, MySQL, Caffine, Bucket4J, Jazzy, PokeAPI", false);
+		builder.addField("Pledge on Patron!", "[Support Pokedex and get perks!](https://www.patreon.com/sirskaro)", true);
+		builder.addField("Special Thanks", "PokeaimMD, Honko, the Pokemon Showdown Dev Team, "
 				+ "and the Bulbapedia Community", false);
-		builder.withFooterText("Pokémon © 2002-2018 Pokémon. © 1995-2018 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. " + 
-				"No copyright or trademark infringement is intended.");
+		builder.setFooter("Pokémon © 2002-2018 Pokémon. © 1995-2018 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. " + 
+				"No copyright or trademark infringement is intended.", null);
 		
-		builder.withThumbnail("https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png");
+		builder.setThumbnail("https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png");
 	}
 }

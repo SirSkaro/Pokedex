@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.EmojiService;
 import skaro.pokedex.core.IServiceConsumer;
@@ -23,7 +24,6 @@ import skaro.pokeflex.objects.move.Move;
 import skaro.pokeflex.objects.move_damage_class.MoveDamageClass;
 import skaro.pokeflex.objects.move_target.MoveTarget;
 import skaro.pokeflex.objects.type.Type;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
@@ -64,12 +64,11 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 	}
 	
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
-		builder.setLenient(true);
 		Move move = (Move)data.get(Move.class.getName()).get(0);
 		Type type = (Type)data.getValue(Type.class.getName(), 0);
 		Optional<Image> image = move.getImage("en", 7);
@@ -82,40 +81,40 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 		//Data for attacking moves
 		if(!move.getDamageClass().getName().equals("status"))
 		{
-			builder.appendField(MoveField.BASE_POWER.getFieldTitle(lang), Integer.toString(move.getPower()), true);
-			builder.appendField(MoveField.Z_POWER.getFieldTitle(lang), formatZPower(type, move.getZPower()), true);
+			builder.addField(MoveField.BASE_POWER.getFieldTitle(lang), Integer.toString(move.getPower()), true);
+			builder.addField(MoveField.Z_POWER.getFieldTitle(lang), formatZPower(type, move.getZPower()), true);
 		}
 		
 		//Data for all Moves
-		builder.appendField(MoveField.ACCURACY.getFieldTitle(lang), (move.getAccuracy() != 0 ? Integer.toString(move.getAccuracy()) : "-"), true);
-		builder.appendField(MoveField.CATEGORY.getFieldTitle(lang), formatCategory((MoveDamageClass)data.getValue(MoveDamageClass.class.getName(), 0), lang), true);
-		builder.appendField(MoveField.TYPE.getFieldTitle(lang), formatType(type, lang), true);
-		builder.appendField(MoveField.PP.getFieldTitle(lang), formatPP(move), true);
-		builder.appendField(MoveField.PRIORITY.getFieldTitle(lang), Integer.toString(move.getPriority()), true);
-		builder.appendField(MoveField.TARGET.getFieldTitle(lang), formatTarget((MoveTarget)data.getValue(MoveTarget.class.getName(), 0), lang), true);
-		builder.appendField(MoveField.CONTEST.getFieldTitle(lang), formatContest((ContestType)data.getValue(ContestType.class.getName(), 0), lang), true);
-		builder.appendField(MoveField.DESC.getFieldTitle(lang), formatDescription(move, lang), false);
+		builder.addField(MoveField.ACCURACY.getFieldTitle(lang), (move.getAccuracy() != 0 ? Integer.toString(move.getAccuracy()) : "-"), true);
+		builder.addField(MoveField.CATEGORY.getFieldTitle(lang), formatCategory((MoveDamageClass)data.getValue(MoveDamageClass.class.getName(), 0), lang), true);
+		builder.addField(MoveField.TYPE.getFieldTitle(lang), formatType(type, lang), true);
+		builder.addField(MoveField.PP.getFieldTitle(lang), formatPP(move), true);
+		builder.addField(MoveField.PRIORITY.getFieldTitle(lang), Integer.toString(move.getPriority()), true);
+		builder.addField(MoveField.TARGET.getFieldTitle(lang), formatTarget((MoveTarget)data.getValue(MoveTarget.class.getName(), 0), lang), true);
+		builder.addField(MoveField.CONTEST.getFieldTitle(lang), formatContest((ContestType)data.getValue(ContestType.class.getName(), 0), lang), true);
+		builder.addField(MoveField.DESC.getFieldTitle(lang), formatDescription(move, lang), false);
 		
 		//English-only data
 		if(lang == Language.ENGLISH)
 		{
 			if(move.getZBoost() != null)
-				builder.appendField("Z-Boosts", move.getZBoost().toString(), true);
+				builder.addField("Z-Boosts", move.getZBoost().toString(), true);
 			if(move.getZEffect() != null)
-				builder.appendField("Z-Effect", move.getZEffect().toString(), true);
+				builder.addField("Z-Effect", move.getZEffect().toString(), true);
 			
-			builder.appendField("Technical Description", move.getLdesc(), false);
+			builder.addField("Technical Description", move.getLdesc(), false);
 			
 			if(move.getFlags() != null)
-				builder.appendField("Other Properties", formatFlags(move), false);
+				builder.addField("Other Properties", formatFlags(move), false);
 		}
 		
 		//Image
 		if(image.isPresent())
-			builder.withImage(image.get().getUrl());
+			builder.setImage(image.get().getUrl());
 		
-		builder.withColor(colorService.getColorForType(move.getType().getName()));
-		response.setEmbededReply(builder.build());
+		builder.setColor(colorService.getColorForType(move.getType().getName()));
+		response.setEmbed(builder);
 		return response;
 	}
 	

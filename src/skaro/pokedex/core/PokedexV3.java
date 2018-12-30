@@ -9,6 +9,7 @@ import com.patreon.PatreonAPI;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Message;
 import discord4j.core.object.presence.Presence;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
@@ -41,6 +42,7 @@ import skaro.pokedex.data_processor.formatters.RandpokeResponseFormatter;
 import skaro.pokedex.data_processor.formatters.ShinyResponseFormatter;
 import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
 import skaro.pokedex.data_processor.formatters.WeakResponseFormatter;
+import skaro.pokedex.input_processor.InputProcessor;
 
 public class PokedexV3 
 {
@@ -89,11 +91,21 @@ public class PokedexV3
 		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
 		DiscordClient client = service.getV3Client();
 		Scheduler scheduler = Schedulers.fromExecutorService(pokedexThreadPool);
+		InputProcessor inputProcessor = new InputProcessor(commandMap, client.getSelfId().get().asLong());
 		
-		client.getEventDispatcher().on(MessageCreateEvent.class).publishOn(scheduler) // This listens for all events that are of MessageCreateEvent
-        .subscribe(event -> event.getMessage().getContent().ifPresent(c -> System.out.println(c))); // "subscribe" is the method you need to call to actually make sure that it's doing something.
+		client.getEventDispatcher().on(MessageCreateEvent.class)
+	        .map(MessageCreateEvent::getMessage)
+	        .filter(msg -> msg.getContent().map(content -> content.equals("!ping")).orElse(false))
+	        .flatMap(Message::getChannel)
+	        .flatMap(channel -> channel.createMessage("Pong!"))
+	        .subscribe();
 
 		client.login().block(); 
+	}
+	
+	private static void responseTest(String content)
+	{
+		
 	}
 	
 	private static DiscordService createDiscordService(ConfigurationService configService, int shardID, int shardCount)
@@ -123,8 +135,11 @@ public class PokedexV3
 	{
 		ServiceManagerBuilder commandServiceBuilder = ServiceManager.ServiceManagerBuilder.newInstance(manager)
 				.addService(ServiceType.COLOR);
-		ServiceManagerBuilder formatterServiceBuilder = ServiceManager.ServiceManagerBuilder.newInstance(manager)
+		ServiceManagerBuilder serviceBuilderColor = ServiceManager.ServiceManagerBuilder.newInstance(manager)
 				.addService(ServiceType.COLOR);
+		ServiceManagerBuilder serviceBuilderEmoji = ServiceManager.ServiceManagerBuilder.newInstance(manager)
+				.addService(ServiceType.COLOR)
+				.addService(ServiceType.EMOJI);
 		
 		//ColorService
 		commandService.addCommand(new AboutCommand(commandServiceBuilder.build()));
@@ -143,21 +158,23 @@ public class PokedexV3
 		//ColorService, PokeFlexService
 		commandServiceBuilder.removeService(ServiceType.CONFIG);
 		commandServiceBuilder.addService(ServiceType.POKE_FLEX);
-		commandService.addCommand(new ItemCommand(commandServiceBuilder.build(), new ItemResponseFormatter()));
-		commandService.addCommand(new MoveCommand(commandServiceBuilder.build(), new MoveResponseFormatter()));
-		commandService.addCommand(new CoverageCommand(commandServiceBuilder.build(), new CoverageResponseFormatter()));
+		commandService.addCommand(new ItemCommand(commandServiceBuilder.build(), new ItemResponseFormatter(serviceBuilderEmoji.build())));
+		commandService.addCommand(new MoveCommand(commandServiceBuilder.build(), new MoveResponseFormatter(serviceBuilderEmoji.build())));
+		commandService.addCommand(new CoverageCommand(commandServiceBuilder.build(), new CoverageResponseFormatter(serviceBuilderColor.build())));
 		
 		//ColorService, PokeFlexService, PerkService
 		commandServiceBuilder.addService(ServiceType.PERK);
-		commandService.addCommand(new AbilityCommand(commandServiceBuilder.build(), new AbilityResponseFormatter()));
-		commandService.addCommand(new DataCommand(commandServiceBuilder.build(), new DataResponseFormatter()));
-		commandService.addCommand(new DexCommand(commandServiceBuilder.build(), new DexResponseFormatter()));
-		commandService.addCommand(new LearnCommand(commandServiceBuilder.build(), new LearnResponseFormatter()));
-		commandService.addCommand(new RandpokeCommand(commandServiceBuilder.build(), new RandpokeResponseFormatter()));
+		commandService.addCommand(new AbilityCommand(commandServiceBuilder.build(), new AbilityResponseFormatter(serviceBuilderColor.build())));
+		commandService.addCommand(new DataCommand(commandServiceBuilder.build(), new DataResponseFormatter(serviceBuilderEmoji.build())));
+		commandService.addCommand(new LearnCommand(commandServiceBuilder.build(), new LearnResponseFormatter(serviceBuilderColor.build())));
+		commandService.addCommand(new RandpokeCommand(commandServiceBuilder.build(), new RandpokeResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new SetCommand(commandServiceBuilder.build()));
-		commandService.addCommand(new ShinyCommand(commandServiceBuilder.build(), new ShinyResponseFormatter()));
-		commandService.addCommand(new StatsCommand(commandServiceBuilder.build(), new StatsResponseFormatter()));
-		commandService.addCommand(new WeakCommand(commandServiceBuilder.build(), new WeakResponseFormatter()));
+		commandService.addCommand(new ShinyCommand(commandServiceBuilder.build(), new ShinyResponseFormatter(serviceBuilderColor.build())));
+		commandService.addCommand(new StatsCommand(commandServiceBuilder.build(), new StatsResponseFormatter(serviceBuilderColor.build())));
+		commandService.addCommand(new WeakCommand(commandServiceBuilder.build(), new WeakResponseFormatter(serviceBuilderEmoji.build())));
+		
+		serviceBuilderColor.addService(ServiceType.TTS);
+		commandService.addCommand(new DexCommand(commandServiceBuilder.build(), new DexResponseFormatter(serviceBuilderColor.build())));
 	}
 	
 }

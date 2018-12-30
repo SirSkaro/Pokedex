@@ -1,18 +1,20 @@
 package skaro.pokedex.data_processor;
 
 import java.io.File;
-import java.util.Optional;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 import javax.sound.sampled.AudioInputStream;
 
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.core.spec.MessageCreateSpec;
 
 public class Response
 {
 	private StringBuilder text;
 	private AudioInputStream audio;	
 	private File image;				
-	private EmbedObject embed;			
+	private EmbedCreateSpec embed;			
 	private boolean privateMessage;
 	
 	public Response()
@@ -24,17 +26,14 @@ public class Response
 		privateMessage = false;
 	}
 	
-	/**
-	 * Set and Get Methods
-	 */
 	public void setPlayBack(AudioInputStream ais)
 	{
 		audio = ais;
 	}
 	
-	public void setEmbededReply(EmbedObject eo)
+	public void setEmbed(EmbedCreateSpec espec)
 	{
-		embed = eo;
+		embed = espec;
 	}
 	
 	public void setPrivate(boolean b)
@@ -49,36 +48,25 @@ public class Response
 	
 	public void addToReply(String s)
 	{
-		text.append(s+"<>");
-	}
-	
-	public String getDiscordTextReply()
-	{	
-		return text.toString().replace("<>", "\n");
-	}
-	
-	public String getTwitchTextReply()
-	{
-		return text.toString().replace("<>", " | ");
-	}
-	
-	public AudioInputStream getAudioReply()
-	{
-		return audio;
-	}
-	
-	public Optional<File> getImage()
-	{
-		return Optional.ofNullable(image);
-	}
-	
-	public Optional<EmbedObject> getEmbedObject()
-	{
-		return Optional.ofNullable(embed);
+		text.append(s+"\n");
 	}
 	
 	public boolean isPrivateMessage()
 	{
 		return privateMessage;
 	}
+	
+	public AudioInputStream getPlayBack(AudioInputStream ais)
+	{
+		return audio;
+	}
+	
+	public MessageCreateSpec getAsSpec() throws FileNotFoundException
+	{
+		return new MessageCreateSpec()
+				.setContent(text.toString())
+				.setEmbed(embed)
+				.setFile(image.getName(), new FileInputStream(image));
+	}
+	
 }

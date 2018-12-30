@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.EmojiService;
 import skaro.pokedex.core.IServiceConsumer;
@@ -20,7 +21,6 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.objects.item.Item;
 import skaro.pokeflex.objects.item_category.ItemCategory;
 import skaro.pokeflex.objects.type.Type;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class ItemResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
@@ -61,38 +61,37 @@ public class ItemResponseFormatter implements IDiscordFormatter, IServiceConsume
 	}
 	
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
-		builder.setLenient(true);
 		Item item = (Item)data.get(Item.class.getName()).get(0);
 		Type type = (Type)data.getValue(Type.class.getName(), 0);
 		
 		//Header
 		response.addToReply("**__"+TextFormatter.flexFormToProper(item.getNameInLanguage(lang.getFlexKey()))+"__**");
 		
-		builder.appendField(ItemField.CATEGORY.getFieldTitle(lang), formatCategory((ItemCategory)data.getValue(ItemCategory.class.getName(), 0), lang), true);
-		builder.appendField(ItemField.DEBUT.getFieldTitle(lang), TextFormatter.formatGeneration(item.getDebut(), lang), true);
+		builder.addField(ItemField.CATEGORY.getFieldTitle(lang), formatCategory((ItemCategory)data.getValue(ItemCategory.class.getName(), 0), lang), true);
+		builder.addField(ItemField.DEBUT.getFieldTitle(lang), TextFormatter.formatGeneration(item.getDebut(), lang), true);
 		
 		if(item.getFlingPower() > 0)
-			builder.appendField(ItemField.FLING_POWER.getFieldTitle(lang), Integer.toString(item.getFlingPower()), true);
+			builder.addField(ItemField.FLING_POWER.getFieldTitle(lang), Integer.toString(item.getFlingPower()), true);
 		if(type != null)
 		{
-			builder.appendField(ItemField.NG_TYPE.getFieldTitle(lang), formatType(type, lang), true);
-			builder.appendField(ItemField.NG_POWER.getFieldTitle(lang), Integer.toString(item.getNgPower()), true);
+			builder.addField(ItemField.NG_TYPE.getFieldTitle(lang), formatType(type, lang), true);
+			builder.addField(ItemField.NG_POWER.getFieldTitle(lang), Integer.toString(item.getNgPower()), true);
 		}
 		
-		builder.appendField(ItemField.DESC.getFieldTitle(lang), formatDescription(item, lang), false);
+		builder.addField(ItemField.DESC.getFieldTitle(lang), formatDescription(item, lang), false);
 		
 		//English-only data
 		if(lang == Language.ENGLISH)
-			builder.appendField("Technical Description", item.getLdesc(), false);
+			builder.addField("Technical Description", item.getLdesc(), false);
 		
-		builder.withColor(colorService.getColorForItem());
-		builder.withThumbnail(item.getSprites().getDefault());
-		response.setEmbededReply(builder.build());
+		builder.setColor(colorService.getColorForItem());
+		builder.setThumbnail(item.getSprites().getDefault());
+		response.setEmbed(builder);
 		return response;
 	}
 	

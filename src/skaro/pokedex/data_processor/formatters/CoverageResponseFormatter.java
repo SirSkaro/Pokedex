@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceConsumer;
 import skaro.pokedex.core.IServiceManager;
@@ -18,7 +19,6 @@ import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class CoverageResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
@@ -65,25 +65,24 @@ public class CoverageResponseFormatter implements IDiscordFormatter, IServiceCon
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
 	{
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
 		List<TypeData> typeList = (List<TypeData>)(List<?>)data.get(TypeData.class.getName());
 		TypeInteractionWrapper wrapper = TypeTracker.onOffense(typeList);
 		Response response = new Response();
-		builder.setLenient(true);
 		
 		//Header
 		response.addToReply("**__"+wrapper.typesToString(lang)+"__**");
 		
-		builder.appendField(CommonData.SUPER_EFFECTIVE.getInLanguage(lang), getList(wrapper, 2.0, lang), false);
-		builder.appendField(CommonData.NEUTRAL.getInLanguage(lang), getList(wrapper, 1.0, lang), false);
-		builder.appendField(CommonData.RESIST.getInLanguage(lang), getList(wrapper, 0.5, lang), false);
-		builder.appendField(CommonData.IMMUNE.getInLanguage(lang), getList(wrapper, 0.0, lang), false);
-		builder.withColor(colorService.getColorForWrapper(wrapper));
+		builder.addField(CommonData.SUPER_EFFECTIVE.getInLanguage(lang), getList(wrapper, 2.0, lang), false);
+		builder.addField(CommonData.NEUTRAL.getInLanguage(lang), getList(wrapper, 1.0, lang), false);
+		builder.addField(CommonData.RESIST.getInLanguage(lang), getList(wrapper, 0.5, lang), false);
+		builder.addField(CommonData.IMMUNE.getInLanguage(lang), getList(wrapper, 0.0, lang), false);
+		builder.setColor(colorService.getColorForWrapper(wrapper));
 		
-		response.setEmbededReply(builder.build());
+		response.setEmbed(builder);
 		return response;
 	}
 	

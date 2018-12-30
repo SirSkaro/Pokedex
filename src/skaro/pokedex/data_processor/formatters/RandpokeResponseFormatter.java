@@ -2,6 +2,7 @@ package skaro.pokedex.data_processor.formatters;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceConsumer;
 import skaro.pokedex.core.IServiceManager;
@@ -13,7 +14,6 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class RandpokeResponseFormatter implements IDiscordFormatter, IServiceConsumer 
 {
@@ -40,25 +40,24 @@ public class RandpokeResponseFormatter implements IDiscordFormatter, IServiceCon
 	}
 
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
-		builder.setLenient(true);
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		
-		builder.withTitle(TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey())) + " | #" + Integer.toString(pokemon.getId()));
+		builder.setTitle(TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey())) + " | #" + Integer.toString(pokemon.getId()));
 		
 		//Add image
-		builder.withImage(pokemon.getModel().getUrl());
+		builder.setImage(pokemon.getModel().getUrl());
 		
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(colorService.getColorForType(type));
+		builder.setColor(colorService.getColorForType(type));
 		
-		response.setEmbededReply(builder.build());
+		response.setEmbed(builder);
 		return response;
 	}
 

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
@@ -22,7 +23,6 @@ import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class DexCommand extends AbstractCommand
 {
@@ -77,7 +77,7 @@ public class DexCommand extends AbstractCommand
 		
 		PokeFlexFactory factory;
 		MultiMap<Object> dataMap = new MultiMap<Object>();
-		EmbedBuilder builder = new EmbedBuilder();
+		EmbedCreateSpec builder = new EmbedCreateSpec();
 		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
 		List<Object> flexData = new ArrayList<Object>();
 		Request request;

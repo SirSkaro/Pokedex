@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.ConfigurationService;
 import skaro.pokedex.core.IServiceManager;
@@ -22,7 +23,6 @@ import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class ShinyCommand extends AbstractCommand 
 {
@@ -85,7 +85,7 @@ public class ShinyCommand extends AbstractCommand
 		{
 			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 			MultiMap<Object> dataMap = new MultiMap<Object>();
-			EmbedBuilder builder = new EmbedBuilder();
+			EmbedCreateSpec builder = new EmbedCreateSpec();
 			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
 			Pokemon pokemon = Pokemon.class.cast(flexObj);
 
@@ -114,8 +114,7 @@ public class ShinyCommand extends AbstractCommand
 		String path;
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Response response = new Response();
-		EmbedBuilder builder = new EmbedBuilder();
-		builder.setLenient(true);
+		EmbedCreateSpec builder = new EmbedCreateSpec();
 
 		try
 		{
@@ -123,25 +122,24 @@ public class ShinyCommand extends AbstractCommand
 			//Easter egg: if the user specifies the default non-privilaged Pokemon, use the Patreon logo instead
 			if(!input.getArg(0).getDbForm().equals(defaultPokemon))
 			{
-				builder.withImage("attachment://jirachi.gif");
-				builder.withColor(colorService.getColorForType("psychic"));
+				builder.setImage("attachment://jirachi.gif");
+				builder.setColor(colorService.getColorForType("psychic"));
 				path = baseModelPath + "/"+ defaultPokemon +".gif";
 				response.addImage(new File(path));
-				builder.withFooterIcon(this.getPatreonLogo());
-				builder.withFooterText("Pledge $1 to receive this perk!");
+				builder.setFooter("Pledge $1 to receive this perk!", this.getPatreonLogo());
 			}
 			else
 			{
-				builder.withColor(colorService.getColorForPatreon());
-				builder.withImage(this.getPatreonLogo());
+				builder.setColor(colorService.getColorForPatreon());
+				builder.setImage(this.getPatreonLogo());
 			}
 			
 			//format reply
 			response.addToReply("Pledge $1/month on Patreon to gain access to all HD shiny Pokemon!");
-			builder.appendField("Patreon link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);
-			builder.withThumbnail(this.getPatreonBanner());
+			builder.addField("Patreon link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);
+			builder.setThumbnail(this.getPatreonBanner());
 			
-			response.setEmbededReply(builder.build());
+			response.setEmbed(builder);
 			return response;
 		}
 		catch (Exception e) 

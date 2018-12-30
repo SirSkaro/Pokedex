@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceConsumer;
 import skaro.pokedex.core.IServiceManager;
@@ -19,9 +20,7 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
 public abstract class AbstractCommand implements IServiceConsumer
 {
@@ -29,7 +28,7 @@ public abstract class AbstractCommand implements IServiceConsumer
 	protected String commandName;
 	protected List<ArgumentCategory> argCats;
 	protected List<String> extraMessages;
-	protected EmbedObject helpMessage;
+	protected EmbedCreateSpec helpMessage;
 	protected Map<String, Language> aliases;
 	protected IDiscordFormatter formatter;
 	protected IServiceManager services;
@@ -64,7 +63,7 @@ public abstract class AbstractCommand implements IServiceConsumer
 	public List<ArgumentCategory> getArgumentCats() { return argCats; }
 	public Map<String, Language> getAliases() { return aliases; }
 	public List<String> getExtraMessages() { return extraMessages; }
-	public EmbedObject getHelpMessage() { return helpMessage; }
+	public EmbedCreateSpec getHelpMessage() { return helpMessage; }
 	
 	public Language getLanguageOfAlias(String alias)
 	{
@@ -108,80 +107,74 @@ public abstract class AbstractCommand implements IServiceConsumer
 	
 	protected void addErrorMessage(Response reply, Input input, String errCode, Exception e)
 	{
-		EmbedBuilder builder = new EmbedBuilder();
-		builder.setLenient(true);
+		EmbedCreateSpec builder = new EmbedCreateSpec();
 		
 		reply.addToReply("**Error Report**");
-		builder.withDesc("Could not get requested data. My external API may be down or may not have your data. Please try again later.\n\n"
+		builder.setDescription("Could not get requested data. My external API may be down or may not have your data. Please try again later.\n\n"
 				+ "If you think this is a bug, please __screenshot this report__ and post it in the Support Server!");
-		builder.appendField("Error Code", errCode, true);
-		builder.appendField("Technical Error", e.getClass().getSimpleName(), true);
-		builder.appendField("User Input", input.argsToString(), true);
-		builder.appendField("Link to Support Server", "[Click here to report](https://discord.gg/D5CfFkN)", true);
+		builder.addField("Error Code", errCode, true);
+		builder.addField("Technical Error", e.getClass().getSimpleName(), true);
+		builder.addField("User Input", input.argsToString(), true);
+		builder.addField("Link to Support Server", "[Click here to report](https://discord.gg/D5CfFkN)", true);
 		
-		reply.setEmbededReply(builder.build());
+		reply.setEmbed(builder);
 	}
 	
-	protected void addRandomExtraMessage(EmbedBuilder builder)
+	protected void addRandomExtraMessage(EmbedCreateSpec builder)
 	{
 		int randNum = ThreadLocalRandom.current().nextInt(1, 5); //1 in 4 chance
 		if(randNum == 1)
 		{
 			randNum = ThreadLocalRandom.current().nextInt(0, extraMessages.size());
-			builder.withFooterText(extraMessages.get(randNum));
+			builder.setFooter(extraMessages.get(randNum), null);
 		}
 	}
 	
 	protected void createHelpMessage(String ex1, String ex2, String ex3, String ex4, String imageURL)
 	{
-		EmbedBuilder builder = new EmbedBuilder();
+		EmbedCreateSpec builder = new EmbedCreateSpec();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		StringBuilder exampleBuilder = new StringBuilder();
-		builder.setLenient(true);
 		
 		exampleBuilder.append("!"+commandName+" "+ex1+"\n");
 		exampleBuilder.append("%"+commandName+" "+ex2+"\n");
 		exampleBuilder.append(commandName+"("+ex3+")\n");
 		exampleBuilder.append("@Pokedex "+commandName+" "+ex4);
 		
-		builder.appendField("Input", this.getArguments(), true);
-		builder.appendField("Min/Max Inputs", expectedArgRange.getMin()+"/"+expectedArgRange.getMax(), true);
+		builder.addField("Input", this.getArguments(), true);
+		builder.addField("Min/Max Inputs", expectedArgRange.getMin()+"/"+expectedArgRange.getMax(), true);
 		this.addAliasFields(builder);
-		builder.appendField("Examples", exampleBuilder.toString(), true);
-		builder.withImage(imageURL);
-		builder.withThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
+		builder.addField("Examples", exampleBuilder.toString(), true);
+		builder.setImage(imageURL);
+		builder.setThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 		
-		builder.withColor(colorService.getPokedexColor());
+		builder.setColor(colorService.getPokedexColor());
 		
-		helpMessage = builder.build();
+		helpMessage = builder;
 	}
 	
 	protected void createHelpMessage(String imageURL)
 	{
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
-		EmbedBuilder builder = new EmbedBuilder();
-		builder.setLenient(true);
+		EmbedCreateSpec builder = new EmbedCreateSpec();
 		
-		builder.appendField("Input", this.getArguments(), true);
+		builder.addField("Input", this.getArguments(), true);
 		this.addAliasFields(builder);
-		builder.withImage(imageURL);
-		builder.withThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
+		builder.setImage(imageURL);
+		builder.setThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 		
-		builder.withColor(colorService.getPokedexColor());
+		builder.setColor(colorService.getPokedexColor());
 		
-		helpMessage = builder.build();
+		helpMessage = builder;
 	}
 	
-	protected void addAdopter(Pokemon pokemon, EmbedBuilder builder)
+	protected void addAdopter(Pokemon pokemon, EmbedCreateSpec builder)
 	{
 		PerkChecker checker = (PerkChecker)services.getService(ServiceType.PERK);
 		Optional<IUser> adopterCheck = checker.getPokemonsAdopter(pokemon.getName());
 		
 		if(adopterCheck.isPresent())
-		{
-			builder.withAuthorName(adopterCheck.get().getName() + "'s "+TextFormatter.flexFormToProper(pokemon.getName()));
-			builder.withAuthorIcon(getPatreonLogo());
-		}
+			builder.setAuthor(adopterCheck.get().getName() + "'s "+TextFormatter.flexFormToProper(pokemon.getName()), null, getPatreonLogo());
 	}
 
 	protected String getPatreonLogo()
@@ -194,7 +187,7 @@ public abstract class AbstractCommand implements IServiceConsumer
 		return "https://c5.patreon.com/external/logo/become_a_patron_button.png".intern();
 	}
 	
-	private void addAliasFields(EmbedBuilder builder)
+	private void addAliasFields(EmbedCreateSpec builder)
 	{
 		for(Language lang : Language.values())
 		{
@@ -206,7 +199,7 @@ public abstract class AbstractCommand implements IServiceConsumer
 			}
 			
 			if(sBuilder.length() != 0)
-				builder.appendField(lang.getName() + " aliases", sBuilder.toString(), true);
+				builder.addField(lang.getName() + " aliases", sBuilder.toString(), true);
 		}
 	}
 }

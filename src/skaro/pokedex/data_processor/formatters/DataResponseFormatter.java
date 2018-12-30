@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.EmojiService;
 import skaro.pokedex.core.IServiceConsumer;
@@ -31,7 +32,6 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_form.PokemonForm;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.type.Type;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class DataResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
@@ -72,7 +72,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 	}
 
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
@@ -80,7 +80,6 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		EvolutionChain evoChain = (EvolutionChain)data.getValue(EvolutionChain.class.getName(), 0);
-		builder.setLenient(true);
 		
 		//Header
 		response.addToReply("**__"+
@@ -89,32 +88,32 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 				" | " + TextFormatter.formatGeneration(species.getGeneration().getName(), lang) + "__**");
 		
 		//Body
-		builder.appendField(DataField.BASE_STATS.getFieldTitle(lang), formatBaseStats(pokemon, lang), true);
-		builder.appendField(DataField.TYPING.getFieldTitle(lang), formatTypes(data.get(Type.class.getName()), lang), true);
-		builder.appendField(DataField.ABILITIES.getFieldTitle(lang), formatAbilities(data.get(Ability.class.getName()), lang), true);
-		builder.appendField(DataField.HIGHT_WEIGHT.getFieldTitle(lang), formatHeightWeight(pokemon), true);
-		builder.appendField(DataField.EV_YIELD.getFieldTitle(lang), formatEvYield(pokemon, lang), true);
-		builder.appendField(DataField.GROWTH_CATCH.getFieldTitle(lang), formatGrowthAndCatchRates((GrowthRate)data.getValue(GrowthRate.class.getName(), 0), species.getCaptureRate(), lang), true);
-		builder.appendField(DataField.GENDER.getFieldTitle(lang), formatGenderRatio(species), true);
-		builder.appendField(DataField.EGG_GROUP.getFieldTitle(lang), formatEggGroups(data.get(EggGroup.class.getName()),lang), true);
-		builder.appendField(DataField.HATCH_TIME.getFieldTitle(lang), calcHatchTime(species, lang), true);
+		builder.addField(DataField.BASE_STATS.getFieldTitle(lang), formatBaseStats(pokemon, lang), true);
+		builder.addField(DataField.TYPING.getFieldTitle(lang), formatTypes(data.get(Type.class.getName()), lang), true);
+		builder.addField(DataField.ABILITIES.getFieldTitle(lang), formatAbilities(data.get(Ability.class.getName()), lang), true);
+		builder.addField(DataField.HIGHT_WEIGHT.getFieldTitle(lang), formatHeightWeight(pokemon), true);
+		builder.addField(DataField.EV_YIELD.getFieldTitle(lang), formatEvYield(pokemon, lang), true);
+		builder.addField(DataField.GROWTH_CATCH.getFieldTitle(lang), formatGrowthAndCatchRates((GrowthRate)data.getValue(GrowthRate.class.getName(), 0), species.getCaptureRate(), lang), true);
+		builder.addField(DataField.GENDER.getFieldTitle(lang), formatGenderRatio(species), true);
+		builder.addField(DataField.EGG_GROUP.getFieldTitle(lang), formatEggGroups(data.get(EggGroup.class.getName()),lang), true);
+		builder.addField(DataField.HATCH_TIME.getFieldTitle(lang), calcHatchTime(species, lang), true);
 		
 		//Optional data
 		if(hasMultipleForms(data.get(PokemonForm.class.getName())))
-			builder.appendField(DataField.FORMS.getFieldTitle(lang), formatForms(data.get(PokemonForm.class.getName()), species, lang), true);
+			builder.addField(DataField.FORMS.getFieldTitle(lang), formatForms(data.get(PokemonForm.class.getName()), species, lang), true);
 		if(!isOnlyEvolution(evoChain))
 		{
-			builder.appendField(DataField.EVO_CHAIN.getFieldTitle(lang), formatEvolutionChain(species, data.get(PokemonSpecies.class.getName()), evoChain, lang), true);
-			builder.appendField(DataField.EVO_REQ.getFieldTitle(lang), formatEvolutionDetails(evoChain, pokemon.getName()), true);
+			builder.addField(DataField.EVO_CHAIN.getFieldTitle(lang), formatEvolutionChain(species, data.get(PokemonSpecies.class.getName()), evoChain, lang), true);
+			builder.addField(DataField.EVO_REQ.getFieldTitle(lang), formatEvolutionDetails(evoChain, pokemon.getName()), true);
 		}
 		
 		//Extra
-		builder.withImage(pokemon.getModel().getUrl());
+		builder.setImage(pokemon.getModel().getUrl());
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(colorService.getColorForType(type));
+		builder.setColor(colorService.getColorForType(type));
 		
 		
-		response.setEmbededReply(builder.build());
+		response.setEmbed(builder);
 		return response;
 	}
 	

@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
@@ -21,7 +22,6 @@ import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class RandpokeCommand extends AbstractCommand 
 {
@@ -73,7 +73,7 @@ public class RandpokeCommand extends AbstractCommand
 		{
 			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 			MultiMap<Object> dataMap = new MultiMap<Object>();
-			EmbedBuilder builder = new EmbedBuilder();
+			EmbedCreateSpec builder = new EmbedCreateSpec();
 			int randDexNum = ThreadLocalRandom.current().nextInt(1, 807 + 1);
 			List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
 			List<Object> flexData = new ArrayList<Object>();

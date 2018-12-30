@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
@@ -29,7 +30,6 @@ import skaro.pokeflex.objects.pokemon.Move;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class LearnCommand extends AbstractCommand
 {
@@ -104,7 +104,7 @@ public class LearnCommand extends AbstractCommand
 		
 		PokeFlexFactory factory;
 		MultiMap<Object> dataMap = new MultiMap<Object>();
-		EmbedBuilder builder = new EmbedBuilder();
+		EmbedCreateSpec builder = new EmbedCreateSpec();
 		List<PokeFlexRequest> concurrentRequsts = new ArrayList<PokeFlexRequest>();
 		List<Object> flexData = new ArrayList<Object>();
 		List<LearnMethodWrapper> methodWrappers = new ArrayList<LearnMethodWrapper>(4);

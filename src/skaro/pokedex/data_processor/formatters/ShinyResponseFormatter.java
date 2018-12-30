@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.ConfigurationService;
 import skaro.pokedex.core.IServiceConsumer;
@@ -16,7 +17,6 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class ShinyResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
@@ -59,7 +59,7 @@ public class ShinyResponseFormatter implements IDiscordFormatter, IServiceConsum
 	}
 
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
 	{
 		String path;
 		File image;
@@ -68,7 +68,6 @@ public class ShinyResponseFormatter implements IDiscordFormatter, IServiceConsum
 		Response response = new Response();
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
-		builder.setLenient(true);
 		
 		//Format reply
 		response.addToReply("**__"+TextFormatter.pokemonFlexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+" | #" + Integer.toString(species.getId()) 
@@ -80,13 +79,13 @@ public class ShinyResponseFormatter implements IDiscordFormatter, IServiceConsum
 		response.addImage(image);
 		
 		//Add images
-		builder.withImage("attachment://"+image.getName());
+		builder.setImage("attachment://"+image.getName());
 		
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(colorService.getColorForType(type));
+		builder.setColor(colorService.getColorForType(type));
 		
-		response.setEmbededReply(builder.build());
+		response.setEmbed(builder);
 		return response;
 	}
 	

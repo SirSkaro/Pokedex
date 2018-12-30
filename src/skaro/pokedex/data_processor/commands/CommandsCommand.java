@@ -1,5 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
@@ -11,7 +12,6 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class CommandsCommand extends AbstractCommand 
 {
@@ -46,8 +46,7 @@ public class CommandsCommand extends AbstractCommand
 		CommandService commands;
 		ColorService colorService;
 		Response response = new Response();
-		EmbedBuilder builder = new EmbedBuilder();
-		builder.setLenient(true);
+		EmbedCreateSpec builder = new EmbedCreateSpec();
 		
 		try
 		{
@@ -58,18 +57,18 @@ public class CommandsCommand extends AbstractCommand
 			response.addToReply("Join the Pokedex Support Server!");
 			response.addToReply("https://discord.gg/D5CfFkN");
 			
-			builder.withColor(colorService.getPokedexColor());
-			builder.appendField("Prefixes", "!command or %command", true);
-			builder.appendField("Postfix", "command(input)", true);
-			builder.appendField("Hints",":small_blue_diamond:Use `%help` for examples.\n"
+			builder.setColor(colorService.getPokedexColor());
+			builder.addField("Prefixes", "!command or %command", true);
+			builder.addField("Postfix", "command(input)", true);
+			builder.addField("Hints",":small_blue_diamond:Use `%help` for examples.\n"
 					+ ":small_blue_diamond:__Don't forget your commas!__\n"
 					+ ":small_blue_diamond:You don't need to include '[' or '<' characters.", false);
 			
 			commands.getCacheAsMap().forEach((commandName, command) -> {
-				builder.appendField(":small_orange_diamond:"+ commandName, ("%"+commandName + " ["+ command.getArguments()).intern() + "]", true);
+				builder.addField(":small_orange_diamond:"+ commandName, ("%"+commandName + " ["+ command.getArguments()).intern() + "]", true);
 			});
 			
-			response.setEmbededReply(builder.build());
+			response.setEmbed(builder);
 			return response;
 		}
 		catch(Exception e)

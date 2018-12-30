@@ -6,6 +6,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceConsumer;
 import skaro.pokedex.core.IServiceManager;
@@ -19,7 +20,6 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon.Stat;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class StatsResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
@@ -60,7 +60,7 @@ public class StatsResponseFormatter implements IDiscordFormatter, IServiceConsum
 	}
 	
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
 		String type;
@@ -68,13 +68,12 @@ public class StatsResponseFormatter implements IDiscordFormatter, IServiceConsum
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		Language lang = input.getLanguage();
-		builder.setLenient(true);
 		
 		//header
 		response.addToReply(("**__"+TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+"__**").intern());
 		
 		//main content
-		builder.withTitle(StatField.BASE_STAT_TOTAL.getFieldTitle(lang) +": "+ getBaseStatTotal(pokemon));
+		builder.setTitle(StatField.BASE_STAT_TOTAL.getFieldTitle(lang) +": "+ getBaseStatTotal(pokemon));
 		
 		String stats1 = String.format("%s%d\n",
 				StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.HP.getAPIKey())), 13, " "),
@@ -86,18 +85,18 @@ public class StatsResponseFormatter implements IDiscordFormatter, IServiceConsum
 						StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.SP_DEF.getAPIKey())), 13, " "),
 						pokemon.getStat(Statistic.SPE.getAPIKey()));
 		
-		builder.withDescription("__`"+StatField.STAT_HEADER1.getFieldTitle(lang)+"`__\n`"+stats1+"`"
+		builder.setDescription("__`"+StatField.STAT_HEADER1.getFieldTitle(lang)+"`__\n`"+stats1+"`"
 					+ "\n\n__`"+ StatField.STAT_HEADER2.getFieldTitle(lang)+"`__\n`"+stats2+"`"
 					+ "\n\n__`"+ StatField.STAT_HEADER3.getFieldTitle(lang)+"`__\n`"+stats3 +"`");
 		
 		//Set color
 		type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(colorService.getColorForType(type));
+		builder.setColor(colorService.getColorForType(type));
 		
 		//Add thumbnail
-		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		builder.setThumbnail(pokemon.getSprites().getFrontDefault());
 		
-		response.setEmbededReply(builder.build());
+		response.setEmbed(builder);
 		return response;
 	}
 	

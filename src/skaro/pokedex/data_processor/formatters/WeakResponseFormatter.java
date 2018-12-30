@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.EmojiService;
 import skaro.pokedex.core.IServiceConsumer;
@@ -21,7 +22,6 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsumer 
 {
@@ -68,7 +68,7 @@ public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsume
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
 	{
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
@@ -76,7 +76,6 @@ public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsume
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		Response response = new Response();
-		builder.setLenient(true);
 		
 		TypeData type1 = typeList.get(0);
 		TypeData type2 = typeList.size() > 1 ? typeList.get(1) : null;
@@ -85,22 +84,22 @@ public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsume
 		//Add model and header depending on if the user specified a Pokemon
 		if(pokemon != null && species != null)
 		{
-			builder.withThumbnail(pokemon.getSprites().getFrontDefault());
+			builder.setThumbnail(pokemon.getSprites().getFrontDefault());
 			response.addToReply(formatHeader(species, type1, type2, lang));
 		}
 		else
 			response.addToReply(formatHeader(type1, type2, lang));
 		
 		//Format body
-		builder.appendField(CommonData.WEAK.getInLanguage(lang), combineLists(wrapper, lang, 2.0, 4.0), false);
-		builder.appendField(CommonData.NEUTRAL.getInLanguage(lang), getList(wrapper, lang, 1.0), false);
-		builder.appendField(CommonData.RESIST.getInLanguage(lang), combineLists(wrapper, lang, 0.5, 0.25), false);
-		builder.appendField(CommonData.IMMUNE.getInLanguage(lang), getList(wrapper, lang, 0.0), false);
+		builder.addField(CommonData.WEAK.getInLanguage(lang), combineLists(wrapper, lang, 2.0, 4.0), false);
+		builder.addField(CommonData.NEUTRAL.getInLanguage(lang), getList(wrapper, lang, 1.0), false);
+		builder.addField(CommonData.RESIST.getInLanguage(lang), combineLists(wrapper, lang, 0.5, 0.25), false);
+		builder.addField(CommonData.IMMUNE.getInLanguage(lang), getList(wrapper, lang, 0.0), false);
 		
 		//Set color
-		builder.withColor(colorService.getColorForWrapper(wrapper));
+		builder.setColor(colorService.getColorForWrapper(wrapper));
 		
-		response.setEmbededReply(builder.build());
+		response.setEmbed(builder);
 		return response;
 	}
 	

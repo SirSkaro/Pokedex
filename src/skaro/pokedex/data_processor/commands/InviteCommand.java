@@ -1,5 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
@@ -10,7 +11,6 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class InviteCommand extends AbstractCommand 
 {
@@ -29,14 +29,13 @@ public class InviteCommand extends AbstractCommand
 		aliases.put("inv", Language.ENGLISH);
 		
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
-		EmbedBuilder builder = new EmbedBuilder();	
-		builder.setLenient(true);
-		builder.withColor(colorService.getPokedexColor());
+		EmbedCreateSpec builder = new EmbedCreateSpec();	
+		builder.setColor(colorService.getPokedexColor());
 		
-		builder.appendField("Invite Pokdex to your server!", "[Click to invite Pokedex](https://discordapp.com/oauth2/authorize?client_id=206147222746824704&scope=bot&permissions=37080128)", false);
-		builder.appendField("Join Pokedex's home server!", "[Click to join Pokedex's server](https://discord.gg/D5CfFkN)", false);
+		builder.addField("Invite Pokdex to your server!", "[Click to invite Pokedex](https://discordapp.com/oauth2/authorize?client_id=206147222746824704&scope=bot&permissions=37080128)", false);
+		builder.addField("Join Pokedex's home server!", "[Click to join Pokedex's server](https://discord.gg/D5CfFkN)", false);
 		
-		staticDiscordReply.setEmbededReply(builder.build());
+		staticDiscordReply.setEmbed(builder);
 		this.createHelpMessage("https://i.imgur.com/WoeK9qZ.gif");
 	}
 	

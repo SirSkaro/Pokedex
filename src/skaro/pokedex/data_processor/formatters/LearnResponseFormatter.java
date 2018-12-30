@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceConsumer;
 import skaro.pokedex.core.IServiceManager;
@@ -20,7 +21,6 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.objects.move_learn_method.MoveLearnMethod;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class LearnResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
@@ -69,7 +69,7 @@ public class LearnResponseFormatter implements IDiscordFormatter, IServiceConsum
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
@@ -77,7 +77,6 @@ public class LearnResponseFormatter implements IDiscordFormatter, IServiceConsum
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		List<LearnMethodWrapper> wrappers = (List<LearnMethodWrapper>)(List<?>)data.get(LearnMethodWrapper.class.getName());
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
-		builder.setLenient(true);
 		
 		//Header
 		response.addToReply("**__"+
@@ -89,7 +88,7 @@ public class LearnResponseFormatter implements IDiscordFormatter, IServiceConsum
 		{
 			if(!wrapper.isRecognized())
 			{
-				builder.appendField(TextFormatter.flexFormToProper(wrapper.getSpecifiedMove()), 
+				builder.addField(TextFormatter.flexFormToProper(wrapper.getSpecifiedMove()), 
 						LearnField.NOT_RECOGNIZED.getFieldTitle(lang), true);
 				continue;
 			}
@@ -101,17 +100,17 @@ public class LearnResponseFormatter implements IDiscordFormatter, IServiceConsum
 			else
 				methodText = "*"+ LearnField.ABLE.getFieldTitle(lang) +"*:\n"+ formatLearnMethod(wrapper.getMethods(), lang);
 				
-			builder.appendField(TextFormatter.flexFormToProper(wrapper.getMove().getNameInLanguage(lang.getFlexKey())), methodText,true);
+			builder.addField(TextFormatter.flexFormToProper(wrapper.getMove().getNameInLanguage(lang.getFlexKey())), methodText,true);
 		}
 		
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(colorService.getColorForType(type));
+		builder.setColor(colorService.getColorForType(type));
 		
 		//Add thumbnail
-		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		builder.setThumbnail(pokemon.getSprites().getFrontDefault());
 		
-		response.setEmbededReply(builder.build());
+		response.setEmbed(builder);
 		return response;
 	}
 	
