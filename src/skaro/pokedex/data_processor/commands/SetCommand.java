@@ -9,7 +9,6 @@ import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.AbstractArgument;
@@ -30,9 +29,9 @@ import sx.blah.discord.util.EmbedBuilder;
 
 public class SetCommand extends AbstractCommand 
 {
-	public SetCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
+	public SetCommand(IServiceManager services) throws ServiceConsumerException
 	{
-		super(services, formatter);
+		super(services);
 		if(!hasExpectedServices(this.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		

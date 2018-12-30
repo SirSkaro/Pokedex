@@ -49,6 +49,12 @@ public class ServiceManager implements IServiceManager
 			return this;
 		}
 		
+		public ServiceManagerBuilder removeService(ServiceType type)
+		{
+			services.remove(type);
+			return this;
+		}
+		
 		public ServiceManager build() 
 		{
 			return new ServiceManager(this);

@@ -7,6 +7,10 @@ import org.eclipse.jetty.util.MultiMap;
 
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.EmojiService;
+import skaro.pokedex.core.IServiceConsumer;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
@@ -19,9 +23,24 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class WeakResponseFormatter implements IDiscordFormatter 
+public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsumer 
 {
-
+	private IServiceManager services;
+	
+	public WeakResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR, ServiceType.EMOJI);
+	}
+	
 	@Override
 	public Response invalidInputResponse(Input input) 
 	{
@@ -51,6 +70,7 @@ public class WeakResponseFormatter implements IDiscordFormatter
 	@SuppressWarnings("unchecked")
 	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
 	{
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
 		List<TypeData> typeList = (List<TypeData>)(List<?>)data.get(TypeData.class.getName());
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
@@ -78,7 +98,7 @@ public class WeakResponseFormatter implements IDiscordFormatter
 		builder.appendField(CommonData.IMMUNE.getInLanguage(lang), getList(wrapper, lang, 0.0), false);
 		
 		//Set color
-		builder.withColor(ColorService.getColorForWrapper(wrapper));
+		builder.withColor(colorService.getColorForWrapper(wrapper));
 		
 		response.setEmbededReply(builder.build());
 		return response;
@@ -87,11 +107,12 @@ public class WeakResponseFormatter implements IDiscordFormatter
 	private String formatHeader(PokemonSpecies species, TypeData type1, TypeData type2, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		
 		builder.append("**__"+TextFormatter.pokemonFlexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+" ");
-		builder.append("("+ EmojiService.getTypeEmoji(type1) + type1.getNameInLanguage(lang));
+		builder.append("("+ emojiService.getTypeEmoji(type1) + type1.getNameInLanguage(lang));
 		builder.append(type2 != null 
-				? ("/"+EmojiService.getTypeEmoji(type2) + type2.getNameInLanguage(lang) +")__**") 
+				? ("/"+emojiService.getTypeEmoji(type2) + type2.getNameInLanguage(lang) +")__**") 
 				: ")__**");
 		
 		return builder.toString();
@@ -100,9 +121,10 @@ public class WeakResponseFormatter implements IDiscordFormatter
 	private String formatHeader(TypeData type1, TypeData type2, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		
-		builder.append("**__" + EmojiService.getTypeEmoji(type1) + type1.getNameInLanguage(lang));
-		builder.append(type2 != null ? "/"+ EmojiService.getTypeEmoji(type2) + type2.getNameInLanguage(lang) +"__**": "__**");
+		builder.append("**__" + emojiService.getTypeEmoji(type1) + type1.getNameInLanguage(lang));
+		builder.append(type2 != null ? "/"+ emojiService.getTypeEmoji(type2) + type2.getNameInLanguage(lang) +"__**": "__**");
 		
 		return builder.toString();
 	}

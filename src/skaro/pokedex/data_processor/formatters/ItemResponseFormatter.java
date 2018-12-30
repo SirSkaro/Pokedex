@@ -1,13 +1,17 @@
 package skaro.pokedex.data_processor.formatters;
 
-import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.EmojiService;
+import skaro.pokedex.core.IServiceConsumer;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
@@ -18,8 +22,23 @@ import skaro.pokeflex.objects.item_category.ItemCategory;
 import skaro.pokeflex.objects.type.Type;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class ItemResponseFormatter implements IDiscordFormatter 
+public class ItemResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
+	private IServiceManager services;
+	
+	public ItemResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR, ServiceType.EMOJI);
+	}
 
 	@Override
 	public Response invalidInputResponse(Input input)
@@ -45,6 +64,7 @@ public class ItemResponseFormatter implements IDiscordFormatter
 	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
 	{
 		Response response = new Response();
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
 		builder.setLenient(true);
 		Item item = (Item)data.get(Item.class.getName()).get(0);
@@ -70,7 +90,7 @@ public class ItemResponseFormatter implements IDiscordFormatter
 		if(lang == Language.ENGLISH)
 			builder.appendField("Technical Description", item.getLdesc(), false);
 		
-		builder.withColor(new Color(0xE89800));
+		builder.withColor(colorService.getColorForItem());
 		builder.withThumbnail(item.getSprites().getDefault());
 		response.setEmbededReply(builder.build());
 		return response;
@@ -89,8 +109,9 @@ public class ItemResponseFormatter implements IDiscordFormatter
 	private String formatType(Type type, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		
-		builder.append(EmojiService.getTypeEmoji(TypeData.getByName(type.getName())));
+		builder.append(emojiService.getTypeEmoji(TypeData.getByName(type.getName())));
 		builder.append(" ");
 		builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
 		

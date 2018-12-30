@@ -62,6 +62,11 @@ public class ColorService implements IService
 		return 0xF96854;
 	}
 	
+	public int getColorForItem()
+	{
+		return 0xE89800;
+	}
+	
 	private Color blend(Color c0, Color c1) 
 	{
 		if(c1 == null)

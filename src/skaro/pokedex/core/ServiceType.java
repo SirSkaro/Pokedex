@@ -9,5 +9,6 @@ public enum ServiceType
 		DISCORD,
 		CONFIG,
 		COMMAND,
+		TTS,
 		;
 }

@@ -8,6 +8,10 @@ import org.eclipse.jetty.util.MultiMap;
 
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.EmojiService;
+import skaro.pokedex.core.IServiceConsumer;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
@@ -21,9 +25,24 @@ import skaro.pokeflex.objects.move_target.MoveTarget;
 import skaro.pokeflex.objects.type.Type;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class MoveResponseFormatter implements IDiscordFormatter 
+public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
-
+	private IServiceManager services;
+	
+	public MoveResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR, ServiceType.EMOJI);
+	}
+	
 	@Override
 	public Response invalidInputResponse(Input input)
 	{
@@ -48,6 +67,7 @@ public class MoveResponseFormatter implements IDiscordFormatter
 	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
 	{
 		Response response = new Response();
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
 		builder.setLenient(true);
 		Move move = (Move)data.get(Move.class.getName()).get(0);
@@ -94,14 +114,15 @@ public class MoveResponseFormatter implements IDiscordFormatter
 		if(image.isPresent())
 			builder.withImage(image.get().getUrl());
 		
-		builder.withColor(ColorService.getColorForType(move.getType().getName()));
+		builder.withColor(colorService.getColorForType(move.getType().getName()));
 		response.setEmbededReply(builder.build());
 		return response;
 	}
 	
 	private String formatZPower(Type type, int power)
 	{
-		return EmojiService.getCrystalEmoji(TypeData.getByName(type.getName())) + " " + power;
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
+		return emojiService.getCrystalEmoji(TypeData.getByName(type.getName())) + " " + power;
 	}
 	
 	private String formatContest(ContestType contest, Language lang)
@@ -110,8 +131,9 @@ public class MoveResponseFormatter implements IDiscordFormatter
 			return null;
 		
 		StringBuilder builder = new StringBuilder();
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		
-		builder.append(EmojiService.getContestEmoji(contest.getName()));
+		builder.append(emojiService.getContestEmoji(contest.getName()));
 		builder.append(" ");
 		builder.append(TextFormatter.flexFormToProper(contest.getNameInLanguage(lang.getFlexKey())));
 		
@@ -150,8 +172,9 @@ public class MoveResponseFormatter implements IDiscordFormatter
 	private String formatType(Type type, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		
-		builder.append(EmojiService.getTypeEmoji(TypeData.getByName(type.getName())));
+		builder.append(emojiService.getTypeEmoji(TypeData.getByName(type.getName())));
 		builder.append(" ");
 		builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
 		
@@ -161,8 +184,9 @@ public class MoveResponseFormatter implements IDiscordFormatter
 	private String formatCategory(MoveDamageClass category, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		
-		builder.append(EmojiService.getDamageEmoji(category.getName()));
+		builder.append(emojiService.getDamageEmoji(category.getName()));
 		builder.append(" ");
 		builder.append(TextFormatter.flexFormToProper(category.getNameInLanguage(lang.getFlexKey())));
 		

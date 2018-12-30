@@ -7,6 +7,10 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.MultiMap;
 
 import skaro.pokedex.core.ColorService;
+import skaro.pokedex.core.IServiceConsumer;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Statistic;
@@ -17,9 +21,24 @@ import skaro.pokeflex.objects.pokemon.Stat;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class StatsResponseFormatter implements IDiscordFormatter
+public class StatsResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
-
+	private IServiceManager services;
+	
+	public StatsResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR);
+	}
+	
 	@Override
 	public Response invalidInputResponse(Input input) 
 	{
@@ -45,6 +64,7 @@ public class StatsResponseFormatter implements IDiscordFormatter
 	{
 		Response response = new Response();
 		String type;
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		Language lang = input.getLanguage();
@@ -72,7 +92,7 @@ public class StatsResponseFormatter implements IDiscordFormatter
 		
 		//Set color
 		type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(ColorService.getColorForType(type));
+		builder.withColor(colorService.getColorForType(type));
 		
 		//Add thumbnail
 		builder.withThumbnail(pokemon.getSprites().getFrontDefault());

@@ -9,9 +9,13 @@ import javax.sound.sampled.AudioInputStream;
 import org.eclipse.jetty.util.MultiMap;
 
 import skaro.pokedex.core.ColorService;
+import skaro.pokedex.core.IServiceConsumer;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
+import skaro.pokedex.core.TTSConverter;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TTSConverter;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -20,13 +24,22 @@ import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.version.Version;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class DexResponseFormatter implements IDiscordFormatter 
+public class DexResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
-	private TTSConverter tts;
+	private IServiceManager services;
 	
-	public DexResponseFormatter() 
+	public DexResponseFormatter(IServiceManager services) throws ServiceConsumerException
 	{
-		tts = new TTSConverter();
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR, ServiceType.TTS);
 	}
 
 	@Override
@@ -57,11 +70,13 @@ public class DexResponseFormatter implements IDiscordFormatter
 	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
 	{
 		Response response = new Response();
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		Version version = (Version)data.getValue(Version.class.getName(), 0);
 		Language lang = input.getLanguage();
 		Optional<AudioInputStream> audioCheck;
+		TTSConverter tts;
 		
 		//Format names of entities
 		String pokemonName = TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()));
@@ -86,12 +101,13 @@ public class DexResponseFormatter implements IDiscordFormatter
 				+TextFormatter.flexFormToProper(version.getNameInLanguage(lang.getFlexKey()))+"__**");
 		
 		builder.withDescription(replyContent);
-		builder.withColor(ColorService.getColorForVersion(input.getArg(1).getFlexForm().replace("-", "")));
+		builder.withColor(colorService.getColorForVersion(input.getArg(1).getFlexForm().replace("-", "")));
 		
 		//Add thumbnail
 		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
 		
 		//Add audio reply
+		tts = (TTSConverter)services.getService(ServiceType.TTS);
 		audioCheck = tts.convertToAudio(lang, replyContent);
 		if(audioCheck.isPresent())
 			response.setPlayBack(audioCheck.get());

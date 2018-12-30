@@ -12,7 +12,6 @@ import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.formatters.RandpokeResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -53,7 +52,6 @@ public class RandpokeCommand extends AbstractCommand
 		aliases.put("随机", Language.CHINESE_SIMPMLIFIED);
 		aliases.put("무작위의", Language.KOREAN);
 		
-		formatter = new RandpokeResponseFormatter();
 		extraMessages.add("See the shiny with the %shiny command! (Patrons only)");
 		this.createHelpMessage("https://i.imgur.com/cOEo8jW.gif");
 	}

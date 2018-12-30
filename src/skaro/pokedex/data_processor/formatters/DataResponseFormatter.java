@@ -10,6 +10,10 @@ import org.eclipse.jetty.util.MultiMap;
 
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.EmojiService;
+import skaro.pokedex.core.IServiceConsumer;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Statistic;
@@ -29,8 +33,24 @@ import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.type.Type;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class DataResponseFormatter implements IDiscordFormatter 
+public class DataResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
+	private IServiceManager services;
+	
+	public DataResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR, ServiceType.EMOJI);
+	}
+	
 	@Override
 	public Response invalidInputResponse(Input input)
 	{
@@ -55,6 +75,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
 	{
 		Response response = new Response();
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
@@ -90,7 +111,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 		//Extra
 		builder.withImage(pokemon.getModel().getUrl());
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(ColorService.getColorForType(type));
+		builder.withColor(colorService.getColorForType(type));
 		
 		
 		response.setEmbededReply(builder.build());
@@ -282,13 +303,14 @@ public class DataResponseFormatter implements IDiscordFormatter
 	
 	private String formatTypes(List<Object> types, Language lang)
 	{
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		StringBuilder builder = new StringBuilder();
 		Type tempType;
 		
 		for(Object type : types)
 		{
 			tempType = (Type)type;
-			builder.append(EmojiService.getTypeEmoji(TypeData.getByName(tempType.getName())));
+			builder.append(emojiService.getTypeEmoji(TypeData.getByName(tempType.getName())));
 			builder.append(" ");
 			builder.append(TextFormatter.flexFormToProper(tempType.getNameInLanguage(lang.getFlexKey())) + "\n");
 		}

@@ -6,6 +6,10 @@ import java.util.Optional;
 import org.eclipse.jetty.util.MultiMap;
 
 import skaro.pokedex.core.ColorService;
+import skaro.pokedex.core.IServiceConsumer;
+import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.ServiceConsumerException;
+import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
@@ -16,9 +20,24 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import sx.blah.discord.util.EmbedBuilder;
 
-public class CoverageResponseFormatter implements IDiscordFormatter 
+public class CoverageResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
-
+	private IServiceManager services;
+	
+	public CoverageResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR);
+	}
+	
 	@Override
 	public Response invalidInputResponse(Input input) 
 	{
@@ -44,11 +63,11 @@ public class CoverageResponseFormatter implements IDiscordFormatter
 		return response;
 	}
 
-	
 	@SuppressWarnings("unchecked")
 	@Override
 	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
 	{
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
 		List<TypeData> typeList = (List<TypeData>)(List<?>)data.get(TypeData.class.getName());
 		TypeInteractionWrapper wrapper = TypeTracker.onOffense(typeList);
@@ -62,7 +81,7 @@ public class CoverageResponseFormatter implements IDiscordFormatter
 		builder.appendField(CommonData.NEUTRAL.getInLanguage(lang), getList(wrapper, 1.0, lang), false);
 		builder.appendField(CommonData.RESIST.getInLanguage(lang), getList(wrapper, 0.5, lang), false);
 		builder.appendField(CommonData.IMMUNE.getInLanguage(lang), getList(wrapper, 0.0, lang), false);
-		builder.withColor(ColorService.getColorForWrapper(wrapper));
+		builder.withColor(colorService.getColorForWrapper(wrapper));
 		
 		response.setEmbededReply(builder.build());
 		return response;
@@ -73,4 +92,5 @@ public class CoverageResponseFormatter implements IDiscordFormatter
 		Optional<String> strCheck = wrapper.interactionToString(mult, lang);
 		return (strCheck.isPresent() ? strCheck.get() : null);
 	}
+	
 }

@@ -1,7 +1,5 @@
 package skaro.pokedex.core;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -14,7 +12,7 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.presence.Presence;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.core.ServiceManager.ServiceManagerBuilder;
 import skaro.pokedex.data_processor.CommandService;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
@@ -23,7 +21,6 @@ import skaro.pokedex.data_processor.commands.CoverageCommand;
 import skaro.pokedex.data_processor.commands.DataCommand;
 import skaro.pokedex.data_processor.commands.DexCommand;
 import skaro.pokedex.data_processor.commands.HelpCommand;
-import skaro.pokedex.data_processor.commands.InviteCommand;
 import skaro.pokedex.data_processor.commands.ItemCommand;
 import skaro.pokedex.data_processor.commands.LearnCommand;
 import skaro.pokedex.data_processor.commands.MoveCommand;
@@ -33,6 +30,17 @@ import skaro.pokedex.data_processor.commands.SetCommand;
 import skaro.pokedex.data_processor.commands.ShinyCommand;
 import skaro.pokedex.data_processor.commands.StatsCommand;
 import skaro.pokedex.data_processor.commands.WeakCommand;
+import skaro.pokedex.data_processor.formatters.AbilityResponseFormatter;
+import skaro.pokedex.data_processor.formatters.CoverageResponseFormatter;
+import skaro.pokedex.data_processor.formatters.DataResponseFormatter;
+import skaro.pokedex.data_processor.formatters.DexResponseFormatter;
+import skaro.pokedex.data_processor.formatters.ItemResponseFormatter;
+import skaro.pokedex.data_processor.formatters.LearnResponseFormatter;
+import skaro.pokedex.data_processor.formatters.MoveResponseFormatter;
+import skaro.pokedex.data_processor.formatters.RandpokeResponseFormatter;
+import skaro.pokedex.data_processor.formatters.ShinyResponseFormatter;
+import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
+import skaro.pokedex.data_processor.formatters.WeakResponseFormatter;
 
 public class PokedexV3 
 {
@@ -73,9 +81,10 @@ public class PokedexV3
 								.withService(new ColorService())
 								.withService(new EmojiService())
 								.withService(createPokeFlexService(configurationService, pokedexThreadPool))
+								.withService(new TTSConverter())
 								.configure();
 		
-		populateCommandMap(manager);
+		populateCommandMap(manager, commandMap);
 		
 		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
 		DiscordClient client = service.getV3Client();
@@ -85,32 +94,6 @@ public class PokedexV3
         .subscribe(event -> event.getMessage().getContent().ifPresent(c -> System.out.println(c))); // "subscribe" is the method you need to call to actually make sure that it's doing something.
 
 		client.login().block(); 
-	}
-	
-	private static void populateCommandMap(PokedexManager manager)
-	{
-		List<AbstractCommand> commands = new ArrayList<AbstractCommand>();
-		
-		commands.add(new RandpokeCommand());
-		commands.add(new StatsCommand());
-		commands.add(new DataCommand());
-		commands.add(new AbilityCommand());
-		commands.add(new ItemCommand());
-		commands.add(new MoveCommand());
-		commands.add(new LearnCommand());
-		commands.add(new WeakCommand());
-		commands.add(new CoverageCommand());
-		commands.add(new DexCommand());
-		commands.add(new SetCommand());
-		commands.add(new AboutCommand());
-		commands.add(new PatreonCommand());
-		commands.add(new InviteCommand());
-		commands.add(new ShinyCommand());
-		
-		commands.add(new HelpCommand(commands));
-		commands.add(new CommandsCommand(commands));
-		
-		return new CommandService(commands, threadPool);
 	}
 	
 	private static DiscordService createDiscordService(ConfigurationService configService, int shardID, int shardCount)
@@ -135,4 +118,46 @@ public class PokedexV3
 	{
 		return new PokeFlexService(configService.getPokeFlexURL(), threadPool);
 	}
+	
+	private static void populateCommandMap(PokedexManager manager, CommandService commandService) throws ServiceException, ServiceConsumerException
+	{
+		ServiceManagerBuilder commandServiceBuilder = ServiceManager.ServiceManagerBuilder.newInstance(manager)
+				.addService(ServiceType.COLOR);
+		ServiceManagerBuilder formatterServiceBuilder = ServiceManager.ServiceManagerBuilder.newInstance(manager)
+				.addService(ServiceType.COLOR);
+		
+		//ColorService
+		commandService.addCommand(new AboutCommand(commandServiceBuilder.build()));
+		commandService.addCommand(new PatreonCommand(commandServiceBuilder.build()));
+		
+		//ColorService, CommandService
+		commandServiceBuilder.addService(ServiceType.COMMAND);
+		commandService.addCommand(new HelpCommand(commandServiceBuilder.build()));
+		commandService.addCommand(new CommandsCommand(commandServiceBuilder.build()));
+		
+		//ColorService, ConfigService
+		commandServiceBuilder.removeService(ServiceType.COMMAND);
+		commandServiceBuilder.addService(ServiceType.CONFIG);
+		commandService.addCommand(new AboutCommand(commandServiceBuilder.build()));
+		
+		//ColorService, PokeFlexService
+		commandServiceBuilder.removeService(ServiceType.CONFIG);
+		commandServiceBuilder.addService(ServiceType.POKE_FLEX);
+		commandService.addCommand(new ItemCommand(commandServiceBuilder.build(), new ItemResponseFormatter()));
+		commandService.addCommand(new MoveCommand(commandServiceBuilder.build(), new MoveResponseFormatter()));
+		commandService.addCommand(new CoverageCommand(commandServiceBuilder.build(), new CoverageResponseFormatter()));
+		
+		//ColorService, PokeFlexService, PerkService
+		commandServiceBuilder.addService(ServiceType.PERK);
+		commandService.addCommand(new AbilityCommand(commandServiceBuilder.build(), new AbilityResponseFormatter()));
+		commandService.addCommand(new DataCommand(commandServiceBuilder.build(), new DataResponseFormatter()));
+		commandService.addCommand(new DexCommand(commandServiceBuilder.build(), new DexResponseFormatter()));
+		commandService.addCommand(new LearnCommand(commandServiceBuilder.build(), new LearnResponseFormatter()));
+		commandService.addCommand(new RandpokeCommand(commandServiceBuilder.build(), new RandpokeResponseFormatter()));
+		commandService.addCommand(new SetCommand(commandServiceBuilder.build()));
+		commandService.addCommand(new ShinyCommand(commandServiceBuilder.build(), new ShinyResponseFormatter()));
+		commandService.addCommand(new StatsCommand(commandServiceBuilder.build(), new StatsResponseFormatter()));
+		commandService.addCommand(new WeakCommand(commandServiceBuilder.build(), new WeakResponseFormatter()));
+	}
+	
 }

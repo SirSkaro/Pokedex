@@ -1,4 +1,4 @@
-package skaro.pokedex.data_processor;
+package skaro.pokedex.core;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +12,7 @@ import marytts.exceptions.MaryConfigurationException;
 import marytts.exceptions.SynthesisException;
 import skaro.pokedex.input_processor.Language;
 
-public class TTSConverter 
+public class TTSConverter implements IService
 {
 	private MaryInterface maryTTS;
 	private Map<Language, String> voiceMap;
@@ -39,6 +39,12 @@ public class TTSConverter
         }
     }
     
+	@Override
+	public ServiceType getServiceType() 
+	{
+		return ServiceType.TTS;
+	}
+    
     public Optional<AudioInputStream> convertToAudio(Language lang, String input)
     {
     	if(!voiceMap.containsKey(lang))
@@ -59,4 +65,5 @@ public class TTSConverter
             return Optional.empty();
         }
     }
+
 }

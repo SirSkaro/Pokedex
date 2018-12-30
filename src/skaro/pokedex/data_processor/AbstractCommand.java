@@ -37,9 +37,9 @@ public abstract class AbstractCommand implements IServiceConsumer
 	public AbstractCommand(IServiceManager serviceManager)
 	{
 		services = serviceManager;
-		argCats = new ArrayList<ArgumentCategory>();
-		aliases = new HashMap<String, Language>();
-		extraMessages = new ArrayList<String>();
+		argCats = new ArrayList<>();
+		aliases = new HashMap<>();
+		extraMessages = new ArrayList<>();
 		
 		extraMessages.add("If you like Pokedex, consider becoming a Patreon for perks! (%patreon for link)");
 		extraMessages.add("Stay up to date with Pokedex: join the support server! (%invite for link)");
@@ -50,9 +50,9 @@ public abstract class AbstractCommand implements IServiceConsumer
 	{
 		services = serviceManager;
 		formatter = discordFormatter;
-		argCats = new ArrayList<ArgumentCategory>();
-		aliases = new HashMap<String, Language>();
-		extraMessages = new ArrayList<String>();
+		argCats = new ArrayList<>();
+		aliases = new HashMap<>();
+		extraMessages = new ArrayList<>();
 		
 		extraMessages.add("If you like Pokedex, consider becoming a Patreon for perks! (%patreon for link)");
 		extraMessages.add("Stay up to date with Pokedex: join the support server! (%invite for link)");
