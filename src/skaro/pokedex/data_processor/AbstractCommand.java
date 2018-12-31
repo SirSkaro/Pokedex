@@ -8,7 +8,9 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceConsumer;
 import skaro.pokedex.core.IServiceManager;
@@ -83,7 +85,7 @@ public abstract class AbstractCommand implements IServiceConsumer
 	
 	abstract public boolean makesWebRequest();
 	abstract public String getArguments();
-	abstract public Response discordReply(Input input, IUser requester);
+	abstract public Mono<Response> discordReply(Input input, User author);
 	
 	protected boolean inputIsValid(Response reply, Input input) { return true; }
 	

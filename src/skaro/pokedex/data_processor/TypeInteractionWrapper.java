@@ -34,12 +34,12 @@ public class TypeInteractionWrapper
 	public ArrayList<TypeData> getTypes() { return types; }
 	public ArrayList<TypeData> getInteractionByMultiplier(Double mult) { return interactions.get(mult); }
 	
-	public String typesToString(Language lang)
+	public String typesToString(Language lang, EmojiService emojiService)
 	{
 		StringBuilder builder = new StringBuilder();
 		
 		for(TypeData type : types)
-			builder.append("/"+EmojiService.getTypeEmoji(type) + type.getNameInLanguage(lang) );
+			builder.append("/"+emojiService.getTypeEmoji(type) + type.getNameInLanguage(lang) );
 		
 		return builder.substring(1);
 	}

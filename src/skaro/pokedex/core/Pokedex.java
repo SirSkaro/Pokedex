@@ -80,7 +80,8 @@ public class Pokedex
 
 		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
-		configurator = ConfigurationService.initializeConfigurator(true);
+		//configurator = ConfigurationService.initializeConfigurator(true);
+		configurator = null;
 		
 		//Set logging level
 		Logger logger4j = org.apache.log4j.Logger.getRootLogger();
@@ -124,8 +125,8 @@ public class Pokedex
 		 */
 		TypeData.initialize(factory);
 		LearnMethodData.initialize(factory);
-		ColorService.initialize();
-		EmojiService.initialize();
+		//ColorService.initialize();
+		//EmojiService.initialize();
 		
 		//Login to Discord
 		System.out.println("[Pokedex main] Logging into Discord");
@@ -162,28 +163,29 @@ public class Pokedex
 	{
 		List<AbstractCommand> commands = new ArrayList<AbstractCommand>();
 		
-		commands.add(new RandpokeCommand(factory, checker));
-		commands.add(new StatsCommand(factory, checker));
-		commands.add(new DataCommand(factory, checker));
-		commands.add(new AbilityCommand(factory, checker));
-		commands.add(new ItemCommand(factory, checker));
-		commands.add(new MoveCommand(factory, checker));
-		commands.add(new LearnCommand(factory, checker));
-		commands.add(new WeakCommand(factory, checker));
-		commands.add(new CoverageCommand(factory, checker));
-		commands.add(new DexCommand(factory, checker));
-		commands.add(new SetCommand(factory, checker));
-		//commands.add(new LocationCommand(factory, checker)); //Not supported by personal deployment of PokeAPI anymore
-		commands.add(new AboutCommand());
-		commands.add(new PatreonCommand());
-		commands.add(new InviteCommand());
-		commands.add(new ShinyCommand(factory, checker));
+//		commands.add(new RandpokeCommand(factory, checker));
+//		commands.add(new StatsCommand(factory, checker));
+//		commands.add(new DataCommand(factory, checker));
+//		commands.add(new AbilityCommand(factory, checker));
+//		commands.add(new ItemCommand(factory, checker));
+//		commands.add(new MoveCommand(factory, checker));
+//		commands.add(new LearnCommand(factory, checker));
+//		commands.add(new WeakCommand(factory, checker));
+//		commands.add(new CoverageCommand(factory, checker));
+//		commands.add(new DexCommand(factory, checker));
+//		commands.add(new SetCommand(factory, checker));
+//		//commands.add(new LocationCommand(factory, checker)); //Not supported by personal deployment of PokeAPI anymore
+//		commands.add(new AboutCommand());
+//		commands.add(new PatreonCommand());
+//		commands.add(new InviteCommand());
+//		commands.add(new ShinyCommand(factory, checker));
+//		
+//		commands.add(new HelpCommand(commands));
+//		commands.add(new CommandsCommand(commands));
+//		
+//		CommandService result = new CommandService(commands, service);
 		
-		commands.add(new HelpCommand(commands));
-		commands.add(new CommandsCommand(commands));
-		
-		CommandService result = new CommandService(commands, service);
-		
-		return result;
+//		return result;
+		return null;
 	}
 }

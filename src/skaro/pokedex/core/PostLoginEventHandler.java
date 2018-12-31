@@ -108,52 +108,52 @@ public class PostLoginEventHandler
     private void handleTextResponse(IMessage userMsg)
     {
     	//Utility variable
-		Response response;
-		AbstractCommand command;
-		Optional<Input> parseTest;
-		Input userInput;
-		Optional<IMessage> ackMsg = Optional.empty();
-		
-		parseTest = processor.processInput(userMsg.getContent());
-        if(!parseTest.isPresent()) //if the command doesn't exist, return
-        	return;
-        
-        //If the message follows the syntax, find it in the command map
-        userInput = parseTest.get();
-        command = userInput.getCommand();
-        if(command == null) //if the command isn't supported, return
-        	return;
-        
-        //Enfore rate limit
-        if(channelIsRateLimited(userMsg.getChannel().getLongID()))
-        {
-        	System.out.println("[DiscordEventHandler] Rate limit exceeded for user " + userMsg.getAuthor().getLongID());
-        	return;
-        }
-
-        //Send acknowledgement message to alert the user their response is being processed if a web request is being made
-        if(command.makesWebRequest())
-        	ackMsg = sendAcknowledgement(userMsg);
-        
-        System.out.println("[DiscordEventHandler] "
-				+userMsg.getAuthor().getName() + ": " + userMsg.getContent());
-        
-        //Get the reply of the command.
-        response = command.discordReply(userInput, userMsg.getAuthor());
-        
-        //Send the textual reply to the user
-        if(ackMsg.isPresent())
-        	ackMsg.get().delete();
-       	sendResponse(userMsg, response);
-        
-        //If there is an audio portion, send it
-        if(response.getAudioReply() != null)
-        {
-        	if(connectToVoiceChannel(userMsg))
-	        	playDexEntry(userMsg.getAuthor().getVoiceStateForGuild(userMsg.getGuild()).getChannel(), 
-	        			AudioPlayer.getAudioPlayerForGuild(userMsg.getGuild()), new AudioPlayer.Track(response.getAudioReply()),
-	        			userMsg.getChannel().getLongID(), userMsg.getAuthor().mention());
-        }
+//		Response response;
+//		AbstractCommand command;
+//		Optional<Input> parseTest;
+//		Input userInput;
+//		Optional<IMessage> ackMsg = Optional.empty();
+//		
+//		parseTest = processor.processInput(userMsg.getContent());
+//        if(!parseTest.isPresent()) //if the command doesn't exist, return
+//        	return;
+//        
+//        //If the message follows the syntax, find it in the command map
+//        userInput = parseTest.get();
+//        command = userInput.getCommand();
+//        if(command == null) //if the command isn't supported, return
+//        	return;
+//        
+//        //Enfore rate limit
+//        if(channelIsRateLimited(userMsg.getChannel().getLongID()))
+//        {
+//        	System.out.println("[DiscordEventHandler] Rate limit exceeded for user " + userMsg.getAuthor().getLongID());
+//        	return;
+//        }
+//
+//        //Send acknowledgement message to alert the user their response is being processed if a web request is being made
+//        if(command.makesWebRequest())
+//        	ackMsg = sendAcknowledgement(userMsg);
+//        
+//        System.out.println("[DiscordEventHandler] "
+//				+userMsg.getAuthor().getName() + ": " + userMsg.getContent());
+//        
+//        //Get the reply of the command.
+//        response = command.discordReply(userInput, userMsg.getAuthor());
+//        
+//        //Send the textual reply to the user
+//        if(ackMsg.isPresent())
+//        	ackMsg.get().delete();
+//       	sendResponse(userMsg, response);
+//        
+//        //If there is an audio portion, send it
+//        if(response.getAudioReply() != null)
+//        {
+//        	if(connectToVoiceChannel(userMsg))
+//	        	playDexEntry(userMsg.getAuthor().getVoiceStateForGuild(userMsg.getGuild()).getChannel(), 
+//	        			AudioPlayer.getAudioPlayerForGuild(userMsg.getGuild()), new AudioPlayer.Track(response.getAudioReply()),
+//	        			userMsg.getChannel().getLongID(), userMsg.getAuthor().mention());
+//        }
     }
     
     private boolean channelIsRateLimited(Long channelID)
@@ -246,50 +246,50 @@ public class PostLoginEventHandler
     
     private void sendResponse(IMessage userMsg, Response response)
     {
-    	//Utility variables
-    	MessageBuilder reply = new MessageBuilder(userMsg.getClient());
-    	Optional<EmbedObject> embed = response.getEmbedObject();
-    	Optional<File> image = response.getImage();
-    	
-    	//Set up reply
-    	reply.withContent(response.getDiscordTextReply());
-    	if(embed.isPresent())
-    		reply.withEmbed(embed.get());
-    	if(image.isPresent())
-    	{
-    		try { reply.withFile(image.get()); } 
-    		catch (FileNotFoundException e1) { response.addToReply("Could not attach the image you requested!"); }
-    	}
-    	
-    	//Buffer the reply
-    	RequestBuffer.request(() -> 
-    	{
-    		try
-    		{
-	    		if(response.isPrivateMessage())
-	    		{
-	    			reply.withChannel(userMsg.getClient().getOrCreatePMChannel(userMsg.getAuthor()));
-	    			reply.send();
-	    			userMsg.getChannel().sendMessage("Sent to your inbox!".intern());
-	    			System.out.println("\t[DiscordEventHandler] PM sent.");
-	    		}
-	    		else
-	    		{
-	    			reply.withChannel(userMsg.getChannel());
-	    			reply.send();
-	    			System.out.println("\t[DiscordEventHandler] Response sent.");
-	    		}
-    		}
-    		catch(MissingPermissionsException mpe)
-    		{
-    			handleResponseError(userMsg, mpe);
-    		}
-    		catch (Exception e)
-    		{
-    			System.err.println("[DiscordEventHandler] Message (queued) could not be sent with error: "+ e.getClass().getSimpleName());
-                throw e;	//Sends the message to the request buffer
-    		}
-    	});
+//    	//Utility variables
+//    	MessageBuilder reply = new MessageBuilder(userMsg.getClient());
+//    	Optional<EmbedObject> embed = response.getEmbedObject();
+//    	Optional<File> image = response.getImage();
+//    	
+//    	//Set up reply
+//    	reply.withContent(response.getDiscordTextReply());
+//    	if(embed.isPresent())
+//    		reply.withEmbed(embed.get());
+//    	if(image.isPresent())
+//    	{
+//    		try { reply.withFile(image.get()); } 
+//    		catch (FileNotFoundException e1) { response.addToReply("Could not attach the image you requested!"); }
+//    	}
+//    	
+//    	//Buffer the reply
+//    	RequestBuffer.request(() -> 
+//    	{
+//    		try
+//    		{
+//	    		if(response.isPrivateMessage())
+//	    		{
+//	    			reply.withChannel(userMsg.getClient().getOrCreatePMChannel(userMsg.getAuthor()));
+//	    			reply.send();
+//	    			userMsg.getChannel().sendMessage("Sent to your inbox!".intern());
+//	    			System.out.println("\t[DiscordEventHandler] PM sent.");
+//	    		}
+//	    		else
+//	    		{
+//	    			reply.withChannel(userMsg.getChannel());
+//	    			reply.send();
+//	    			System.out.println("\t[DiscordEventHandler] Response sent.");
+//	    		}
+//    		}
+//    		catch(MissingPermissionsException mpe)
+//    		{
+//    			handleResponseError(userMsg, mpe);
+//    		}
+//    		catch (Exception e)
+//    		{
+//    			System.err.println("[DiscordEventHandler] Message (queued) could not be sent with error: "+ e.getClass().getSimpleName());
+//                throw e;	//Sends the message to the request buffer
+//    		}
+//    	});
     }
     
     private void sendMessage(IDiscordClient discordClient, long ChannelID, String msg)

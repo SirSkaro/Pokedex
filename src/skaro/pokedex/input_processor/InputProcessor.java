@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import discord4j.core.object.entity.Message;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.CommandService;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
@@ -29,7 +31,7 @@ public class InputProcessor
 		postfixPattern = Pattern.compile("["+multilingualWord+"]+[\\s]*[(].*[)]");
 		mentionPattern = Pattern.compile("<@[0-9]+>[\\s]*["+multilingualWord+"]+[\\s]*.*");
 	}
-	public Optional<Input> processInput(String input)
+	public Mono<Input> processInput(String input)
 	{
 		//Utility variables
 		Optional<ParsedText> parseTest = parseTextMessage(input);
@@ -42,12 +44,12 @@ public class InputProcessor
 		
 		//If args is null, then the input does not match the command format. Discard.
 		if(!parseTest.isPresent())
-			return Optional.empty();
+			return Mono.empty();
 		
 		//If argument is not in the map, the command is not supported
 		parsedText = parseTest.get();
 		if(!commandLibrary.hasCommand(parsedText.getFunction()))
-			return Optional.empty();
+			return Mono.empty();
 		
 		command = commandLibrary.get(parsedText.getFunction());
 		lang = command.getLanguageOfAlias(parsedText.getFunction());
@@ -57,7 +59,7 @@ public class InputProcessor
 		if(!hasExpectedNumberOfArguments(parsedText, command))
 		{
 			result.setErrorStatus(InputErrorStatus.ARGUMENT_NUMBER);
-			return Optional.of(result);
+			return Mono.just(result);
 		}
 		
 		//Parse each argument
@@ -75,7 +77,7 @@ public class InputProcessor
 				break;
 			}
 		
-		return Optional.of(result);
+		return Mono.just(result);
 	}
 	
 	private boolean hasExpectedNumberOfArguments(ParsedText text, AbstractCommand cmd)

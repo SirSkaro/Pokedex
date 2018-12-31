@@ -94,11 +94,16 @@ public class PokedexV3
 		InputProcessor inputProcessor = new InputProcessor(commandMap, client.getSelfId().get().asLong());
 		
 		client.getEventDispatcher().on(MessageCreateEvent.class)
-	        .map(MessageCreateEvent::getMessage)
-	        .filter(msg -> msg.getContent().map(content -> content.equals("!ping")).orElse(false))
-	        .flatMap(Message::getChannel)
-	        .flatMap(channel -> channel.createMessage("Pong!"))
-	        .subscribe();
+			.publishOn(scheduler)	//use the specified thread pool
+	        .map(MessageCreateEvent::getMessage)	//Get the message of the event
+	        .filter(msg -> msg.getContent().isPresent())	//only process if the message is not empty
+	        .flatMap(msg -> inputProcessor.processInput(msg.getContent().get())	//Unwrap the message from the Optional
+	        		.flatMap(input -> msg.getAuthor()	//Get the author
+	        				.flatMap(author -> msg.getChannel()	//Get the channel
+	        						.flatMap(channel ->  input.getCommand().discordReply(input, author)	//Pass the input to the command to get a response
+	        								.flatMap( response -> channel.createMessage(response.getAsSpec())))))) //Send the response
+	        .subscribe(value -> System.out.println("success"), error -> System.out.println(error));
+
 
 		client.login().block(); 
 	}

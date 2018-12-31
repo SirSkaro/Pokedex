@@ -14,7 +14,8 @@ public class Response
 	private StringBuilder text;
 	private AudioInputStream audio;	
 	private File image;				
-	private EmbedCreateSpec embed;			
+	private FileInputStream fileStream;
+	private EmbedCreateSpec embed;	
 	private boolean privateMessage;
 	
 	public Response()
@@ -41,9 +42,10 @@ public class Response
 		privateMessage = b;
 	}
 	
-	public void addImage(File file)
+	public void addImage(File file) throws FileNotFoundException
 	{
 		image = file;
+		fileStream = new FileInputStream(image);
 	}
 	
 	public void addToReply(String s)
@@ -61,12 +63,12 @@ public class Response
 		return audio;
 	}
 	
-	public MessageCreateSpec getAsSpec() throws FileNotFoundException
+	public MessageCreateSpec getAsSpec()
 	{
 		return new MessageCreateSpec()
 				.setContent(text.toString())
 				.setEmbed(embed)
-				.setFile(image.getName(), new FileInputStream(image));
+				.setFile(image.getName(), fileStream);
 	}
 	
 }
