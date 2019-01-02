@@ -5,7 +5,9 @@ import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
@@ -22,7 +24,6 @@ import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.move.Move;
 import skaro.pokeflex.objects.type.Type;
-import sx.blah.discord.handle.obj.IUser;
 
 public class MoveCommand extends AbstractCommand 
 {
@@ -58,7 +59,9 @@ public class MoveCommand extends AbstractCommand
 				"https://i.imgur.com/B3VtWyg.gif");
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return true; }
+	@Override
 	public String getArguments() { return "<move>"; }
 	
 	@Override
@@ -68,7 +71,8 @@ public class MoveCommand extends AbstractCommand
 				services.hasServices(ServiceType.POKE_FLEX);
 	}
 	
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{
 		if(!input.isValid())
 			return formatter.invalidInputResponse(input);
@@ -114,7 +118,7 @@ public class MoveCommand extends AbstractCommand
 		{
 			Response response = new Response();
 			this.addErrorMessage(response, input, "1006", e); 
-			return response;
+			return Mono.just(response);
 		}
 	}
 	

@@ -2,7 +2,9 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.Optional;
 
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.ConfigurationService;
 import skaro.pokedex.core.IServiceManager;
@@ -12,7 +14,6 @@ import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
-import sx.blah.discord.handle.obj.IUser;
 
 public class AboutCommand extends AbstractCommand 
 {
@@ -56,9 +57,13 @@ public class AboutCommand extends AbstractCommand
 					services.hasServices(ServiceType.COLOR, ServiceType.CONFIG); 
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return false; }
+	@Override
 	public String getArguments() { return "none"; }
-	public Response discordReply(Input input, IUser requester) { return staticDiscordReply; }
+	@Override
+	public Mono<Response> discordReply(Input input, User requester) 
+	{ return Mono.just(staticDiscordReply); }
 	
 	private void setStaticReplyFields(EmbedCreateSpec builder)
 	{

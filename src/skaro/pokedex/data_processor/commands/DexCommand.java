@@ -5,7 +5,9 @@ import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
@@ -22,7 +24,6 @@ import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.handle.obj.IUser;
 
 public class DexCommand extends AbstractCommand
 {
@@ -60,7 +61,9 @@ public class DexCommand extends AbstractCommand
 		
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return true; }
+	@Override
 	public String getArguments() { return "<pokemon>, <version>"; }
 	
 	@Override
@@ -70,7 +73,8 @@ public class DexCommand extends AbstractCommand
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
 	}
 	
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{
 		if(!input.isValid())
 			return formatter.invalidInputResponse(input);
@@ -121,7 +125,7 @@ public class DexCommand extends AbstractCommand
 		{
 			Response response = new Response();
 			this.addErrorMessage(response, input, "1010", e); 
-			return response;
+			return Mono.just(response);
 		}
 	}
 }

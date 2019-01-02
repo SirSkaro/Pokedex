@@ -7,7 +7,9 @@ import java.util.Map;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
@@ -29,7 +31,6 @@ import skaro.pokeflex.objects.evolution_chain.EvolvesTo;
 import skaro.pokeflex.objects.pokemon.Move;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.handle.obj.IUser;
 
 public class LearnCommand extends AbstractCommand
 {
@@ -62,7 +63,9 @@ public class LearnCommand extends AbstractCommand
 				"https://i.imgur.com/EkXAXCP.gif");
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return true; }
+	@Override
 	public String getArguments() { return "<pokemon>, <move>,...,<move>"; }
 	
 	@Override
@@ -72,6 +75,7 @@ public class LearnCommand extends AbstractCommand
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
 	}
 	
+	@Override
 	public boolean inputIsValid(Response reply, Input input)
 	{
 		if(!input.isValid())
@@ -96,7 +100,8 @@ public class LearnCommand extends AbstractCommand
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{ 
 		//Check if input is valid
 		if(!inputIsValid(null, input))
@@ -186,7 +191,7 @@ public class LearnCommand extends AbstractCommand
 			Response response = new Response();
 			this.addErrorMessage(response, input, "1007", e);
 			e.printStackTrace();
-			return response;
+			return Mono.just(response);
 		}
 	}
 	

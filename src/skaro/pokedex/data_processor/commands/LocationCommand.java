@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
@@ -28,7 +30,6 @@ import skaro.pokeflex.objects.encounter.EncounterDetail;
 import skaro.pokeflex.objects.encounter.EncounterPotential;
 import skaro.pokeflex.objects.encounter.VersionDetail;
 import skaro.pokeflex.objects.pokemon.Pokemon;
-import sx.blah.discord.handle.obj.IUser;
 
 public class LocationCommand extends AbstractCommand 
 {
@@ -48,7 +49,9 @@ public class LocationCommand extends AbstractCommand
 				"https://i.imgur.com/CkPBiDT.gif");
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return true; }
+	@Override
 	public String getArguments() { return "<pokemon>, <version>"; }
 	
 	@Override
@@ -58,6 +61,7 @@ public class LocationCommand extends AbstractCommand
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.COLOR);
 	}
 	
+	@Override
 	public boolean inputIsValid(Response reply, Input input)
 	{
 		if(!input.isValid())
@@ -85,13 +89,14 @@ public class LocationCommand extends AbstractCommand
 		return true;
 	}
 	
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{ 
 		Response reply = new Response();
 		
 		//Check if input is valid
 		if(!inputIsValid(reply, input))
-			return reply;
+			return Mono.just(reply);
 		
 		Pokemon pokemon = null;
 		Encounter encounterData = null;
@@ -122,7 +127,7 @@ public class LocationCommand extends AbstractCommand
 			{
 				reply.addToReply(TextFormatter.flexFormToProper(pokemon.getName())+" cannot be found by means of a normal encounter in "
 						+ TextFormatter.flexFormToProper(input.getArg(1).getRawInput())+" version");
-				return reply;
+				return Mono.just(reply);
 			}
 			
 			//Format reply
@@ -130,12 +135,12 @@ public class LocationCommand extends AbstractCommand
 					"** location(s) in **"+TextFormatter.flexFormToProper(versionDBForm)+"** version");
 			reply.setEmbed(formatEmbed(encounterDataFromVersion, versionDBForm, pokemon));
 			
-			return reply;
+			return Mono.just(reply);
 		} 
 		catch(Exception e)
 		{ 
 			this.addErrorMessage(reply, input, "1011", e); 
-			return reply;
+			return Mono.just(reply);
 		}
 	}
 	

@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import discord4j.core.object.entity.Message;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.CommandService;

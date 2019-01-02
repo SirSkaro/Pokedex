@@ -1,6 +1,8 @@
 package skaro.pokedex.data_processor.commands;
 
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
@@ -12,7 +14,6 @@ import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.NoneArgument;
-import sx.blah.discord.handle.obj.IUser;
 
 public class HelpCommand extends AbstractCommand 
 {
@@ -40,7 +41,9 @@ public class HelpCommand extends AbstractCommand
 		this.createHelpMessage("https://cdn.bulbagarden.net/upload/c/ce/Helping_Hand_IV.png");
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return false; }
+	@Override
 	public String getArguments() { return "<command> or none"; }
 	
 	@Override
@@ -50,10 +53,11 @@ public class HelpCommand extends AbstractCommand
 				services.hasServices(ServiceType.COMMAND, ServiceType.COLOR);
 	}
 	
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{ 
 		if(input.getArg(0) instanceof NoneArgument)
-			return defaultResponse;
+			return Mono.just(defaultResponse);
 		
 		String arg = input.getArg(0).getDbForm();
 		Response reply = new Response();
@@ -67,19 +71,19 @@ public class HelpCommand extends AbstractCommand
 			if(!commands.hasCommand(arg))
 			{
 				//reply.addToReply("\""+arg +"\" is not a supported command!");
-				return reply;
+				return Mono.empty();
 			}
 
 			command = commands.get(arg);
 			reply.addToReply("__**"+TextFormatter.flexFormToProper(command.getCommandName())+" Command**__");
 			reply.setEmbed(command.getHelpMessage());
-			return reply;
+			return Mono.just(reply);
 		}
 		catch(Exception e)
 		{
 			Response errorResponse = new Response();
 			this.addErrorMessage(errorResponse, input, "1014", e); 
-			return errorResponse;
+			return Mono.just(errorResponse);
 		}
 	}
 	

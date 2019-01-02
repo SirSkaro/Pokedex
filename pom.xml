@@ -57,7 +57,7 @@
 		<dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-core</artifactId>
-			<version>3.0.3.RELEASE</version>
+			<version>3.2.3.RELEASE</version>
 		</dependency>
 		<!-- Discord4j v2 -->
 		<dependency>

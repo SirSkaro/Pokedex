@@ -9,7 +9,6 @@ import com.patreon.PatreonAPI;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.Message;
 import discord4j.core.object.presence.Presence;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
@@ -75,18 +74,20 @@ public class PokedexV3
 		ScheduledExecutorService pokedexThreadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 6);
 		ConfigurationService configurationService = ConfigurationService.initialize(ConfigurationType.DEVELOP);
 		CommandService commandMap = new CommandService(pokedexThreadPool);
+		PerkChecker perkService = createPatreonService(configurationService);
 		
 		PokedexManager manager = PokedexManager.PokedexConfigurator.newInstance()
 								.withService(commandMap)
 								.withService(createDiscordService(configurationService, totalShards, shardIDToManage))
-								.withService(createPatreonService(configurationService, pokedexThreadPool))
+								.withService(perkService)
 								.withService(new ColorService())
 								.withService(new EmojiService())
-								.withService(createPokeFlexService(configurationService, pokedexThreadPool))
+								.withService(createPokeFlexService(configurationService))
 								.withService(new TTSConverter())
 								.configure();
 		
 		populateCommandMap(manager, commandMap);
+		perkService.setServiceManager(ServiceManager.ServiceManagerBuilder.newInstance(manager).addService(ServiceType.DISCORD).build());
 		
 		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
 		DiscordClient client = service.getV3Client();
@@ -108,11 +109,6 @@ public class PokedexV3
 		client.login().block(); 
 	}
 	
-	private static void responseTest(String content)
-	{
-		
-	}
-	
 	private static DiscordService createDiscordService(ConfigurationService configService, int shardID, int shardCount)
 	{
 		Optional<String> discordToken = configService.getAuthToken("discord");
@@ -124,16 +120,16 @@ public class PokedexV3
 		return new DiscordService(discordClient);
 	}
 	
-	private static PerkChecker createPatreonService(ConfigurationService configService, ScheduledExecutorService threadPool)
+	private static PerkChecker createPatreonService(ConfigurationService configService)
 	{
 		Optional<String> patreonAccessToken = configService.getConfigData("access_token", "patreon");
 		PatreonAPI patreonClient = new PatreonAPI(patreonAccessToken.get());
-		return new PerkChecker(patreonClient, threadPool);
+		return new PerkChecker(patreonClient);
 	}
 	
-	private static PokeFlexService createPokeFlexService(ConfigurationService configService, ScheduledExecutorService threadPool)
+	private static PokeFlexService createPokeFlexService(ConfigurationService configService)
 	{
-		return new PokeFlexService(configService.getPokeFlexURL(), threadPool);
+		return new PokeFlexService(configService.getPokeFlexURL());
 	}
 	
 	private static void populateCommandMap(PokedexManager manager, CommandService commandService) throws ServiceException, ServiceConsumerException

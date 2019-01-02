@@ -5,7 +5,9 @@ import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
@@ -30,7 +32,6 @@ import skaro.pokeflex.objects.pokemon.Type;
 import skaro.pokeflex.objects.pokemon_species.EggGroup;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.pokemon_species.Variety;
-import sx.blah.discord.handle.obj.IUser;
 
 public class DataCommand extends AbstractCommand 
 {
@@ -66,7 +67,9 @@ public class DataCommand extends AbstractCommand
 				"https://i.imgur.com/DZsD3Je.gif");
 	}
 
+	@Override
 	public boolean makesWebRequest() { return true; }
+	@Override
 	public String getArguments(){ return "<pokemon>"; }
 	
 	@Override
@@ -77,7 +80,8 @@ public class DataCommand extends AbstractCommand
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{
 		if(!input.isValid())
 			return formatter.invalidInputResponse(input);
@@ -172,7 +176,7 @@ public class DataCommand extends AbstractCommand
 		{
 			Response response = new Response();
 			this.addErrorMessage(response, input, "1002", e);
-			return response;
+			return Mono.just(response);
 		}
 	}
 	

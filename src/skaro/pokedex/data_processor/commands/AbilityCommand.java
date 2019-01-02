@@ -1,11 +1,11 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
@@ -16,14 +16,13 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexFactory;
-import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.ability.Ability;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.handle.obj.IUser;
 
 public class AbilityCommand extends AbstractCommand 
 {	
@@ -61,7 +60,9 @@ public class AbilityCommand extends AbstractCommand
 				"https://i.imgur.com/biWBKIL.gif");
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return true; }
+	@Override
 	public String getArguments() { return "<pokemon> or <ability>"; }
 	
 	@Override
@@ -71,61 +72,53 @@ public class AbilityCommand extends AbstractCommand
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
 	}
 	
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{
 		if(!input.isValid())
 			return formatter.invalidInputResponse(input);
 		
-		MultiMap<Object> dataMap = new MultiMap<Object>();
+		MultiMap<IFlexObject> dataMap = new MultiMap<>();
 		EmbedCreateSpec builder = new EmbedCreateSpec();
-		PokeFlexFactory factory;
+		Mono<IFlexObject> result;
+		String userInput = input.getArg(0).getFlexForm();
 		
 		try
 		{
-			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 			
 			if(input.getArg(0).getCategory() == ArgumentCategory.ABILITY)
 			{
-				Object flexObj = factory.createFlexObject(Endpoint.ABILITY, input.argsAsList());
-				dataMap.put(Ability.class.getName(), flexObj);
+				Request request = new Request(Endpoint.ABILITY, userInput);
+				result = request.makeRequest(factory)
+						.doOnNext(abil -> dataMap.put(Ability.class.getName(), abil));
 			}
 			else//if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
 			{
-				List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
-				List<Object> flexData = new ArrayList<Object>();
-				
-				//Pokemon
-				Pokemon pokemon = (Pokemon)factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
-				dataMap.put(Pokemon.class.getName(), pokemon);
-				
-				//PokemonSpecies
-				Request request = new Request(Endpoint.POKEMON_SPECIES);
-				request.addParam(pokemon.getSpecies().getName());
-				PokemonSpecies species = (PokemonSpecies)factory.createFlexObject(request);
-				dataMap.put(PokemonSpecies.class.getName(), species);
-				
-				//Abilities
-				for(skaro.pokeflex.objects.pokemon.Ability abil : pokemon.getAbilities())
-					concurrentRequestList.add(new RequestURL(abil.getAbility().getUrl(), Endpoint.ABILITY));
-				
-				//Make PokeFlex request
-				flexData = factory.createFlexObjects(concurrentRequestList);
-				
-				//Add all data to the map
-				for(Object obj : flexData)
-					dataMap.add(obj.getClass().getName(), obj);
-				
-				this.addAdopter(pokemon, builder);
+				Request request = new Request(Endpoint.POKEMON, userInput);
+				result = request.makeRequest(factory)	//request Pokemon
+						.ofType(Pokemon.class)
+						.doOnNext(pokemon -> {
+							this.addAdopter(pokemon, builder);
+							dataMap.put(Pokemon.class.getName(), pokemon);
+						})
+						.flatMap(pokemon -> Flux.fromIterable(pokemon.getAbilities())	//request Ability
+							.flatMap(ability -> new RequestURL(ability.getAbility().getUrl(), Endpoint.ABILITY).makeRequest(factory))
+							.doOnNext(ability -> dataMap.add(Ability.class.getName(), ability))
+							.then(Mono.just(pokemon)))
+						.map(pokemon -> new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))	//request PokemonSpecies
+						.flatMap(speciesRequest -> speciesRequest.makeRequest(factory)	
+							.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species)));
 			}
 			
 			this.addRandomExtraMessage(builder);
-			return formatter.format(input, dataMap, builder);
+			return result.then(formatter.format(input, dataMap, builder));
 		}
 		catch(Exception e)
 		{
-			Response response = new Response();;
+			Response response = new Response();
 			this.addErrorMessage(response, input, "1003", e);
-			return response;
+			return Mono.just(response);
 		}
 	}
 

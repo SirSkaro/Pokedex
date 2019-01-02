@@ -2,38 +2,33 @@ package skaro.pokedex.core;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.patreon.PatreonAPI;
 import com.patreon.resources.Campaign;
 import com.patreon.resources.Pledge;
-import com.patreon.resources.User;
 
+import discord4j.core.object.entity.User;
+import discord4j.core.object.util.Snowflake;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.input_processor.MySQLManager;
-import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.handle.obj.IUser;
 
-public class PerkChecker implements IService
+public class PerkChecker implements IService, IServiceConsumer
 {
-	private Cache<Long, IUser> privilegedUserCache;
 	private PatreonAPI patreonClient;
-	private IDiscordClient discordClient;
+	private IServiceManager services;
 	private MySQLManager sqlManager;
 	
-	public PerkChecker(PatreonAPI pClient, ScheduledExecutorService ses)
+	public PerkChecker(PatreonAPI pClient)
 	{
-		privilegedUserCache = Caffeine.newBuilder()
-				.maximumSize(5)
-				.executor(ses)
-				.expireAfterWrite(30, TimeUnit.MINUTES)
-				.build();
-		
 		patreonClient = pClient;
 		sqlManager = MySQLManager.getInstance();
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.DISCORD);
 	}
 	
 	@Override
@@ -42,71 +37,53 @@ public class PerkChecker implements IService
 		return ServiceType.PERK;
 	}
 	
-	public void setDiscordClient(IDiscordClient client)
+	public void setServiceManager(IServiceManager services) throws ServiceConsumerException
 	{
-		discordClient = client;
-	}
-	
-	public IUser fetchDiscordUser(long userID)
-	{
-		if(privilegedUserCache.asMap().containsKey(userID))
-			return privilegedUserCache.getIfPresent(userID);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
 		
-		return discordClient.fetchUser(userID);
+		this.services = services;
 	}
 	
-	public boolean userHasCommandPrivileges(IUser user)
+	public boolean userHasCommandPrivileges(User user)
 	{
-		if(privilegedUserCache.asMap().containsKey(user.getLongID()) || sqlManager.userIsDiscordVIP(user.getLongID()))
+		Long id = user.getId().asLong();
+		if(sqlManager.userIsDiscordVIP(id))
 			return true;
 		
-		Optional<User> patronCheck = getPatronByDiscordID(user.getLongID());
+		Optional<com.patreon.resources.User> patronCheck = getPatronByDiscordID(id);
 		if(patronCheck.isPresent())
-		{
-			privilegedUserCache.put(user.getLongID(), user);
 			return true;
-		}
 		
 		return false;
 	}
 	
-	public Optional<IUser> getPokemonsAdopter(String pokemon)
+	public Mono<User> getPokemonsAdopter(String pokemon)
 	{
 		long userID ;
 		Optional<Long> adoptionCheck = sqlManager.getPokemonsAdopter(pokemon);
-		Optional<IUser> result;
+		Mono<User> result;
+		DiscordService discordService = (DiscordService)services.getService(ServiceType.DISCORD);
 		
 		//Check if user has adopted Pokemon. If not, return
 		if(!adoptionCheck.isPresent())
-			return Optional.empty();
+			return Mono.empty();
+		
 		userID = adoptionCheck.get();
-		result = Optional.ofNullable(discordClient.fetchUser(userID));
+		result = discordService.getV3Client().getUserById(Snowflake.of(userID));
 		
-		//Insure that Discoord fetched the adopter
-		if(!result.isPresent())
-			return Optional.empty();
+		//Ask Patreon's API if user is still pledged
+		if(!sqlManager.userIsDiscordVIP(userID))
+			result = result.filter(user -> getPatronByDiscordID(userID).isPresent());
 		
-		//Check if user is still a Patron. First check the cache
-		if(privilegedUserCache.asMap().containsKey(userID) || sqlManager.userIsDiscordVIP(userID))
-			return result;
-			
-		//Ask Patreon's API if user is still pledged. If so, cache the user and return the adopted Pokemon
-		Optional<User> patronCheck = getPatronByDiscordID(userID);
-		if(patronCheck.isPresent())
-		{
-			privilegedUserCache.put(userID, result.get());
-			return result;
-		}
-	
-		//Otherwise, the adopter has unpledged :[
-		return Optional.empty();
+		return result;
 	}
 	
-	private Optional<User> getPatronByDiscordID(Long id)
+	private Optional<com.patreon.resources.User> getPatronByDiscordID(Long id)
 	{
 		JSONAPIDocument<List<Campaign>> apiResponse;
 		Campaign campagin;
-		User user;
+		com.patreon.resources.User user;
 		Optional<String> userDiscordID;
 		List<Pledge> pledges;
 		
@@ -134,7 +111,7 @@ public class PerkChecker implements IService
 		return Optional.empty();
 	}
 	
-	private Optional<String> getDiscordID(User user)
+	private Optional<String> getDiscordID(com.patreon.resources.User user)
 	{
 		try
 		{
@@ -154,4 +131,5 @@ public class PerkChecker implements IService
 			return Optional.empty();
 		}
 	}
+
 }

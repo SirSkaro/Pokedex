@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 import discord4j.core.object.entity.User;
@@ -17,12 +16,10 @@ import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.objects.pokemon.Pokemon;
-import sx.blah.discord.handle.obj.IUser;
 
 public abstract class AbstractCommand implements IServiceConsumer
 {
@@ -170,13 +167,13 @@ public abstract class AbstractCommand implements IServiceConsumer
 		helpMessage = builder;
 	}
 	
-	protected void addAdopter(Pokemon pokemon, EmbedCreateSpec builder)
+	protected Mono<User> addAdopter(Pokemon pokemon, EmbedCreateSpec builder)
 	{
 		PerkChecker checker = (PerkChecker)services.getService(ServiceType.PERK);
-		Optional<IUser> adopterCheck = checker.getPokemonsAdopter(pokemon.getName());
-		
-		if(adopterCheck.isPresent())
-			builder.setAuthor(adopterCheck.get().getName() + "'s "+TextFormatter.flexFormToProper(pokemon.getName()), null, getPatreonLogo());
+		Mono<User> result = checker.getPokemonsAdopter(pokemon.getName())
+				.doOnNext(user -> builder.setAuthor(user.getUsername(), null, getPatreonLogo()));
+
+		return result;
 	}
 
 	protected String getPatreonLogo()

@@ -237,7 +237,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 			
 			if(!evo.getEvolvesTo().isEmpty())
 			{
-				builder.append(" -> ");
+				builder.append(" ➔ ");
 				formatEvolutionChainResursive(evo.getEvolvesTo(), speciesInLine, builder, lang);
 			}
 			
