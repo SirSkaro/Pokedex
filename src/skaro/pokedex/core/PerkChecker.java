@@ -39,7 +39,7 @@ public class PerkChecker implements IService, IServiceConsumer
 	
 	public void setServiceManager(IServiceManager services) throws ServiceConsumerException
 	{
-		if(!hasExpectedServices(this.services))
+		if(!hasExpectedServices(services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		this.services = services;

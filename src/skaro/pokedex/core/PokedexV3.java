@@ -77,8 +77,9 @@ public class PokedexV3
 		PerkChecker perkService = createPatreonService(configurationService);
 		
 		PokedexManager manager = PokedexManager.PokedexConfigurator.newInstance()
+								.withService(configurationService)
 								.withService(commandMap)
-								.withService(createDiscordService(configurationService, totalShards, shardIDToManage))
+								.withService(createDiscordService(configurationService, shardIDToManage, totalShards))
 								.withService(perkService)
 								.withService(new ColorService())
 								.withService(new EmojiService())
@@ -89,10 +90,11 @@ public class PokedexV3
 		populateCommandMap(manager, commandMap);
 		perkService.setServiceManager(ServiceManager.ServiceManagerBuilder.newInstance(manager).addService(ServiceType.DISCORD).build());
 		
+		System.out.println("[Pokedex main] Done");
 		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
 		DiscordClient client = service.getV3Client();
 		Scheduler scheduler = Schedulers.fromExecutorService(pokedexThreadPool);
-		InputProcessor inputProcessor = new InputProcessor(commandMap, client.getSelfId().get().asLong());
+		InputProcessor inputProcessor = new InputProcessor(commandMap, 190670386239635456L);
 		
 		client.getEventDispatcher().on(MessageCreateEvent.class)
 			.publishOn(scheduler)	//use the specified thread pool
@@ -103,7 +105,7 @@ public class PokedexV3
 	        				.flatMap(author -> msg.getChannel()	//Get the channel
 	        						.flatMap(channel ->  input.getCommand().discordReply(input, author)	//Pass the input to the command to get a response
 	        								.flatMap( response -> channel.createMessage(response.getAsSpec())))))) //Send the response
-	        .subscribe(value -> System.out.println("success"), error -> System.out.println(error));
+	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
 
 
 		client.login().block(); 
@@ -143,7 +145,6 @@ public class PokedexV3
 				.addService(ServiceType.EMOJI);
 		
 		//ColorService
-		commandService.addCommand(new AboutCommand(commandServiceBuilder.build()));
 		commandService.addCommand(new PatreonCommand(commandServiceBuilder.build()));
 		
 		//ColorService, CommandService

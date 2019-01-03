@@ -65,10 +65,12 @@ public class Response
 	
 	public MessageCreateSpec getAsSpec()
 	{
-		return new MessageCreateSpec()
+		MessageCreateSpec result = new MessageCreateSpec()
 				.setContent(text.toString())
-				.setEmbed(embed)
-				.setFile(image.getName(), fileStream);
+				.setEmbed(embed);
+		if(image != null)
+				result.setFile(image.getName(), fileStream);
+		return result;
 	}
 	
 }

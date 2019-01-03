@@ -36,6 +36,7 @@ public class ServiceManager implements IServiceManager
 		{ 
 			ServiceManagerBuilder builder = new ServiceManagerBuilder(); 
 			builder.services = new HashMap<>();
+			builder.availableServices = allServices;
 			
 			return builder;
 		}
