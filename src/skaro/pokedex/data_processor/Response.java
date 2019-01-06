@@ -3,18 +3,20 @@ package skaro.pokedex.data_processor;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.Optional;
 
 import javax.sound.sampled.AudioInputStream;
 
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
+import reactor.core.Exceptions;
+import reactor.core.publisher.Mono;
 
 public class Response
 {
 	private StringBuilder text;
 	private AudioInputStream audio;	
-	private File image;				
-	private FileInputStream fileStream;
+	private Optional<File> image;				
 	private EmbedCreateSpec embed;	
 	private boolean privateMessage;
 	
@@ -22,7 +24,7 @@ public class Response
 	{
 		text = new StringBuilder();
 		audio = null;
-		image = null;
+		image = Optional.empty();
 		embed = null;
 		privateMessage = false;
 	}
@@ -42,10 +44,9 @@ public class Response
 		privateMessage = b;
 	}
 	
-	public void addImage(File file) throws FileNotFoundException
+	public void addImage(File file) 
 	{
-		image = file;
-		fileStream = new FileInputStream(image);
+		image = Optional.of(file);
 	}
 	
 	public void addToReply(String s)
@@ -63,13 +64,22 @@ public class Response
 		return audio;
 	}
 	
-	public MessageCreateSpec getAsSpec()
+	public Mono<MessageCreateSpec> getAsSpec()
 	{
-		MessageCreateSpec result = new MessageCreateSpec()
+		MessageCreateSpec resultSpec = new MessageCreateSpec()
 				.setContent(text.toString())
 				.setEmbed(embed);
-		if(image != null)
-				result.setFile(image.getName(), fileStream);
+		
+		Mono<MessageCreateSpec> result = Mono.just(resultSpec);
+		
+		if(image.isPresent())
+		{
+			result = result.doOnNext(spec -> {
+				try { spec.setFile(image.get().getName(), new FileInputStream(image.get())); } 
+				catch (FileNotFoundException e) { throw Exceptions.propagate(e); }
+			});
+		}
+
 		return result;
 	}
 	

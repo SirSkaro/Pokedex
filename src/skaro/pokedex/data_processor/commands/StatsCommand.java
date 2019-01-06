@@ -78,11 +78,10 @@ public class StatsCommand extends AbstractCommand
 		{
 			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 			EmbedCreateSpec builder = new EmbedCreateSpec();
-			String userInput = input.getArg(0).getFlexForm();
+			String pokemonName = input.getArg(0).getFlexForm();
 			Mono<MultiMap<IFlexObject>> result;
 			
-			this.addRandomExtraMessage(builder);
-			Request request = new Request(Endpoint.POKEMON, userInput);
+			Request request = new Request(Endpoint.POKEMON, pokemonName);
 			result = Mono.just(new MultiMap<IFlexObject>())
 					.flatMap(dataMap -> request.makeRequest(factory)
 						.ofType(Pokemon.class)
@@ -93,6 +92,7 @@ public class StatsCommand extends AbstractCommand
 						.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
 						.then(Mono.just(dataMap)));
 			
+			this.addRandomExtraMessage(builder);
 			return result.map(dataMap -> formatter.format(input, dataMap, builder));
 		}
 		catch(Exception e)

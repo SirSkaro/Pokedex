@@ -104,7 +104,8 @@ public class PokedexV3
 	        		.flatMap(input -> msg.getAuthor()	//Get the author
 	        				.flatMap(author -> msg.getChannel()	//Get the channel
 	        						.flatMap(channel ->  input.getCommand().discordReply(input, author)	//Pass the input to the command to get a response
-	        								.flatMap( response -> channel.createMessage(response.getAsSpec())))))) //Send the response
+	        								.flatMap( response -> response.getAsSpec())
+	        								.flatMap( spec -> channel.createMessage(spec)))))) //Send the response
 	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
 
 

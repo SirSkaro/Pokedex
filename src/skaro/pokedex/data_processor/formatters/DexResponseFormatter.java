@@ -20,6 +20,7 @@ import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.version.Version;
@@ -67,7 +68,7 @@ public class DexResponseFormatter implements IDiscordFormatter, IServiceConsumer
 	}
 	
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);

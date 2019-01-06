@@ -102,7 +102,7 @@ public class AbilityCommand extends AbstractCommand
 							.ofType(Pokemon.class)
 							.flatMap(pokemon -> this.addAdopter(pokemon, builder))
 							.doOnNext(pokemon -> dataMap.put(Pokemon.class.getName(), pokemon))
-							.flatMap(pokemon -> Flux.fromIterable(pokemon.getAbilities())	
+							.flatMap(pokemon -> Flux.fromIterable(pokemon.getAbilities())
 								.map(ability -> new RequestURL(ability.getAbility().getUrl(), Endpoint.ABILITY)) //request Ability
 								.ofType(PokeFlexRequest.class)
 								.concatWithValues(new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName())) //request PokemonSpecies
@@ -110,7 +110,7 @@ public class AbilityCommand extends AbstractCommand
 								.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
 								.then(Mono.just(dataMap))));
 			}
-			//concatWith
+
 			this.addRandomExtraMessage(builder);
 			return result.map(dataMap -> formatter.format(input, dataMap, builder));
 		}
