@@ -8,7 +8,6 @@ import java.util.Optional;
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
-import reactor.core.publisher.Mono;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceConsumer;
 import skaro.pokedex.core.IServiceManager;
@@ -44,7 +43,7 @@ public class AbilityResponseFormatter implements IDiscordFormatter, IServiceCons
 	}
 	
 	@Override
-	public Mono<Response> invalidInputResponse(Input input)
+	public Response invalidInputResponse(Input input)
 	{
 		Response response = new Response();
 		
@@ -60,11 +59,11 @@ public class AbilityResponseFormatter implements IDiscordFormatter, IServiceCons
 				response.addToReply("A technical error occured (code 103)");
 		}
 		
-		return Mono.just(response);
+		return response;
 	}
 	
 	@Override
-	public Mono<Response> format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder)
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder)
 	{
 		Language lang = input.getLanguage();
 		
@@ -74,7 +73,7 @@ public class AbilityResponseFormatter implements IDiscordFormatter, IServiceCons
 	}
 	
 	@SuppressWarnings("unchecked")
-	private Mono<Response> formatFromPokemonArgument(MultiMap<IFlexObject> data, Language lang, EmbedCreateSpec builder)
+	private Response formatFromPokemonArgument(MultiMap<IFlexObject> data, Language lang, EmbedCreateSpec builder)
 	{
 		Response response = new Response();
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
@@ -102,10 +101,10 @@ public class AbilityResponseFormatter implements IDiscordFormatter, IServiceCons
 		builder.setColor(colorService.getColorForType(type));
 		
 		response.setEmbed(builder);
-		return Mono.just(response);
+		return response;
 	}
 	
-	private Mono<Response> formatFromAbilityArgument(MultiMap<IFlexObject> data, Language lang, EmbedCreateSpec builder)
+	private Response formatFromAbilityArgument(MultiMap<IFlexObject> data, Language lang, EmbedCreateSpec builder)
 	{
 		Response response = new Response();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
@@ -127,7 +126,7 @@ public class AbilityResponseFormatter implements IDiscordFormatter, IServiceCons
 		
 		builder.setColor(colorService.getColorForAbility());
 		response.setEmbed(builder);
-		return Mono.just(response);
+		return response;
 	}
 
 	private String formatDescription(Ability abil, Language lang)

@@ -4,7 +4,9 @@ import java.util.ArrayList;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
@@ -15,11 +17,11 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.handle.obj.IUser;
 
 public class StatsCommand extends AbstractCommand  
 {	
@@ -54,7 +56,9 @@ public class StatsCommand extends AbstractCommand
 				"https://i.imgur.com/svFfe9Q.gif");
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return true; }	
+	@Override
 	public String getArguments() { return "<pokemon>"; }
 	
 	@Override
@@ -64,34 +68,38 @@ public class StatsCommand extends AbstractCommand
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
 	}
 	
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public Mono<Response> discordReply(Input input, User author)
 	{ 
 		if(!input.isValid())
-			return formatter.invalidInputResponse(input);
+			return Mono.just(formatter.invalidInputResponse(input));
 		
 		try
 		{
 			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-			MultiMap<Object> dataMap = new MultiMap<Object>();
 			EmbedCreateSpec builder = new EmbedCreateSpec();
-			Object flexObj;
+			String userInput = input.getArg(0).getFlexForm();
+			Mono<MultiMap<IFlexObject>> result;
 			
-			//Initial data - Pokemon data
-			Pokemon pokemon = (Pokemon)factory.createFlexObject(new Request(Endpoint.POKEMON, input.getArg(0).getFlexForm()));
-			dataMap.put(Pokemon.class.getName(), pokemon);
-			
-			flexObj = factory.createFlexObject(pokemon.getSpecies().getUrl(), Endpoint.POKEMON_SPECIES);
-			dataMap.put(PokemonSpecies.class.getName(), flexObj);
-			
-			this.addAdopter(pokemon, builder);
 			this.addRandomExtraMessage(builder);
-			return formatter.format(input, dataMap, builder);
+			Request request = new Request(Endpoint.POKEMON, userInput);
+			result = Mono.just(new MultiMap<IFlexObject>())
+					.flatMap(dataMap -> request.makeRequest(factory)
+						.ofType(Pokemon.class)
+						.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+						.doOnNext(pokemon -> dataMap.put(Pokemon.class.getName(), pokemon))
+						.map(pokemon -> new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
+						.flatMap(speciesRequest -> speciesRequest.makeRequest(factory))
+						.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
+						.then(Mono.just(dataMap)));
+			
+			return result.map(dataMap -> formatter.format(input, dataMap, builder));
 		}
 		catch(Exception e)
 		{
 			Response response = new Response();
 			this.addErrorMessage(response, input, "1001", e); 
-			return response;
+			return Mono.just(response);
 		}
 	}
 	

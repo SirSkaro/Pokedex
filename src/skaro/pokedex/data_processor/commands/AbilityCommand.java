@@ -18,11 +18,11 @@ import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.ability.Ability;
 import skaro.pokeflex.objects.pokemon.Pokemon;
-import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
 public class AbilityCommand extends AbstractCommand 
 {	
@@ -76,9 +76,8 @@ public class AbilityCommand extends AbstractCommand
 	public Mono<Response> discordReply(Input input, User requester)
 	{
 		if(!input.isValid())
-			return formatter.invalidInputResponse(input);
+			return Mono.just(formatter.invalidInputResponse(input));
 		
-		//MultiMap<IFlexObject> dataMap = new MultiMap<>();
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		Mono<MultiMap<IFlexObject>> result;
 		String userInput = input.getArg(0).getFlexForm();
@@ -101,22 +100,19 @@ public class AbilityCommand extends AbstractCommand
 				result = Mono.just(new MultiMap<IFlexObject>())
 						.flatMap(dataMap -> request.makeRequest(factory)//request Pokemon
 							.ofType(Pokemon.class)
-							.doOnNext(pokemon -> {
-								this.addAdopter(pokemon, builder);
-								dataMap.put(Pokemon.class.getName(), pokemon);
-							})
-							.flatMap(pokemon -> Flux.fromIterable(pokemon.getAbilities())	//request Ability
-								.flatMap(ability -> new RequestURL(ability.getAbility().getUrl(), Endpoint.ABILITY).makeRequest(factory))
-								.doOnNext(ability -> dataMap.add(Ability.class.getName(), ability))
-								.then(Mono.just(pokemon)))
-							.map(pokemon -> new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))	//request PokemonSpecies
-							.flatMap(speciesRequest -> speciesRequest.makeRequest(factory)	
-								.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species)))
-								.then(Mono.just(dataMap)));
+							.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+							.doOnNext(pokemon -> dataMap.put(Pokemon.class.getName(), pokemon))
+							.flatMap(pokemon -> Flux.fromIterable(pokemon.getAbilities())	
+								.map(ability -> new RequestURL(ability.getAbility().getUrl(), Endpoint.ABILITY)) //request Ability
+								.ofType(PokeFlexRequest.class)
+								.concatWithValues(new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName())) //request PokemonSpecies
+								.flatMap(concurrentRequest -> concurrentRequest.makeRequest(factory))
+								.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
+								.then(Mono.just(dataMap))));
 			}
-			
+			//concatWith
 			this.addRandomExtraMessage(builder);
-			return result.flatMap(dataMap -> formatter.format(input, dataMap, builder));
+			return result.map(dataMap -> formatter.format(input, dataMap, builder));
 		}
 		catch(Exception e)
 		{

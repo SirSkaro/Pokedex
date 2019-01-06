@@ -16,6 +16,7 @@ import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.PerkChecker;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
+import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -167,13 +168,13 @@ public abstract class AbstractCommand implements IServiceConsumer
 		helpMessage = builder;
 	}
 	
-	protected Mono<User> addAdopter(Pokemon pokemon, EmbedCreateSpec builder)
+	protected Mono<Pokemon> addAdopter(Pokemon pokemon, EmbedCreateSpec builder)
 	{
 		PerkChecker checker = (PerkChecker)services.getService(ServiceType.PERK);
 		Mono<User> result = checker.getPokemonsAdopter(pokemon.getName())
-				.doOnNext(user -> builder.setAuthor(user.getUsername(), null, getPatreonLogo()));
+				.doOnNext(user -> builder.setAuthor(user.getUsername() + "'s "+ TextFormatter.flexFormToProper(pokemon.getName()), null, getPatreonLogo()));
 
-		return result;
+		return result.then(Mono.just(pokemon));
 	}
 
 	protected String getPatreonLogo()

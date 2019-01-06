@@ -41,7 +41,7 @@ public class ColorService implements IService
 		Color result = null;
 		
 		for(TypeData type : wrapper.getTypes())
-			result = blend(type.toColor(), result);
+			result = blend(typeColorMap.get(type.getType().getName()), result);
 		
 		return result;
 	}
