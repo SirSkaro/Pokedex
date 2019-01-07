@@ -17,7 +17,7 @@ public class Response
 	private StringBuilder text;
 	private AudioInputStream audio;	
 	private Optional<File> image;				
-	private EmbedCreateSpec embed;	
+	private Optional<EmbedCreateSpec> embed;	
 	private boolean privateMessage;
 	
 	public Response()
@@ -25,7 +25,7 @@ public class Response
 		text = new StringBuilder();
 		audio = null;
 		image = Optional.empty();
-		embed = null;
+		embed = Optional.empty();
 		privateMessage = false;
 	}
 	
@@ -36,7 +36,7 @@ public class Response
 	
 	public void setEmbed(EmbedCreateSpec espec)
 	{
-		embed = espec;
+		embed = Optional.of(espec);
 	}
 	
 	public void setPrivate(boolean b)
@@ -67,20 +67,20 @@ public class Response
 	public Mono<MessageCreateSpec> getAsSpec()
 	{
 		MessageCreateSpec resultSpec = new MessageCreateSpec()
-				.setContent(text.toString())
-				.setEmbed(embed);
+				.setContent(text.toString());
+		
+		if(embed.isPresent())
+			resultSpec = resultSpec.setEmbed(embed.get());
 		
 		Mono<MessageCreateSpec> result = Mono.just(resultSpec);
 		
-		if(image.isPresent())
-		{
-			result = result.doOnNext(spec -> {
+		if(!image.isPresent())
+			return result;
+		
+		return result.doOnNext(spec -> {
 				try { spec.setFile(image.get().getName(), new FileInputStream(image.get())); } 
 				catch (FileNotFoundException e) { throw Exceptions.propagate(e); }
 			});
-		}
-
-		return result;
 	}
 	
 }

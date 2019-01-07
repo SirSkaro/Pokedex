@@ -118,7 +118,6 @@ public class AbilityCommand extends AbstractCommand
 		{
 			Response response = new Response();
 			this.addErrorMessage(response, input, "1003", e);
-			e.printStackTrace();
 			return Mono.just(response);
 		}
 	}
