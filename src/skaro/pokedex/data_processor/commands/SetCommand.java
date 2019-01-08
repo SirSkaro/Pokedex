@@ -111,15 +111,15 @@ public class SetCommand extends AbstractCommand
 			.flatMap(dataMap -> Flux.fromIterable(createRequests(pokemonName, generation))
 					.flatMap(request -> request.makeRequest(factory)
 					.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject)))
-					.then(Mono.just(dataMap))).log()
-			.flatMap(dataMap -> Mono.just(dataMap.getValue(Pokemon.class.getName(), 0)).log()
-					.ofType(Pokemon.class).log()
-					.flatMap(pokemon -> Mono.just(dataMap.getValue(Set.class.getName(), 0)).log()
+					.then(Mono.just(dataMap)))
+			.flatMap(dataMap -> Mono.just(dataMap.getValue(Pokemon.class.getName(), 0))
+					.ofType(Pokemon.class)
+					.flatMap(pokemon -> Mono.just(dataMap.getValue(Set.class.getName(), 0))
 							.ofType(Set.class)
-							.doOnNext(sets -> {
-								formatHeader(response, pokemon, sets, tier, generation);
-								response.setEmbed(formatEmbed(pokemon, sets, tier));
-								})))
+							.doOnNext(sets -> formatHeader(response, pokemon, sets, tier, generation))
+							.flatMap(sets -> formatEmbed(pokemon, sets, tier))
+							.doOnNext(embedBuilder -> response.setEmbed(embedBuilder))
+							))
 			.then(Mono.just(response));
 			
 			return result;
@@ -160,7 +160,7 @@ public class SetCommand extends AbstractCommand
 		return result;
 	}
 	
-	private EmbedCreateSpec formatEmbed(Pokemon pokemon, Set sets, String tier)
+	private Mono<EmbedCreateSpec> formatEmbed(Pokemon pokemon, Set sets, String tier)
 	{
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		EmbedCreateSpec builder = new EmbedCreateSpec();
@@ -190,11 +190,9 @@ public class SetCommand extends AbstractCommand
 		//Set thumbnail
 		builder.setThumbnail(pokemon.getSprites().getBackDefault());
 		
-		//Add adopter
-		//this.addAdopter(pokemon, builder);
-		this.addRandomExtraMessage(builder);
-		
-		return builder;
+		this.addRandomExtraMessage(builder);		
+		return this.addAdopter(pokemon, builder)
+				.then(Mono.just(builder));
 	}
 	
 	private String setToString(String name, Set_ set)
