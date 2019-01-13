@@ -6,7 +6,10 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
@@ -17,11 +20,11 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
-import sx.blah.discord.handle.obj.IUser;
 
 public class RandpokeCommand extends AbstractCommand 
 {
@@ -56,7 +59,9 @@ public class RandpokeCommand extends AbstractCommand
 		this.createHelpMessage("https://i.imgur.com/cOEo8jW.gif");
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return true; }
+	@Override
 	public String getArguments() { return "none"; }
 
 	@Override
@@ -67,39 +72,43 @@ public class RandpokeCommand extends AbstractCommand
 	}
 	
 	@Override
-	public Response discordReply(Input input, IUser requester)
+	public Mono<Response> discordReply(Input input, User requester)
 	{
 		try
 		{
 			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-			MultiMap<Object> dataMap = new MultiMap<Object>();
 			EmbedCreateSpec builder = new EmbedCreateSpec();
 			int randDexNum = ThreadLocalRandom.current().nextInt(1, 807 + 1);
-			List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
-			List<Object> flexData = new ArrayList<Object>();
+			Mono<MultiMap<IFlexObject>> result;
 			
-			concurrentRequestList.add(new Request(Endpoint.POKEMON, Integer.toString(randDexNum)));
-			concurrentRequestList.add(new Request(Endpoint.POKEMON_SPECIES, Integer.toString(randDexNum)));
-
-			//Make PokeFlex request
-			flexData = factory.createFlexObjects(concurrentRequestList);
+			result = Mono.just(new MultiMap<IFlexObject>())
+					.flatMap(dataMap -> Flux.fromIterable(createRequests(randDexNum))
+						.flatMap(request -> request.makeRequest(factory))
+						.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
+						.then(Mono.just(dataMap)));
 			
-			//Add all data to the map
-			for(Object obj : flexData)
-				dataMap.add(obj.getClass().getName(), obj);
-			
-			Pokemon pokemon = (Pokemon)dataMap.getValue(Pokemon.class.getName(), 0);
-			
-			addAdopter(pokemon, builder);
 			this.addRandomExtraMessage(builder);
-			return formatter.format(input, dataMap, builder);
+			return result.flatMap(dataMap -> Mono.just(dataMap.getValue(Pokemon.class.getName(), 0))
+					.ofType(Pokemon.class)
+					.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+					.map(pokemon -> formatter.format(input, dataMap, builder)));
 		}
 		catch(Exception e)
 		{
 			Response response = new Response();
 			this.addErrorMessage(response, input, "1002", e); 
-			return response;
+			return Mono.just(response);
 		}
 	}
 	
+	private List<PokeFlexRequest> createRequests(int pokedexNumber)
+	{
+		List<PokeFlexRequest> result = new ArrayList<>();
+		String pokedexNumberAsString = Integer.toString(pokedexNumber);
+		
+		result.add(new Request(Endpoint.POKEMON, pokedexNumberAsString));
+		result.add(new Request(Endpoint.POKEMON_SPECIES, pokedexNumberAsString));
+		
+		return result;
+	}
 }

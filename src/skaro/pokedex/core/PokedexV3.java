@@ -10,7 +10,7 @@ import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.presence.Presence;
-import reactor.core.scheduler.Scheduler;
+import discord4j.core.spec.MessageCreateSpec;
 import reactor.core.scheduler.Schedulers;
 import skaro.pokedex.core.ServiceManager.ServiceManagerBuilder;
 import skaro.pokedex.data_processor.CommandService;
@@ -71,9 +71,9 @@ public class PokedexV3
 		
 		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
-		ScheduledExecutorService pokedexThreadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 6);
+		
 		ConfigurationService configurationService = ConfigurationService.initialize(ConfigurationType.DEVELOP);
-		CommandService commandMap = new CommandService(pokedexThreadPool);
+		CommandService commandMap = new CommandService();
 		PerkChecker perkService = createPatreonService(configurationService);
 		
 		PokedexManager manager = PokedexManager.PokedexConfigurator.newInstance()
@@ -93,11 +93,9 @@ public class PokedexV3
 		System.out.println("[Pokedex main] Done");
 		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
 		DiscordClient client = service.getV3Client();
-		Scheduler scheduler = Schedulers.fromExecutorService(pokedexThreadPool);
 		InputProcessor inputProcessor = new InputProcessor(commandMap, 190670386239635456L);
 		
-		client.getEventDispatcher().on(MessageCreateEvent.class)
-			.publishOn(scheduler)	//use the specified thread pool
+		client.getEventDispatcher().on(MessageCreateEvent.class) 
 	        .map(MessageCreateEvent::getMessage)	//Get the message of the event
 	        .filter(msg -> msg.getContent().isPresent())	//only process if the message is not empty
 	        .flatMap(msg -> inputProcessor.processInput(msg.getContent().get())	//Unwrap the message from the Optional
@@ -105,21 +103,32 @@ public class PokedexV3
 	        				.flatMap(author -> msg.getChannel()	//Get the channel
 	        						.flatMap(channel ->  input.getCommand().discordReply(input, author)	//Pass the input to the command to get a response
 	        								.flatMap( response -> response.getAsSpec())
-	        								.flatMap( spec -> channel.createMessage(spec)))))) //Send the response
-	        .subscribe(value -> System.out.println("success"), error -> System.out.println("darn"));
+	        								.flatMap( spec -> channel.createMessage(spec))
+	        								//.onErrorResume(error -> channel.createMessage(createErrorMessage()))
+	        								)))) //Send the response
+	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
 
 
 		client.login().block(); 
 	}
 	
+	private static MessageCreateSpec createErrorMessage()
+	{
+		return new MessageCreateSpec()
+				.setContent("Some error occurred and I could not recover. Please report this in the support server: https://discord.gg/D5CfFkN");
+				
+	}
+	
 	private static DiscordService createDiscordService(ConfigurationService configService, int shardID, int shardCount)
 	{
 		Optional<String> discordToken = configService.getAuthToken("discord");
+		ScheduledExecutorService pokedexThreadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 6);
 		DiscordClient discordClient = new DiscordClientBuilder(discordToken.get())
-							.setShardCount(shardCount)
-							.setShardIndex(shardID)
-							.setInitialPresence(Presence.online())
-							.build();
+				.setEventScheduler(Schedulers.fromExecutorService(pokedexThreadPool))
+				.setShardCount(shardCount)
+				.setShardIndex(shardID)
+				.setInitialPresence(Presence.online())
+				.build();
 		return new DiscordService(discordClient);
 	}
 	

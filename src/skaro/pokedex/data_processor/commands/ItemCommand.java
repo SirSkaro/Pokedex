@@ -1,8 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.object.entity.User;
@@ -19,10 +16,12 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexFactory;
-import skaro.pokeflex.api.PokeFlexRequest;
+import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.item.Item;
+import skaro.pokeflex.objects.item_category.ItemCategory;
 import skaro.pokeflex.objects.type.Type;
 
 public class ItemCommand extends AbstractCommand
@@ -72,40 +71,33 @@ public class ItemCommand extends AbstractCommand
 	public Mono<Response> discordReply(Input input, User requester)
 	{
 		if(!input.isValid())
-			return formatter.invalidInputResponse(input);
+			return Mono.just(formatter.invalidInputResponse(input));
 		
 		PokeFlexFactory factory;
-		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
-		List<Object> flexData = new ArrayList<Object>();
-		MultiMap<Object> dataMap = new MultiMap<Object>();
+		Mono<MultiMap<IFlexObject>> result;
 		EmbedCreateSpec builder = new EmbedCreateSpec();
+		String itemName = input.getArg(0).getFlexForm();
 		
 		try
 		{
 			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-			
-			//Initial data - Item object
-			Item item = (Item)factory.createFlexObject(Endpoint.ITEM, input.argsAsList());
-			dataMap.put(Item.class.getName(), item);
-			
-			//item category
-			concurrentRequestList.add(new RequestURL(item.getCategory().getUrl(), Endpoint.ITEM_CATEGORY));
-			
-			//type
-			if(item.getNgType() != null)
-			{
-				dataMap.add(Type.class.getName(), TypeData.getByName(item.getNgType().toLowerCase()).getType());
-			}
-			
-			//Make PokeFlex request
-			flexData = factory.createFlexObjects(concurrentRequestList);
-			
-			//Add all data to the map
-			for(Object obj : flexData)
-				dataMap.add(obj.getClass().getName(), obj);
+
+			Request request = new Request(Endpoint.ITEM, itemName);
+			result = Mono.just(new MultiMap<IFlexObject>())
+					.flatMap(dataMap -> request.makeRequest(factory)
+						.ofType(Item.class)
+						.doOnNext(item -> {
+							dataMap.put(Item.class.getName(), item);
+							dataMap.put(Type.class.getName(), TypeData.getByName(item.getNgType().toLowerCase()).getType());
+							})
+						.map(item -> new RequestURL(item.getCategory().getUrl(), Endpoint.ITEM_CATEGORY))
+						.ofType(ItemCategory.class)
+						.doOnNext(itemCategory -> dataMap.put(ItemCategory.class.getName(), itemCategory))
+						.then(Mono.just(dataMap))
+					);
 			
 			this.addRandomExtraMessage(builder);
-			return formatter.format(input, dataMap, builder);
+			return result.map(dataMap -> formatter.format(input, dataMap, builder));
 		}
 		catch(Exception e)
 		{

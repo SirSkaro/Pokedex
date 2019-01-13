@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.move.Move;
 import skaro.pokeflex.objects.move_learn_method.MoveLearnMethod;
 import skaro.pokeflex.objects.pokemon.VersionGroupDetail;
 
-public class LearnMethodWrapper 
+public class LearnMethodWrapper implements IFlexObject
 {
 	private Move move;
 	private String specifiedMove;

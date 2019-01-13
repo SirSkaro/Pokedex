@@ -1,7 +1,6 @@
 package skaro.pokedex.data_processor;
 
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -13,10 +12,9 @@ public class CommandService implements IService
 {
 	private Cache<String, AbstractCommand> cache;
 	
-	public CommandService(ExecutorService threadPool)
+	public CommandService()
 	{
 		cache = Caffeine.newBuilder()
-					.executor(threadPool)
 					.build();
 	}
 	
