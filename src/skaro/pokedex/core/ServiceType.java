@@ -11,5 +11,6 @@ public enum ServiceType
 	COMMAND,
 	TTS,
 	TYPE,
+	CACHE,
 	;
 }

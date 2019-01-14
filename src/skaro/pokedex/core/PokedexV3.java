@@ -12,8 +12,10 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.presence.Presence;
 import discord4j.core.spec.MessageCreateSpec;
 import reactor.core.scheduler.Schedulers;
+import skaro.pokedex.core.FlexCache.CachedResource;
 import skaro.pokedex.core.ServiceManager.ServiceManagerBuilder;
 import skaro.pokedex.data_processor.CommandService;
+import skaro.pokedex.data_processor.LearnMethodData;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
 import skaro.pokedex.data_processor.commands.CommandsCommand;
@@ -42,6 +44,7 @@ import skaro.pokedex.data_processor.formatters.ShinyResponseFormatter;
 import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
 import skaro.pokedex.data_processor.formatters.WeakResponseFormatter;
 import skaro.pokedex.input_processor.InputProcessor;
+import skaro.pokeflex.api.PokeFlexFactory;
 
 public class PokedexV3 
 {
@@ -75,6 +78,7 @@ public class PokedexV3
 		ConfigurationService configurationService = ConfigurationService.initialize(ConfigurationType.DEVELOP);
 		CommandService commandMap = new CommandService();
 		PerkChecker perkService = createPatreonService(configurationService);
+		PokeFlexService pokeFlexService = createPokeFlexService(configurationService);
 		
 		PokedexManager manager = PokedexManager.PokedexConfigurator.newInstance()
 								.withService(configurationService)
@@ -83,8 +87,9 @@ public class PokedexV3
 								.withService(perkService)
 								.withService(new ColorService())
 								.withService(new EmojiService())
-								.withService(createPokeFlexService(configurationService))
+								.withService(pokeFlexService)
 								.withService(new TTSConverter())
+								.withService(createCacheService(pokeFlexService))
 								.configure();
 		
 		populateCommandMap(manager, commandMap);
@@ -104,7 +109,7 @@ public class PokedexV3
 	        						.flatMap(channel ->  input.getCommand().discordReply(input, author)	//Pass the input to the command to get a response
 	        								.flatMap( response -> response.getAsSpec())
 	        								.flatMap( spec -> channel.createMessage(spec))
-	        								//.onErrorResume(error -> channel.createMessage(createErrorMessage()))
+	        								.onErrorResume(error -> channel.createMessage(createErrorMessage()))
 	        								)))) //Send the response
 	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
 
@@ -117,6 +122,15 @@ public class PokedexV3
 		return new MessageCreateSpec()
 				.setContent("Some error occurred and I could not recover. Please report this in the support server: https://discord.gg/D5CfFkN");
 				
+	}
+	
+	private static FlexCache createCacheService(PokeFlexFactory factory)
+	{
+		FlexCache result = new FlexCache();
+		result.addCachedResource(CachedResource.LEARN_METHOD, new LearnMethodData(factory));
+		
+		
+		return result;
 	}
 	
 	private static DiscordService createDiscordService(ConfigurationService configService, int shardID, int shardCount)
@@ -178,13 +192,19 @@ public class PokedexV3
 		commandServiceBuilder.addService(ServiceType.PERK);
 		commandService.addCommand(new AbilityCommand(commandServiceBuilder.build(), new AbilityResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new DataCommand(commandServiceBuilder.build(), new DataResponseFormatter(serviceBuilderEmoji.build())));
-		commandService.addCommand(new LearnCommand(commandServiceBuilder.build(), new LearnResponseFormatter(serviceBuilderColor.build())));
+		
 		commandService.addCommand(new RandpokeCommand(commandServiceBuilder.build(), new RandpokeResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new SetCommand(commandServiceBuilder.build()));
 		commandService.addCommand(new ShinyCommand(commandServiceBuilder.build(), new ShinyResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new StatsCommand(commandServiceBuilder.build(), new StatsResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new WeakCommand(commandServiceBuilder.build(), new WeakResponseFormatter(serviceBuilderEmoji.build())));
 		
+		//ColorService, PokeFlexService, PerkService, CacheService
+		commandServiceBuilder.addService(ServiceType.CACHE);
+		commandService.addCommand(new LearnCommand(commandServiceBuilder.build(), new LearnResponseFormatter(serviceBuilderColor.build())));
+		
+		//ColorService, PokeFlexService, PerkService, TTSService
+		commandServiceBuilder.removeService(ServiceType.CACHE);
 		serviceBuilderColor.addService(ServiceType.TTS);
 		commandService.addCommand(new DexCommand(commandServiceBuilder.build(), new DexResponseFormatter(serviceBuilderColor.build())));
 	}

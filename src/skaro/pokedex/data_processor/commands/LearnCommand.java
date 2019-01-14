@@ -11,11 +11,14 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import skaro.pokedex.core.FlexCache;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
+import skaro.pokedex.core.FlexCache.CachedResource;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.LearnMethodData;
 import skaro.pokedex.data_processor.LearnMethodWrapper;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.AbstractArgument;
@@ -74,7 +77,7 @@ public class LearnCommand extends AbstractCommand
 	public boolean hasExpectedServices(IServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
-				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.CACHE);
 	}
 	
 	@Override
@@ -110,10 +113,11 @@ public class LearnCommand extends AbstractCommand
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		PokeFlexFactory factory;
+		LearnMethodData learnMethodData = (LearnMethodData)((FlexCache)services.getService(ServiceType.CACHE)).getCachedData(CachedResource.LEARN_METHOD);
 		EmbedCreateSpec builder = new EmbedCreateSpec();
-		List<LearnMethodWrapper> methodWrappers = new ArrayList<LearnMethodWrapper>(4);
 		Mono<MultiMap<IFlexObject>> result;
 		List<PokeFlexRequest> initialRequests = new ArrayList<>();
+		MultiMap<IFlexObject> dataToFormat = new MultiMap<>();
 		
 		try
 		{
@@ -126,18 +130,19 @@ public class LearnCommand extends AbstractCommand
 				if(arg.isValid())
 					initialRequests.add(new Request(Endpoint.MOVE, arg.getFlexForm()));
 				else
-					methodWrappers.add(new LearnMethodWrapper(arg.getRawInput()));
+					dataToFormat.add(LearnMethodWrapper.class.getName(), new LearnMethodWrapper(arg.getRawInput()));
 			}
 			
 			//Get data of Pokemon
 			initialRequests.add(new Request(Endpoint.POKEMON, input.getArg(0).getFlexForm()));
 			
-			result = Mono.just(new MultiMap<IFlexObject>())
+			result = Mono.just(dataToFormat)
 					.flatMap(dataMap -> Flux.fromIterable(initialRequests)
 						.flatMap(request -> request.makeRequest(factory))
 						.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
 						.filter(flexObject -> flexObject instanceof Pokemon)
 						.ofType(Pokemon.class)
+						.flatMap(pokemon -> this.addAdopter(pokemon, builder))
 						.flatMap(pokemon -> Mono.just(dataMap.get(skaro.pokeflex.objects.move.Move.class.getName()))
 								.ofType(List.class)
 								.flatMap(movesToCheckFor -> Mono.just(new RequestURL(pokemon.getSpecies().getUrl(), Endpoint.POKEMON_SPECIES))
@@ -153,21 +158,15 @@ public class LearnCommand extends AbstractCommand
 													.map(preEvoSpecies -> new Request(Endpoint.POKEMON, String.valueOf(preEvoSpecies.getId())))
 													.flatMap(preEvoPokemonRequest -> preEvoPokemonRequest.makeRequest(factory))
 													.ofType(Pokemon.class)
-													.doOnNext(preEvoSpecies -> dataMap.put(Pokemon.class.getName(), preEvoSpecies))
 													.collectList()
 													.map(preEvoList -> getAllLearnableMoves(pokemon, preEvoList))
 													.flatMap(allLearnableMoves -> Flux.fromIterable(movesToCheckFor)
-															.map(moveToCheckFor -> new LearnMethodWrapper(allLearnableMoves, (skaro.pokeflex.objects.move.Move)moveToCheckFor))
+															.ofType(skaro.pokeflex.objects.move.Move.class)
+															.map(moveToCheckFor -> new LearnMethodWrapper(allLearnableMoves.get(((skaro.pokeflex.objects.move.Move)moveToCheckFor).getName()), (skaro.pokeflex.objects.move.Move)moveToCheckFor, learnMethodData))
 															.doOnNext(methodWrapper -> dataMap.add(LearnMethodWrapper.class.getName(), (IFlexObject) methodWrapper))
-															.then(Mono.just(dataMap)))
-													)
-										)
-								)
-							)
-						
+															.then(Mono.just(dataMap)))))))
 						.then(Mono.just(dataMap)));
 			
-			//this.addAdopter(pokemon, builder);
 			this.addRandomExtraMessage(builder);
 			return result.map(dataMap -> formatter.format(input, dataMap, builder));
 		}
@@ -175,7 +174,6 @@ public class LearnCommand extends AbstractCommand
 		{
 			Response response = new Response();
 			this.addErrorMessage(response, input, "1007", e);
-			e.printStackTrace();
 			return Mono.just(response);
 		}
 	}
