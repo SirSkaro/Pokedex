@@ -14,8 +14,8 @@ import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.TypeInteractionWrapper;
+import skaro.pokedex.data_processor.TypeService;
+import skaro.pokedex.data_processor.TypeEfficacyWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
@@ -72,14 +72,14 @@ public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsume
 	{
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
-		List<TypeData> typeList = (List<TypeData>)(List<?>)data.get(TypeData.class.getName());
+		List<TypeService> typeList = (List<TypeService>)(List<?>)data.get(TypeService.class.getName());
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		Response response = new Response();
 		
-		TypeData type1 = typeList.get(0);
-		TypeData type2 = typeList.size() > 1 ? typeList.get(1) : null;
-		TypeInteractionWrapper wrapper = TypeTracker.onDefense(type1, type2);
+		TypeService type1 = typeList.get(0);
+		TypeService type2 = typeList.size() > 1 ? typeList.get(1) : null;
+		TypeEfficacyWrapper wrapper = TypeTracker.onDefense(type1, type2);
 		
 		//Add model and header depending on if the user specified a Pokemon
 		if(pokemon != null && species != null)
@@ -103,7 +103,7 @@ public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsume
 		return response;
 	}
 	
-	private String formatHeader(PokemonSpecies species, TypeData type1, TypeData type2, Language lang)
+	private String formatHeader(PokemonSpecies species, TypeService type1, TypeService type2, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
 		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
@@ -117,7 +117,7 @@ public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsume
 		return builder.toString();
 	}
 	
-	private String formatHeader(TypeData type1, TypeData type2, Language lang)
+	private String formatHeader(TypeService type1, TypeService type2, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
 		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
@@ -128,7 +128,7 @@ public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsume
 		return builder.toString();
 	}
 	
-	private String combineLists(TypeInteractionWrapper wrapper, Language lang, double mult1, double mult2)
+	private String combineLists(TypeEfficacyWrapper wrapper, Language lang, double mult1, double mult2)
 	{
 		Optional<String> strCheck;
 		String inter1, intern2;
@@ -154,7 +154,7 @@ public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsume
 		return builder.toString();
 	}
 	
-	private String getList(TypeInteractionWrapper wrapper, Language lang, double mult)
+	private String getList(TypeEfficacyWrapper wrapper, Language lang, double mult)
 	{
 		Optional<String> strCheck = wrapper.interactionToString(mult, lang);
 		return (strCheck.isPresent() ? strCheck.get() : null);

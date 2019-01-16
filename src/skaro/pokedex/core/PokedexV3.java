@@ -16,6 +16,7 @@ import skaro.pokedex.core.FlexCache.CachedResource;
 import skaro.pokedex.core.ServiceManager.ServiceManagerBuilder;
 import skaro.pokedex.data_processor.CommandService;
 import skaro.pokedex.data_processor.LearnMethodData;
+import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
 import skaro.pokedex.data_processor.commands.CommandsCommand;
@@ -128,7 +129,7 @@ public class PokedexV3
 	{
 		FlexCache result = new FlexCache();
 		result.addCachedResource(CachedResource.LEARN_METHOD, new LearnMethodData(factory));
-		
+		result.addCachedResource(CachedResource.TYPE, new TypeData(factory));
 		
 		return result;
 	}

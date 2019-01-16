@@ -14,7 +14,7 @@ import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -91,7 +91,7 @@ public class CoverageCommand extends AbstractCommand
 			for(AbstractArgument arg : input.getArgs())
 			{
 				if(arg.getCategory() == ArgumentCategory.TYPE)
-					dataMap.add(TypeData.class.getName(), TypeData.getByName(arg.getFlexForm()));
+					dataMap.add(TypeService.class.getName(), TypeService.getByName(arg.getFlexForm()));
 				else	//Category is ArgumentCategory.MOVE
 				{
 					request = new Request(Endpoint.MOVE);
@@ -107,7 +107,7 @@ public class CoverageCommand extends AbstractCommand
 				for(Object move : flexData)
 				{
 					String type = ((Move)move).getType().getName();
-					dataMap.add(TypeData.class.getName(), TypeData.getByName(type));
+					dataMap.add(TypeService.class.getName(), TypeService.getByName(type));
 				}
 			}
 			

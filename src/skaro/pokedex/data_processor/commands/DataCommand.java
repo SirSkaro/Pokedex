@@ -14,7 +14,7 @@ import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -164,7 +164,7 @@ public class DataCommand extends AbstractCommand
 			
 			//Types
 			for(Type type : pokemon.getTypes())
-				dataMap.add(skaro.pokeflex.objects.type.Type.class.getName(), TypeData.getByName(type.getType().getName()).getType());
+				dataMap.add(skaro.pokeflex.objects.type.Type.class.getName(), TypeService.getByName(type.getType().getName()).getType());
 			
 			//Format all data
 			this.addAdopter(pokemon, builder);

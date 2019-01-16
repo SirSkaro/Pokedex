@@ -4,8 +4,8 @@ import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
-import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.TypeInteractionWrapper;
+import skaro.pokedex.data_processor.TypeEfficacyWrapper;
+import skaro.pokeflex.objects.type.Type;
 
 public class ColorService implements IService
 {
@@ -36,12 +36,12 @@ public class ColorService implements IService
 		return new Color(0xD60B01);
 	}
 	
-	public Color getColorForWrapper(TypeInteractionWrapper wrapper)
+	public Color getColorForWrapper(TypeEfficacyWrapper wrapper)
 	{
 		Color result = null;
 		
-		for(TypeData type : wrapper.getTypes())
-			result = blend(typeColorMap.get(type.getType().getName()), result);
+		for(Type type : wrapper.getTypes())
+			result = blend(typeColorMap.get(type.getName()), result);
 		
 		return result;
 	}

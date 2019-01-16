@@ -11,7 +11,7 @@ import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -89,8 +89,8 @@ public class WeakCommand extends AbstractCommand
 				
 				for(Type type : pokemon.getTypes())
 				{
-					TypeData typeData = TypeData.getByName(type.getType().getName());
-					dataMap.add(TypeData.class.getName(), typeData);
+					TypeService typeData = TypeService.getByName(type.getType().getName());
+					dataMap.add(TypeService.class.getName(), typeData);
 				}
 				
 				this.addAdopter(pokemon, builder);
@@ -99,8 +99,8 @@ public class WeakCommand extends AbstractCommand
 			{
 				for(AbstractArgument arg : input.getArgs())
 				{
-					TypeData typeData = TypeData.getByName(arg.getFlexForm());
-					dataMap.add(TypeData.class.getName(), typeData);
+					TypeService typeData = TypeService.getByName(arg.getFlexForm());
+					dataMap.add(TypeService.class.getName(), typeData);
 				}
 			}
 			

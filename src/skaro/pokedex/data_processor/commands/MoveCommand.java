@@ -14,7 +14,7 @@ import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -109,7 +109,7 @@ public class MoveCommand extends AbstractCommand
 				dataMap.add(obj.getClass().getName(), obj);
 			
 			//Type
-			dataMap.add(Type.class.getName(), TypeData.getByName(move.getType().getName()).getType());
+			dataMap.add(Type.class.getName(), TypeService.getByName(move.getType().getName()).getType());
 			
 			this.addRandomExtraMessage(builder);
 			return formatter.format(input, dataMap, builder);

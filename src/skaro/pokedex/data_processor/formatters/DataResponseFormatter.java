@@ -18,7 +18,7 @@ import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Statistic;
-import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.objects.ability.Ability;
@@ -309,7 +309,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		for(Object type : types)
 		{
 			tempType = (Type)type;
-			builder.append(emojiService.getTypeEmoji(TypeData.getByName(tempType.getName())));
+			builder.append(emojiService.getTypeEmoji(TypeService.getByName(tempType.getName())));
 			builder.append(" ");
 			builder.append(TextFormatter.flexFormToProper(tempType.getNameInLanguage(lang.getFlexKey())) + "\n");
 		}

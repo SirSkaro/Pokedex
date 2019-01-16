@@ -11,7 +11,7 @@ import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -88,7 +88,7 @@ public class ItemCommand extends AbstractCommand
 						.ofType(Item.class)
 						.doOnNext(item -> {
 							dataMap.put(Item.class.getName(), item);
-							dataMap.put(Type.class.getName(), TypeData.getByName(item.getNgType().toLowerCase()).getType());
+							dataMap.put(Type.class.getName(), TypeService.getByName(item.getNgType().toLowerCase()).getType());
 							})
 						.map(item -> new RequestURL(item.getCategory().getUrl(), Endpoint.ITEM_CATEGORY))
 						.ofType(ItemCategory.class)

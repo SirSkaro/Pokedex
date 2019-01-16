@@ -15,7 +15,7 @@ import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.objects.contest_type.ContestType;
@@ -121,7 +121,7 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 	private String formatZPower(Type type, int power)
 	{
 		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
-		return emojiService.getCrystalEmoji(TypeData.getByName(type.getName())) + " " + power;
+		return emojiService.getCrystalEmoji(TypeService.getByName(type.getName())) + " " + power;
 	}
 	
 	private String formatContest(ContestType contest, Language lang)
@@ -173,7 +173,7 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 		StringBuilder builder = new StringBuilder();
 		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		
-		builder.append(emojiService.getTypeEmoji(TypeData.getByName(type.getName())));
+		builder.append(emojiService.getTypeEmoji(TypeService.getByName(type.getName())));
 		builder.append(" ");
 		builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
 		

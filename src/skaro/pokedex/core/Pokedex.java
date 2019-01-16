@@ -16,7 +16,7 @@ import skaro.pokedex.communicator.Publisher;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.CommandService;
 import skaro.pokedex.data_processor.LearnMethodData;
-import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
 import skaro.pokedex.data_processor.commands.CommandsCommand;
@@ -123,7 +123,7 @@ public class Pokedex
 		/**
 		 * INTERNAL SETUP
 		 */
-		TypeData.initialize(factory);
+		TypeService.initialize(factory);
 		LearnMethodData.initialize(factory);
 		//ColorService.initialize();
 		//EmojiService.initialize();

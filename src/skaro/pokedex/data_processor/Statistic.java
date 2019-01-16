@@ -7,7 +7,7 @@ import skaro.pokedex.input_processor.Language;
 
 public enum Statistic 
 {
-	HIT_POINTS("HP", "PS", "PV", "Punti Salute", "Statuswerte", "エイチピー", "体力", "HP", "hp"),
+	HIT_POINTS("HP", "PS", "PV", "Punti Salute", "Kraftpunkte", "エイチピー", "体力", "HP", "hp"),
 	ATTACK("Attack", "Ataque", "Attaque", "Attacco", "Angriff", "こうげき", "攻击", "공격", "attack"),
 	DEFENSE("Defense","Defensa","Défense", "Difesa", "Verteidigung", "ぼうぎょ", "防御", "방어", "defense"),
 	SPECIAL_ATTACK("Sp.Attack","Ataque Esp.","Attaque Spé.", "Attacco Spec.", "Spezial-Ang.", "とくこう", "特攻", "특수공격", "special-attack"),

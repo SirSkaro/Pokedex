@@ -13,8 +13,8 @@ import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.TypeInteractionWrapper;
+import skaro.pokedex.data_processor.TypeService;
+import skaro.pokedex.data_processor.TypeEfficacyWrapper;
 import skaro.pokedex.data_processor.TypeTracker;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
@@ -69,8 +69,8 @@ public class CoverageResponseFormatter implements IDiscordFormatter, IServiceCon
 	{
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
-		List<TypeData> typeList = (List<TypeData>)(List<?>)data.get(TypeData.class.getName());
-		TypeInteractionWrapper wrapper = TypeTracker.onOffense(typeList);
+		List<TypeService> typeList = (List<TypeService>)(List<?>)data.get(TypeService.class.getName());
+		TypeEfficacyWrapper wrapper = TypeTracker.onOffense(typeList);
 		Response response = new Response();
 		
 		//Header
@@ -86,7 +86,7 @@ public class CoverageResponseFormatter implements IDiscordFormatter, IServiceCon
 		return response;
 	}
 	
-	private String getList(TypeInteractionWrapper wrapper, double mult, Language lang)
+	private String getList(TypeEfficacyWrapper wrapper, double mult, Language lang)
 	{
 		Optional<String> strCheck = wrapper.interactionToString(mult, lang);
 		return (strCheck.isPresent() ? strCheck.get() : null);
