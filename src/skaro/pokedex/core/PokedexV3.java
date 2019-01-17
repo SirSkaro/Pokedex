@@ -110,7 +110,7 @@ public class PokedexV3
 	        						.flatMap(channel ->  input.getCommand().discordReply(input, author)	//Pass the input to the command to get a response
 	        								.flatMap( response -> response.getAsSpec())
 	        								.flatMap( spec -> channel.createMessage(spec))
-	        								.onErrorResume(error -> channel.createMessage(createErrorMessage()))
+	        								//.onErrorResume(error -> channel.createMessage(createErrorMessage()))
 	        								)))) //Send the response
 	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
 
@@ -185,7 +185,6 @@ public class PokedexV3
 		//ColorService, PokeFlexService
 		commandServiceBuilder.removeService(ServiceType.CONFIG);
 		commandServiceBuilder.addService(ServiceType.POKE_FLEX);
-		commandService.addCommand(new ItemCommand(commandServiceBuilder.build(), new ItemResponseFormatter(serviceBuilderEmoji.build())));
 		commandService.addCommand(new MoveCommand(commandServiceBuilder.build(), new MoveResponseFormatter(serviceBuilderEmoji.build())));
 		commandService.addCommand(new CoverageCommand(commandServiceBuilder.build(), new CoverageResponseFormatter(serviceBuilderColor.build())));
 		
@@ -202,6 +201,7 @@ public class PokedexV3
 		
 		//ColorService, PokeFlexService, PerkService, CacheService
 		commandServiceBuilder.addService(ServiceType.CACHE);
+		commandService.addCommand(new ItemCommand(commandServiceBuilder.build(), new ItemResponseFormatter(serviceBuilderEmoji.build())));
 		commandService.addCommand(new LearnCommand(commandServiceBuilder.build(), new LearnResponseFormatter(serviceBuilderColor.build())));
 		
 		//ColorService, PokeFlexService, PerkService, TTSService

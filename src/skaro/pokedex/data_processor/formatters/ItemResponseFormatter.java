@@ -15,7 +15,6 @@ import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.api.IFlexObject;
@@ -111,7 +110,7 @@ public class ItemResponseFormatter implements IDiscordFormatter, IServiceConsume
 		StringBuilder builder = new StringBuilder();
 		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		
-		builder.append(emojiService.getTypeEmoji(TypeService.getByName(type.getName())));
+		builder.append(emojiService.getTypeEmoji(type.getName()));
 		builder.append(" ");
 		builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
 		

@@ -90,18 +90,23 @@ public class TypeEfficacyWrapper
 	{
 		private List<Type> typesToCheck;
 		private List<Type> typesToCheckAgainst;
-		private EfficacyOption efficacyOption;
+		private EfficacyCategory efficacyCategory;
 		
 		private EfficacyInteractionBuilder() 
 		{
 			typesToCheck = new ArrayList<>();
 		}
 		
-		public static EfficacyInteractionBuilder newInstance(EfficacyOption option)
+		public static EfficacyInteractionBuilder newInstance()
 		{
 			EfficacyInteractionBuilder builder = new EfficacyInteractionBuilder();
-			builder.efficacyOption = option;
 			return builder;
+		}
+		
+		public EfficacyInteractionBuilder withEfficacyCategory(EfficacyCategory category)
+		{
+			efficacyCategory = category;
+			return this;
 		}
 		
 		public EfficacyInteractionBuilder addTypesToCheckAgainst(List<Type> types)
@@ -123,7 +128,7 @@ public class TypeEfficacyWrapper
 			
 			TypeEfficacyWrapper result = new TypeEfficacyWrapper(this);
 			
-			if(efficacyOption == EfficacyOption.OFFENSE)
+			if(efficacyCategory == EfficacyCategory.OFFENSE)
 				result.setUpOnOffense();
 			else
 				result.setUpOnDefense();
@@ -132,7 +137,7 @@ public class TypeEfficacyWrapper
 		}
 	}
 	
-	public enum EfficacyOption
+	public enum EfficacyCategory
 	{
 		OFFENSE,
 		DEFENSE,

@@ -1,5 +1,8 @@
 package skaro.pokedex.data_processor;
 
+import java.util.Arrays;
+import java.util.List;
+
 import skaro.pokedex.core.FlexCache;
 import skaro.pokedex.core.FlexCache.CachedResource;
 import skaro.pokedex.core.IService;
@@ -7,8 +10,8 @@ import skaro.pokedex.core.IServiceConsumer;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
+import skaro.pokedex.data_processor.TypeEfficacyWrapper.EfficacyCategory;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper.EfficacyInteractionBuilder;
-import skaro.pokedex.data_processor.TypeEfficacyWrapper.EfficacyOption;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.objects.type.Type;
@@ -46,26 +49,29 @@ public class TypeService implements IService, IServiceConsumer
     
     public TypeEfficacyWrapper getEfficacyOnDefense(String primaryTypeName)
     {
-    	return buildEfficacyWrapper(EfficacyOption.DEFENSE, primaryTypeName);
+    	List<String> types = Arrays.asList(primaryTypeName);
+    	return buildEfficacyWrapper(EfficacyCategory.DEFENSE, types);
     }
     
     public TypeEfficacyWrapper getEfficacyOnDefense(String primaryTypeName, String secondaryTypeName)
     {
-    	return buildEfficacyWrapper(EfficacyOption.DEFENSE, primaryTypeName, secondaryTypeName);
+    	List<String> types = Arrays.asList(primaryTypeName, secondaryTypeName);
+    	return buildEfficacyWrapper(EfficacyCategory.DEFENSE, types);
     }
     
-    public TypeEfficacyWrapper getEfficacyOnOffense(String... typeNames)
+    public TypeEfficacyWrapper getEfficacyOnOffense(List<String> typeNames)
     {
-    	return buildEfficacyWrapper(EfficacyOption.OFFENSE, typeNames);
+    	return buildEfficacyWrapper(EfficacyCategory.OFFENSE, typeNames);
     }
     
-    private TypeEfficacyWrapper buildEfficacyWrapper(EfficacyOption whichEfficacy, String... typeNames)
+    private TypeEfficacyWrapper buildEfficacyWrapper(EfficacyCategory whichEfficacy, List<String> typeNames)
     {
     	FlexCache cache = (FlexCache)services.getService(ServiceType.CACHE);
     	TypeData cachedTypeData = (TypeData)cache.getCachedData(CachedResource.TYPE);
     	EfficacyInteractionBuilder builder = TypeEfficacyWrapper
     			.EfficacyInteractionBuilder
-    			.newInstance(EfficacyOption.DEFENSE)
+    			.newInstance()
+    			.withEfficacyCategory(whichEfficacy)
     			.addTypesToCheckAgainst(cachedTypeData.getAllTypes());
     	
     	for(String typeName : typeNames)

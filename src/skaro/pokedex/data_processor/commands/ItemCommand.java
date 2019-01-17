@@ -5,13 +5,15 @@ import org.eclipse.jetty.util.MultiMap;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
+import skaro.pokedex.core.FlexCache;
+import skaro.pokedex.core.FlexCache.CachedResource;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeService;
+import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -64,7 +66,7 @@ public class ItemCommand extends AbstractCommand
 	public boolean hasExpectedServices(IServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
-				services.hasServices(ServiceType.POKE_FLEX);
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.CACHE);
 	}
 	
 	@Override
@@ -73,14 +75,15 @@ public class ItemCommand extends AbstractCommand
 		if(!input.isValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
-		PokeFlexFactory factory;
 		Mono<MultiMap<IFlexObject>> result;
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		String itemName = input.getArg(0).getFlexForm();
 		
 		try
 		{
-			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			FlexCache flexCache = (FlexCache)services.getService(ServiceType.CACHE);
+			TypeData cachedTypeData = (TypeData)flexCache.getCachedData(CachedResource.TYPE);
 
 			Request request = new Request(Endpoint.ITEM, itemName);
 			result = Mono.just(new MultiMap<IFlexObject>())
@@ -88,9 +91,11 @@ public class ItemCommand extends AbstractCommand
 						.ofType(Item.class)
 						.doOnNext(item -> {
 							dataMap.put(Item.class.getName(), item);
-							dataMap.put(Type.class.getName(), TypeService.getByName(item.getNgType().toLowerCase()).getType());
-							})
+							if(item.getNgType() != null)
+								dataMap.put(Type.class.getName(), cachedTypeData.getByName(item.getNgType().toLowerCase()));
+						})
 						.map(item -> new RequestURL(item.getCategory().getUrl(), Endpoint.ITEM_CATEGORY))
+						.flatMap(itemCategoryRequest -> itemCategoryRequest.makeRequest(factory))
 						.ofType(ItemCategory.class)
 						.doOnNext(itemCategory -> dataMap.put(ItemCategory.class.getName(), itemCategory))
 						.then(Mono.just(dataMap))
@@ -103,6 +108,7 @@ public class ItemCommand extends AbstractCommand
 		{
 			Response response = new Response();
 			this.addErrorMessage(response, input, "1004", e); 
+			e.printStackTrace();
 			return Mono.just(response);
 		}
 	}
