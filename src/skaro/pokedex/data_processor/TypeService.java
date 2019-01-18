@@ -20,14 +20,6 @@ public class TypeService implements IService, IServiceConsumer
 {	 		
 	IServiceManager services;
 	
-	public TypeService(IServiceManager services) throws ServiceConsumerException
-	{
-		if(!hasExpectedServices(services))
-			throw new ServiceConsumerException("Did not receive all necessary services");
-		
-		this.services = services;
-	}
-	
 	@Override
 	public boolean hasExpectedServices(IServiceManager services)
 	{
@@ -38,6 +30,14 @@ public class TypeService implements IService, IServiceConsumer
 	public ServiceType getServiceType() 
 	{
 		return ServiceType.TYPE;
+	}
+	
+	public void setServiceManager(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
 	}
 	
     public String getNameInLanguage(String typeName, Language lang)

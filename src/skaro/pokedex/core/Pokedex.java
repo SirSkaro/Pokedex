@@ -51,7 +51,7 @@ public class Pokedex
 		
 		CommandService library;
 		PreLoginEventHandler pleh;
-		PerkChecker checker;
+		PerkService checker;
 		
 		IDiscordClient discordClient;
 		PatreonAPI patreonClient;
@@ -100,7 +100,7 @@ public class Pokedex
 		}
 		
 		patreonClient = new PatreonAPI(patreonAccessToken.get());
-		checker = new PerkChecker(patreonClient, pokedexThreadPool);
+		checker = new PerkService(patreonClient, pokedexThreadPool);
 		
 		/**
 		 * PUBLISHER SETUP
@@ -159,7 +159,7 @@ public class Pokedex
 	 * recognized by any command map.
 	 * @return a CommandLibrary of AbstractCommands that are supported for Discord
 	 */
-	private static CommandService initCompleteLibrary(PokeFlexFactory factory, PerkChecker checker, ExecutorService service)
+	private static CommandService initCompleteLibrary(PokeFlexFactory factory, PerkService checker, ExecutorService service)
 	{
 		List<AbstractCommand> commands = new ArrayList<AbstractCommand>();
 		

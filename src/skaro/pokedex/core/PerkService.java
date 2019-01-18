@@ -13,13 +13,13 @@ import discord4j.core.object.util.Snowflake;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.input_processor.MySQLManager;
 
-public class PerkChecker implements IService, IServiceConsumer
+public class PerkService implements IService, IServiceConsumer
 {
 	private PatreonAPI patreonClient;
 	private IServiceManager services;
 	private MySQLManager sqlManager;
 	
-	public PerkChecker(PatreonAPI pClient)
+	public PerkService(PatreonAPI pClient)
 	{
 		patreonClient = pClient;
 		sqlManager = MySQLManager.getInstance();

@@ -1,26 +1,27 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import skaro.pokedex.core.FlexCache;
+import skaro.pokedex.core.FlexCache.CachedResource;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeService;
+import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexFactory;
-import skaro.pokeflex.api.PokeFlexRequest;
+import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.move.Move;
 import skaro.pokeflex.objects.type.Type;
@@ -68,51 +69,46 @@ public class MoveCommand extends AbstractCommand
 	public boolean hasExpectedServices(IServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
-				services.hasServices(ServiceType.POKE_FLEX);
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.CACHE);
 	}
 	
 	@Override
 	public Mono<Response> discordReply(Input input, User requester)
 	{
 		if(!input.isValid())
-			return formatter.invalidInputResponse(input);
+			return Mono.just(formatter.invalidInputResponse(input));
 		
-		PokeFlexFactory factory;
-		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
-		List<Object> flexData = new ArrayList<Object>();
-		MultiMap<Object> dataMap = new MultiMap<Object>();
 		EmbedCreateSpec builder = new EmbedCreateSpec();
+		Mono<MultiMap<IFlexObject>> result;
+		String moveName = input.getArg(0).getFlexForm();
 		
 		try
 		{
-			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			FlexCache flexCache = (FlexCache)services.getService(ServiceType.CACHE);
+			TypeData cachedTypeData = (TypeData)flexCache.getCachedData(CachedResource.TYPE);
+			Request initialRequest = new Request(Endpoint.MOVE, moveName);
 			
-			//Initial data - Move object
-			Move move = (Move)factory.createFlexObject(Endpoint.MOVE, input.argsAsList());
-			dataMap.put(Move.class.getName(), move);
-			
-			//Target
-			concurrentRequestList.add(new RequestURL(move.getTarget().getUrl(), Endpoint.MOVE_TARGET));
-			
-			//Contest
-			if(move.getContestType() != null)
-				concurrentRequestList.add(new RequestURL(move.getContestType().getUrl(), Endpoint.CONTEST_TYPE));
-			
-			//Damage Class (Category)
-			concurrentRequestList.add(new RequestURL(move.getDamageClass().getUrl(), Endpoint.MOVE_DAMAGE_CLASS));
-			
-			//Make PokeFlex request
-			flexData = factory.createFlexObjects(concurrentRequestList);
-			
-			//Add all data to the map
-			for(Object obj : flexData)
-				dataMap.add(obj.getClass().getName(), obj);
-			
-			//Type
-			dataMap.add(Type.class.getName(), TypeService.getByName(move.getType().getName()).getType());
+			result = Mono.just(new MultiMap<IFlexObject>())
+					.flatMap(dataMap -> initialRequest.makeRequest(factory)
+							.ofType(Move.class)
+							.doOnNext(move -> {
+								dataMap.put(Move.class.getName(), move);
+								dataMap.put(Type.class.getName(), cachedTypeData.getByName(move.getType().getName()));
+							})
+							.flatMap(move -> Flux.just(new RequestURL(move.getDamageClass().getUrl(), Endpoint.MOVE_DAMAGE_CLASS))
+									.concatWithValues(new RequestURL(move.getTarget().getUrl(), Endpoint.MOVE_TARGET))
+									.concatWithValues(new RequestURL(move.getContestType().getUrl(), Endpoint.CONTEST_TYPE))
+									.flatMap(request -> request.makeRequest(factory))
+									.doOnNext(flexObject -> dataMap.put(flexObject.getClass().getName(), flexObject))
+									.then(Mono.just(dataMap))
+									)
+							
+							
+							);
 			
 			this.addRandomExtraMessage(builder);
-			return formatter.format(input, dataMap, builder);
+			return result.map(dataMap -> formatter.format(input, dataMap, builder));
 		}
 		catch(Exception e)
 		{

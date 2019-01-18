@@ -15,9 +15,9 @@ import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.contest_type.ContestType;
 import skaro.pokeflex.objects.move.Image;
 import skaro.pokeflex.objects.move.Move;
@@ -64,7 +64,7 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 	}
 	
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder)
 	{
 		Response response = new Response();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
@@ -121,7 +121,7 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 	private String formatZPower(Type type, int power)
 	{
 		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
-		return emojiService.getCrystalEmoji(TypeService.getByName(type.getName())) + " " + power;
+		return emojiService.getCrystalEmoji(type.getName()) + " " + power;
 	}
 	
 	private String formatContest(ContestType contest, Language lang)
@@ -173,7 +173,7 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 		StringBuilder builder = new StringBuilder();
 		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		
-		builder.append(emojiService.getTypeEmoji(TypeService.getByName(type.getName())));
+		builder.append(emojiService.getTypeEmoji((type.getName())));
 		builder.append(" ");
 		builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
 		
@@ -227,4 +227,5 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 			return titleMap.get(lang);
 		}
 	}
+
 }

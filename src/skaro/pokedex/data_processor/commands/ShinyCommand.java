@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.ConfigurationService;
 import skaro.pokedex.core.IServiceManager;
-import skaro.pokedex.core.PerkChecker;
+import skaro.pokedex.core.PerkService;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
@@ -78,7 +78,7 @@ public class ShinyCommand extends AbstractCommand
 		if(!input.isValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 
-		PerkChecker perkService = (PerkChecker)services.getService(ServiceType.PERK);
+		PerkService perkService = (PerkService)services.getService(ServiceType.PERK);
 		
 		if(!perkService.userHasCommandPrivileges(requester))
 			return Mono.just(createNonPrivilegedReply(input));

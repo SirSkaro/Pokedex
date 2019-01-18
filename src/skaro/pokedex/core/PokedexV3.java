@@ -78,8 +78,9 @@ public class PokedexV3
 		
 		ConfigurationService configurationService = ConfigurationService.initialize(ConfigurationType.DEVELOP);
 		CommandService commandMap = new CommandService();
-		PerkChecker perkService = createPatreonService(configurationService);
+		PerkService perkService = createPatreonService(configurationService);
 		PokeFlexService pokeFlexService = createPokeFlexService(configurationService);
+		FlexCache flexCacheService = createCacheService(pokeFlexService);
 		
 		PokedexManager manager = PokedexManager.PokedexConfigurator.newInstance()
 								.withService(configurationService)
@@ -90,11 +91,12 @@ public class PokedexV3
 								.withService(new EmojiService())
 								.withService(pokeFlexService)
 								.withService(new TTSConverter())
-								.withService(createCacheService(pokeFlexService))
+								.withService(flexCacheService)
 								.configure();
 		
 		populateCommandMap(manager, commandMap);
 		perkService.setServiceManager(ServiceManager.ServiceManagerBuilder.newInstance(manager).addService(ServiceType.DISCORD).build());
+		//typeService.setServiceManager(ServiceManager.ServiceManagerBuilder.newInstance(manager).addService(ServiceType.CACHE).build());
 		
 		System.out.println("[Pokedex main] Done");
 		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
@@ -147,11 +149,11 @@ public class PokedexV3
 		return new DiscordService(discordClient);
 	}
 	
-	private static PerkChecker createPatreonService(ConfigurationService configService)
+	private static PerkService createPatreonService(ConfigurationService configService)
 	{
 		Optional<String> patreonAccessToken = configService.getConfigData("access_token", "patreon");
 		PatreonAPI patreonClient = new PatreonAPI(patreonAccessToken.get());
-		return new PerkChecker(patreonClient);
+		return new PerkService(patreonClient);
 	}
 	
 	private static PokeFlexService createPokeFlexService(ConfigurationService configService)
@@ -185,7 +187,6 @@ public class PokedexV3
 		//ColorService, PokeFlexService
 		commandServiceBuilder.removeService(ServiceType.CONFIG);
 		commandServiceBuilder.addService(ServiceType.POKE_FLEX);
-		commandService.addCommand(new MoveCommand(commandServiceBuilder.build(), new MoveResponseFormatter(serviceBuilderEmoji.build())));
 		commandService.addCommand(new CoverageCommand(commandServiceBuilder.build(), new CoverageResponseFormatter(serviceBuilderColor.build())));
 		
 		//ColorService, PokeFlexService, PerkService
@@ -203,6 +204,7 @@ public class PokedexV3
 		commandServiceBuilder.addService(ServiceType.CACHE);
 		commandService.addCommand(new ItemCommand(commandServiceBuilder.build(), new ItemResponseFormatter(serviceBuilderEmoji.build())));
 		commandService.addCommand(new LearnCommand(commandServiceBuilder.build(), new LearnResponseFormatter(serviceBuilderColor.build())));
+		commandService.addCommand(new MoveCommand(commandServiceBuilder.build(), new MoveResponseFormatter(serviceBuilderEmoji.build())));
 		
 		//ColorService, PokeFlexService, PerkService, TTSService
 		commandServiceBuilder.removeService(ServiceType.CACHE);

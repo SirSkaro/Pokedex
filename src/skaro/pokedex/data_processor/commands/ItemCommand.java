@@ -98,8 +98,7 @@ public class ItemCommand extends AbstractCommand
 						.flatMap(itemCategoryRequest -> itemCategoryRequest.makeRequest(factory))
 						.ofType(ItemCategory.class)
 						.doOnNext(itemCategory -> dataMap.put(ItemCategory.class.getName(), itemCategory))
-						.then(Mono.just(dataMap))
-					);
+						.then(Mono.just(dataMap)));
 			
 			this.addRandomExtraMessage(builder);
 			return result.map(dataMap -> formatter.format(input, dataMap, builder));
