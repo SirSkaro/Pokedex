@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor;
 
-import java.util.Arrays;
 import java.util.List;
 
 import skaro.pokedex.core.FlexCache;
@@ -12,9 +11,6 @@ import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper.EfficacyCategory;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper.EfficacyInteractionBuilder;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
-import skaro.pokedex.input_processor.Language;
-import skaro.pokeflex.objects.type.Type;
 
 public class TypeService implements IService, IServiceConsumer
 {	 		
@@ -40,23 +36,9 @@ public class TypeService implements IService, IServiceConsumer
 		this.services = services;
 	}
 	
-    public String getNameInLanguage(String typeName, Language lang)
+    public TypeEfficacyWrapper getEfficacyOnDefense(List<String> typeNames)
     {
-    	FlexCache cache = (FlexCache)services.getService(ServiceType.CACHE);
-    	Type type = (Type)cache.getCachedData(CachedResource.TYPE, typeName);
-    	return TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey()));
-    }
-    
-    public TypeEfficacyWrapper getEfficacyOnDefense(String primaryTypeName)
-    {
-    	List<String> types = Arrays.asList(primaryTypeName);
-    	return buildEfficacyWrapper(EfficacyCategory.DEFENSE, types);
-    }
-    
-    public TypeEfficacyWrapper getEfficacyOnDefense(String primaryTypeName, String secondaryTypeName)
-    {
-    	List<String> types = Arrays.asList(primaryTypeName, secondaryTypeName);
-    	return buildEfficacyWrapper(EfficacyCategory.DEFENSE, types);
+    	return buildEfficacyWrapper(EfficacyCategory.DEFENSE, typeNames);
     }
     
     public TypeEfficacyWrapper getEfficacyOnOffense(List<String> typeNames)

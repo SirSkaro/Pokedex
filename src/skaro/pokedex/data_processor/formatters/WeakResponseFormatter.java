@@ -1,7 +1,6 @@
 package skaro.pokedex.data_processor.formatters;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
@@ -14,14 +13,15 @@ import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
-import skaro.pokedex.data_processor.TypeTracker;
+import skaro.pokedex.data_processor.TypeEfficacyWrapper.Efficacy;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
+import skaro.pokeflex.objects.type.Type;
 
 public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsumer 
 {
@@ -67,34 +67,38 @@ public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsume
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder) 
 	{
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
-		List<TypeService> typeList = (List<TypeService>)(List<?>)data.get(TypeService.class.getName());
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
+		TypeEfficacyWrapper wrapper = (TypeEfficacyWrapper)data.getValue(TypeEfficacyWrapper.class.getName(), 0);
 		Response response = new Response();
-		
-		TypeService type1 = typeList.get(0);
-		TypeService type2 = typeList.size() > 1 ? typeList.get(1) : null;
-		TypeEfficacyWrapper wrapper = TypeTracker.onDefense(type1, type2);
 		
 		//Add model and header depending on if the user specified a Pokemon
 		if(pokemon != null && species != null)
 		{
 			builder.setThumbnail(pokemon.getSprites().getFrontDefault());
-			response.addToReply(formatHeader(species, type1, type2, lang));
+			response.addToReply(formatHeader(species, wrapper, lang));
 		}
 		else
-			response.addToReply(formatHeader(type1, type2, lang));
+			response.addToReply(formatHeader(wrapper, lang));
 		
 		//Format body
-		builder.addField(CommonData.WEAK.getInLanguage(lang), combineLists(wrapper, lang, 2.0, 4.0), false);
-		builder.addField(CommonData.NEUTRAL.getInLanguage(lang), getList(wrapper, lang, 1.0), false);
-		builder.addField(CommonData.RESIST.getInLanguage(lang), combineLists(wrapper, lang, 0.5, 0.25), false);
-		builder.addField(CommonData.IMMUNE.getInLanguage(lang), getList(wrapper, lang, 0.0), false);
+		String weakList = combineEfficaciesToString(wrapper, Efficacy.EFFECTIVE, Efficacy.QUAD_EFFECTIVE, lang);
+		String neutralList = efficacyListToString(wrapper.getInteraction(Efficacy.NEUTRAL), "", lang);
+		String resistList = combineEfficaciesToString(wrapper, Efficacy.RESIST, Efficacy.QUAD_RESIST, lang);
+		String immuneList = efficacyListToString(wrapper.getInteraction(Efficacy.IMMUNE), "", lang);
+		
+		if(!weakList.isEmpty())
+			builder.addField(CommonData.WEAK.getInLanguage(lang), weakList, false);
+		if(!neutralList.isEmpty())
+			builder.addField(CommonData.NEUTRAL.getInLanguage(lang), neutralList, false);
+		if(!resistList.isEmpty())
+			builder.addField(CommonData.RESIST.getInLanguage(lang), resistList, false);
+		if(!immuneList.isEmpty())
+			builder.addField(CommonData.IMMUNE.getInLanguage(lang), immuneList, false);
 		
 		//Set color
 		builder.setColor(colorService.getColorForWrapper(wrapper));
@@ -103,62 +107,74 @@ public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsume
 		return response;
 	}
 	
-	private String formatHeader(PokemonSpecies species, TypeService type1, TypeService type2, Language lang)
+	private String formatHeader(PokemonSpecies species, TypeEfficacyWrapper wrapper, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
 		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
+		List<Type> types = wrapper.getTypes();
+		Type type = types.get(0);
 		
 		builder.append("**__"+TextFormatter.pokemonFlexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+" ");
-		builder.append("("+ emojiService.getTypeEmoji(type1) + type1.getNameInLanguage(lang));
-		builder.append(type2 != null 
-				? ("/"+emojiService.getTypeEmoji(type2) + type2.getNameInLanguage(lang) +")__**") 
-				: ")__**");
+		builder.append("("+ emojiService.getTypeEmoji(type.getName()) + type.getNameInLanguage(lang.getFlexKey()));
+		
+		if(types.size() > 1)
+		{
+			type = types.get(1);
+			builder.append("/"+emojiService.getTypeEmoji(type.getName()) + type.getNameInLanguage(lang.getFlexKey()));
+		}
+		builder.append(")__**");
 		
 		return builder.toString();
 	}
 	
-	private String formatHeader(TypeService type1, TypeService type2, Language lang)
+	private String formatHeader(TypeEfficacyWrapper wrapper, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
 		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
+		List<Type> types = wrapper.getTypes();
+		Type type = types.get(0);
 		
-		builder.append("**__" + emojiService.getTypeEmoji(type1) + type1.getNameInLanguage(lang));
-		builder.append(type2 != null ? "/"+ emojiService.getTypeEmoji(type2) + type2.getNameInLanguage(lang) +"__**": "__**");
+		builder.append("**__" + emojiService.getTypeEmoji(type.getName()) + type.getNameInLanguage(lang.getFlexKey()));
+		if(types.size() > 1)
+		{
+			type = types.get(1);
+			builder.append("/"+ emojiService.getTypeEmoji(type.getName()) + type.getNameInLanguage(lang.getFlexKey()));
+		}
+		builder.append("__**");
 		
 		return builder.toString();
 	}
 	
-	private String combineLists(TypeEfficacyWrapper wrapper, Language lang, double mult1, double mult2)
+	private String combineEfficaciesToString(TypeEfficacyWrapper wrapper, Efficacy efficacy1, Efficacy efficacy2, Language lang)
 	{
-		Optional<String> strCheck;
-		String inter1, intern2;
 		StringBuilder builder = new StringBuilder();
+		List<Type> typeList1 = wrapper.getInteraction(efficacy1);
+		List<Type> typeList2 = wrapper.getInteraction(efficacy2);
+		String efficacy1List = efficacyListToString(typeList1, "", lang);
+		String efficacy2List = efficacyListToString(typeList2, "**", lang);
 		
-		strCheck = wrapper.interactionToString(mult1, lang);
-		inter1 = strCheck.isPresent() ? strCheck.get() : null;
-		
-		strCheck = wrapper.interactionToString(mult2, lang);
-		intern2 = strCheck.isPresent() ? strCheck.get() : null;
-		
-		if(inter1 == null && intern2 == null)
-			return null;
-		
-		if(inter1 != null)
-			builder.append(inter1);
-		
-		if(inter1 != null && intern2 != null)
-			builder.append(", **"+intern2+"**");
-		else if(intern2 != null)
-			builder.append("**"+intern2+"**");
+		builder.append(efficacy1List);
+		if(!efficacy1List.isEmpty() && !efficacy2List.isEmpty())
+			builder.append(", ");
+		builder.append(efficacy2List);
 		
 		return builder.toString();
 	}
 	
-	private String getList(TypeEfficacyWrapper wrapper, Language lang, double mult)
+	private String efficacyListToString(List<Type> types, String markUp, Language lang)
 	{
-		Optional<String> strCheck = wrapper.interactionToString(mult, lang);
-		return (strCheck.isPresent() ? strCheck.get() : null);
+		if(types.isEmpty())
+			return "";
+		
+		StringBuilder builder = new StringBuilder();
+		types.forEach(type -> {
+			builder.append(markUp);
+			builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
+			builder.append(markUp);
+			builder.append(", ");
+			});
+		
+		return builder.substring(0, builder.length() - 2);
 	}
-	
 	
 }

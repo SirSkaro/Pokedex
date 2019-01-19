@@ -1,28 +1,33 @@
 package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
 import skaro.pokedex.core.IServiceManager;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TypeEfficacyWrapper;
 import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon.Type;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.handle.obj.IUser;
 
 public class WeakCommand extends AbstractCommand 
 {
@@ -57,61 +62,80 @@ public class WeakCommand extends AbstractCommand
 				"https://i.imgur.com/E79RCZO.gif");
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return true; }
+	@Override
 	public String getArguments() { return "<pokemon> or <type> or <type>, <type>"; }
 	
 	@Override
 	public boolean hasExpectedServices(IServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
-				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.TYPE);
 	}
 	
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{ 
 		if(!input.isValid())
-			return formatter.invalidInputResponse(input);
+			return Mono.just(formatter.invalidInputResponse(input));
 		
-		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-		MultiMap<Object> dataMap = new MultiMap<Object>();
 		EmbedCreateSpec builder = new EmbedCreateSpec();
+		Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>());
 		
 		try
 		{
-			//Gather data according to the argument case
+			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			
 			if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON) //argument is a Pokemon
 			{	
-				Pokemon pokemon = (Pokemon)factory.createFlexObject(new Request(Endpoint.POKEMON, input.getArg(0).getFlexForm()));
-				dataMap.put(Pokemon.class.getName(), pokemon);
-				
-				Object flexObj = factory.createFlexObject(pokemon.getSpecies().getUrl(), Endpoint.POKEMON_SPECIES);
-				dataMap.put(PokemonSpecies.class.getName(), flexObj);
-				
-				for(Type type : pokemon.getTypes())
-				{
-					TypeService typeData = TypeService.getByName(type.getType().getName());
-					dataMap.add(TypeService.class.getName(), typeData);
-				}
-				
-				this.addAdopter(pokemon, builder);
+				String pokemonName = input.getArg(0).getFlexForm();
+				Request pokemonRequest = new Request(Endpoint.POKEMON, pokemonName);
+				result = result.flatMap(dataMap -> pokemonRequest.makeRequest(factory)
+							.ofType(Pokemon.class)
+							.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+							.doOnNext(pokemon -> {
+								dataMap.put(Pokemon.class.getName(), pokemon);
+								dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapper(pokemon.getTypes()));
+							})
+							.map(pokemon -> new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
+							.flatMap(speciesRequest -> speciesRequest.makeRequest(factory))
+							.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
+							.then(Mono.just(dataMap)));
 			}
 			else //data is a list of types
 			{
-				for(AbstractArgument arg : input.getArgs())
-				{
-					TypeService typeData = TypeService.getByName(arg.getFlexForm());
-					dataMap.add(TypeService.class.getName(), typeData);
-				}
+				result = result.doOnNext(dataMap -> dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapperFromArguments(input.getArgs())));
 			}
 			
 			this.addRandomExtraMessage(builder);
-			return formatter.format(input, dataMap, builder);
+			return result.map(dataMap -> formatter.format(input, dataMap, builder));
 		}
 		catch(Exception e)
 		{
 			Response response = new Response();
 			this.addErrorMessage(response, input, "1006", e); 
-			return response;
+			return Mono.just(response);
 		}
+	}
+	
+	private TypeEfficacyWrapper createWrapper(List<Type> types)
+	{
+		TypeService typeService = (TypeService)services.getService(ServiceType.TYPE);
+		List<String> typeNames = types.stream()
+				.map(type -> type.getType().getName())
+				.collect(Collectors.toList());
+		
+		return typeService.getEfficacyOnDefense(typeNames);
+	}
+	
+	private TypeEfficacyWrapper createWrapperFromArguments(List<AbstractArgument> types)
+	{
+		TypeService typeService = (TypeService)services.getService(ServiceType.TYPE);
+		List<String> typeNames = types.stream()
+				.map(arg -> arg.getFlexForm())
+				.collect(Collectors.toList());
+		
+		return typeService.getEfficacyOnDefense(typeNames);
 	}
 }

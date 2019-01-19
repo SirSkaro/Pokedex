@@ -91,21 +91,17 @@ public class MoveCommand extends AbstractCommand
 			
 			result = Mono.just(new MultiMap<IFlexObject>())
 					.flatMap(dataMap -> initialRequest.makeRequest(factory)
-							.ofType(Move.class)
-							.doOnNext(move -> {
-								dataMap.put(Move.class.getName(), move);
-								dataMap.put(Type.class.getName(), cachedTypeData.getByName(move.getType().getName()));
-							})
-							.flatMap(move -> Flux.just(new RequestURL(move.getDamageClass().getUrl(), Endpoint.MOVE_DAMAGE_CLASS))
-									.concatWithValues(new RequestURL(move.getTarget().getUrl(), Endpoint.MOVE_TARGET))
-									.concatWithValues(new RequestURL(move.getContestType().getUrl(), Endpoint.CONTEST_TYPE))
-									.flatMap(request -> request.makeRequest(factory))
-									.doOnNext(flexObject -> dataMap.put(flexObject.getClass().getName(), flexObject))
-									.then(Mono.just(dataMap))
-									)
-							
-							
-							);
+						.ofType(Move.class)
+						.doOnNext(move -> {
+							dataMap.put(Move.class.getName(), move);
+							dataMap.put(Type.class.getName(), cachedTypeData.getByName(move.getType().getName()));
+						})
+						.flatMap(move -> Flux.just(new RequestURL(move.getDamageClass().getUrl(), Endpoint.MOVE_DAMAGE_CLASS))
+								.concatWithValues(new RequestURL(move.getTarget().getUrl(), Endpoint.MOVE_TARGET))
+								.concatWithValues(new RequestURL(move.getContestType().getUrl(), Endpoint.CONTEST_TYPE))
+								.flatMap(request -> request.makeRequest(factory))
+								.doOnNext(flexObject -> dataMap.put(flexObject.getClass().getName(), flexObject))
+								.then(Mono.just(dataMap))));
 			
 			this.addRandomExtraMessage(builder);
 			return result.map(dataMap -> formatter.format(input, dataMap, builder));

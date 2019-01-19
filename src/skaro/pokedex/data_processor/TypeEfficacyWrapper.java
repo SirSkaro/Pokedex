@@ -9,17 +9,18 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import skaro.pokedex.core.EmojiService;
 import skaro.pokedex.input_processor.Language;
+import skaro.pokeflex.api.IFlexObject;
+import skaro.pokeflex.objects.type.DamageRelations;
 import skaro.pokeflex.objects.type.Type;
 
-public class TypeEfficacyWrapper 
+public class TypeEfficacyWrapper implements IFlexObject
 {
 	private Map<Efficacy, List<Type>> interactions;
 	private List<Type> typesToCheck;
 	private List<Type> typesToCheckAgainst;
 	
-	public final double[][] efficacyMatrix = new double[/*attacker*/][/*defender*/]{
+	public static double[][] efficacyMatrix = new double[/*attacker*/][/*defender*/]{
 		  //  			   0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17	 18
 		  /*0Normal*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
 		  /*1Fighting*/ { 2.0, 1.0, 0.5, 0.5, 1.0, 2.0, 0.5, 0.0, 2.0, 1.0, 1.0, 1.0, 1.0, 0.5, 2.0, 1.0, 2.0, 0.5, 1.0 },
@@ -61,16 +62,6 @@ public class TypeEfficacyWrapper
 	public List<Type> getTypes()
 	{
 		return new ArrayList<Type>(typesToCheck);
-	}
-	
-	public String typesToString(Language lang, EmojiService emojiService)
-	{
-		StringBuilder builder = new StringBuilder();
-		
-		for(Type type : typesToCheck)
-			builder.append("/"+emojiService.getTypeEmoji(type.getName()) + type.getNameInLanguage(lang.getFlexKey()));
-		
-		return builder.substring(1);
 	}
 	
 	public Optional<String> interactionToString(Efficacy efficacy, Language lang)
@@ -169,19 +160,63 @@ public class TypeEfficacyWrapper
 	
 	private void setUpOnDefense()
 	{
-		Type primaryType = typesToCheck.get(0);
-		Optional<Type> secondaryType = Optional.ofNullable(typesToCheck.get(1));
+		for(Type typeToCheckAgainst : typesToCheckAgainst)
+		{
+			Efficacy efficacy = checkEfficacyOnDefense(typeToCheckAgainst);
+			interactions.get(efficacy).add(typeToCheckAgainst);
+		}
+	}
+	
+	private Efficacy checkEfficacyOnDefense(Type type)
+	{
+		DamageRelations primaryTypeRelations = typesToCheck.get(0).getDamageRelations();
+		DamageRelations secondaryTypeRelations = null;
 		
-		for(Type type: typesToCheckAgainst)
-			for(Efficacy efficacy : Efficacy.values())
-				for(int i = 0; i < efficacyMatrix.length - 1; i++)
-				{
-					double efficacyOperand1 = efficacyMatrix[i][primaryType.getId()];
-					double efficacyOperand2 = secondaryType.isPresent() ? efficacyMatrix[i][secondaryType.get().getId()] : 1.0;
-					
-					if(efficacyOperand1 * efficacyOperand2 == efficacy.multiplier)
-						interactions.get(efficacy).add(type);
-				}
+		if(typesToCheck.size() > 1)
+			secondaryTypeRelations = typesToCheck.get(1).getDamageRelations();
+		
+		if(secondaryTypeRelations != null)
+			return checkEfficacyOnDefense(type, primaryTypeRelations, secondaryTypeRelations);
+		return checkEfficacyOnDefense(type, primaryTypeRelations);
+	}
+	
+	private Efficacy checkEfficacyOnDefense(Type type, DamageRelations primaryTypeRelations, DamageRelations secondaryTypeRelations)
+	{
+		Efficacy efficacyOfPrimaryType = checkEfficacyOnDefense(type, primaryTypeRelations);
+		Efficacy efficacyOfSecondaryType = checkEfficacyOnDefense(type, secondaryTypeRelations);
+		
+		if(efficacyOfPrimaryType == Efficacy.IMMUNE || efficacyOfSecondaryType == Efficacy.IMMUNE)
+			return Efficacy.IMMUNE;
+		else if(efficacyOfPrimaryType == Efficacy.EFFECTIVE && efficacyOfSecondaryType == Efficacy.EFFECTIVE)
+			return Efficacy.QUAD_EFFECTIVE;
+		else if(efficacyOfPrimaryType == Efficacy.NEUTRAL && efficacyOfSecondaryType == Efficacy.EFFECTIVE)
+			return Efficacy.EFFECTIVE;
+		else if(efficacyOfPrimaryType == Efficacy.EFFECTIVE && efficacyOfSecondaryType == Efficacy.NEUTRAL)
+			return Efficacy.EFFECTIVE;
+		else if(efficacyOfPrimaryType == Efficacy.NEUTRAL && efficacyOfSecondaryType == Efficacy.NEUTRAL)
+			return Efficacy.NEUTRAL;
+		else if(efficacyOfPrimaryType == Efficacy.EFFECTIVE && efficacyOfSecondaryType == Efficacy.RESIST)
+			return Efficacy.NEUTRAL;
+		else if(efficacyOfPrimaryType == Efficacy.RESIST && efficacyOfSecondaryType == Efficacy.EFFECTIVE)
+			return Efficacy.NEUTRAL;
+		else if(efficacyOfPrimaryType == Efficacy.RESIST && efficacyOfSecondaryType == Efficacy.NEUTRAL)
+			return Efficacy.RESIST;
+		else if(efficacyOfPrimaryType == Efficacy.NEUTRAL && efficacyOfSecondaryType == Efficacy.RESIST)
+			return Efficacy.RESIST;
+			
+		return Efficacy.QUAD_RESIST;
+	}
+	
+	private Efficacy checkEfficacyOnDefense(Type type, DamageRelations typeRelations)
+	{
+		if(typeRelations.takesDoubleDamageFrom(type))
+			return Efficacy.EFFECTIVE;
+		else if(typeRelations.takesHalfDamageFrom(type))
+			return Efficacy.RESIST;
+		else if(typeRelations.takesNoDamageFrom(type))
+			return Efficacy.IMMUNE;
+		
+		return Efficacy.NEUTRAL;
 	}
 	
 	private void setUpOnOffense()

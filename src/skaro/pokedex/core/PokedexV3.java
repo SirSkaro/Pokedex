@@ -17,6 +17,7 @@ import skaro.pokedex.core.ServiceManager.ServiceManagerBuilder;
 import skaro.pokedex.data_processor.CommandService;
 import skaro.pokedex.data_processor.LearnMethodData;
 import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
 import skaro.pokedex.data_processor.commands.CommandsCommand;
@@ -81,6 +82,7 @@ public class PokedexV3
 		PerkService perkService = createPatreonService(configurationService);
 		PokeFlexService pokeFlexService = createPokeFlexService(configurationService);
 		FlexCache flexCacheService = createCacheService(pokeFlexService);
+		TypeService typeService = new TypeService();
 		
 		PokedexManager manager = PokedexManager.PokedexConfigurator.newInstance()
 								.withService(configurationService)
@@ -92,11 +94,12 @@ public class PokedexV3
 								.withService(pokeFlexService)
 								.withService(new TTSConverter())
 								.withService(flexCacheService)
+								.withService(typeService)
 								.configure();
 		
 		populateCommandMap(manager, commandMap);
 		perkService.setServiceManager(ServiceManager.ServiceManagerBuilder.newInstance(manager).addService(ServiceType.DISCORD).build());
-		//typeService.setServiceManager(ServiceManager.ServiceManagerBuilder.newInstance(manager).addService(ServiceType.CACHE).build());
+		typeService.setServiceManager(ServiceManager.ServiceManagerBuilder.newInstance(manager).addService(ServiceType.CACHE).build());
 		
 		System.out.println("[Pokedex main] Done");
 		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
@@ -193,12 +196,10 @@ public class PokedexV3
 		commandServiceBuilder.addService(ServiceType.PERK);
 		commandService.addCommand(new AbilityCommand(commandServiceBuilder.build(), new AbilityResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new DataCommand(commandServiceBuilder.build(), new DataResponseFormatter(serviceBuilderEmoji.build())));
-		
 		commandService.addCommand(new RandpokeCommand(commandServiceBuilder.build(), new RandpokeResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new SetCommand(commandServiceBuilder.build()));
 		commandService.addCommand(new ShinyCommand(commandServiceBuilder.build(), new ShinyResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new StatsCommand(commandServiceBuilder.build(), new StatsResponseFormatter(serviceBuilderColor.build())));
-		commandService.addCommand(new WeakCommand(commandServiceBuilder.build(), new WeakResponseFormatter(serviceBuilderEmoji.build())));
 		
 		//ColorService, PokeFlexService, PerkService, CacheService
 		commandServiceBuilder.addService(ServiceType.CACHE);
@@ -206,8 +207,12 @@ public class PokedexV3
 		commandService.addCommand(new LearnCommand(commandServiceBuilder.build(), new LearnResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new MoveCommand(commandServiceBuilder.build(), new MoveResponseFormatter(serviceBuilderEmoji.build())));
 		
-		//ColorService, PokeFlexService, PerkService, TTSService
+		//ColorService, PokeFlexService, PerkService, TypeService
 		commandServiceBuilder.removeService(ServiceType.CACHE);
+		commandServiceBuilder.addService(ServiceType.TYPE);
+		commandService.addCommand(new WeakCommand(commandServiceBuilder.build(), new WeakResponseFormatter(serviceBuilderEmoji.build())));
+		
+		//ColorService, PokeFlexService, PerkService, TTSService
 		serviceBuilderColor.addService(ServiceType.TTS);
 		commandService.addCommand(new DexCommand(commandServiceBuilder.build(), new DexResponseFormatter(serviceBuilderColor.build())));
 	}
