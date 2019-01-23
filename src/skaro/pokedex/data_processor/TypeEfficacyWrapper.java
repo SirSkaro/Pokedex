@@ -3,13 +3,10 @@ package skaro.pokedex.data_processor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
-import skaro.pokedex.input_processor.Language;
 import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.type.DamageRelations;
 import skaro.pokeflex.objects.type.Type;
@@ -19,29 +16,6 @@ public class TypeEfficacyWrapper implements IFlexObject
 	private Map<Efficacy, List<Type>> interactions;
 	private List<Type> typesToCheck;
 	private List<Type> typesToCheckAgainst;
-	
-	public static double[][] efficacyMatrix = new double[/*attacker*/][/*defender*/]{
-		  //  			   0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17	 18
-		  /*0Normal*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
-		  /*1Fighting*/ { 2.0, 1.0, 0.5, 0.5, 1.0, 2.0, 0.5, 0.0, 2.0, 1.0, 1.0, 1.0, 1.0, 0.5, 2.0, 1.0, 2.0, 0.5, 1.0 },
-		  /*2Flying*/  	{ 1.0, 2.0, 1.0, 1.0, 1.0, 0.5, 2.0, 1.0, 0.5, 1.0, 1.0, 2.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
-		  /*3Poison*/  	{ 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 1.0, 0.5, 0.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0 },
-		  /*4Ground*/  	{ 1.0, 1.0, 0.0, 2.0, 1.0, 2.0, 0.5, 1.0, 2.0, 2.0, 1.0, 0.5, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
-		  /*5Rock*/  	{ 1.0, 0.5, 2.0, 1.0, 0.5, 1.0, 2.0, 1.0, 0.5, 2.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0 },
-		  /*6Bug*/  	{ 1.0, 0.5, 0.5, 0.5, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 1.0, 2.0, 1.0, 2.0, 1.0, 1.0, 2.0, 0.5, 1.0 },
-		  /*7Ghost*/  	{ 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 0.5, 1.0, 1.0 },
-		  /*8Steel*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 0.5, 0.5, 0.5, 1.0, 0.5, 1.0, 2.0, 1.0, 1.0, 2.0, 1.0 },
-		  /*9Fire*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 2.0, 1.0, 2.0, 0.5, 0.5, 2.0, 1.0, 1.0, 2.0, 0.5, 1.0, 1.0, 1.0 },
-		  /*10Water*/  	{ 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 1.0, 2.0, 0.5, 0.5, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0 },
-		  /*11Grass*/  	{ 1.0, 1.0, 0.5, 0.5, 2.0, 2.0, 0.5, 1.0, 0.5, 0.5, 2.0, 0.5, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0 },
-		  /*12Electric*/{ 1.0, 1.0, 2.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 0.5, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0 },
-		  /*13Psychic*/ { 1.0, 2.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 0.0, 1.0, 1.0 },
-		  /*14Ice*/     { 1.0, 1.0, 2.0, 1.0, 2.0, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 2.0, 1.0, 1.0, 0.5, 2.0, 1.0, 1.0, 1.0 },
-		  /*15Dragon*/  { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 0.0, 1.0 },
-		  /*16Dark*/ 	{ 1.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 0.5, 0.5, 1.0 },
-		  /*17Fairy*/  	{ 1.0, 2.0, 1.0, 0.5, 1.0, 1.0, 1.0, 1.0, 0.5, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 1.0, 1.0 },
-		  /*18Bird*/  	{ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 },
-		    			};
 	
 	private TypeEfficacyWrapper(EfficacyInteractionBuilder builder)
 	{
@@ -53,7 +27,6 @@ public class TypeEfficacyWrapper implements IFlexObject
 			interactions.put(efficacy, new ArrayList<Type>());
 	}
 	
-	
 	public List<Type> getInteraction(Efficacy efficacy) 
 	{ 
 		return new ArrayList<Type>(interactions.get(efficacy)); 
@@ -62,19 +35,6 @@ public class TypeEfficacyWrapper implements IFlexObject
 	public List<Type> getTypes()
 	{
 		return new ArrayList<Type>(typesToCheck);
-	}
-	
-	public Optional<String> interactionToString(Efficacy efficacy, Language lang)
-	{
-		if(interactions.get(efficacy).isEmpty())
-			return Optional.empty();
-		
-		StringBuilder builder = new StringBuilder();
-		
-		for(Type type : interactions.get(efficacy))
-			builder.append(", "+type.getNameInLanguage(lang.getFlexKey()));
-		
-		return Optional.of(builder.substring(2));
 	}
 	
 	public static class EfficacyInteractionBuilder
@@ -225,16 +185,21 @@ public class TypeEfficacyWrapper implements IFlexObject
 		Set<Type> neutral = new HashSet<>();
 		Set<Type> resist = new HashSet<>();
 		Set<Type> immune = new HashSet<>();
-		Iterator<Type> iter = typesToCheck.iterator();
 		
-		immune.addAll(typesToCheckAgainst);
-		
-		while (iter.hasNext())
+		for(Type typeToCheck : typesToCheck)
 		{
-			Type type = iter.next();
-			effective.addAll(getTypesWithOffenseEffectiveness(type, Efficacy.EFFECTIVE));
-			neutral.addAll(getTypesWithOffenseEffectiveness(type, Efficacy.NEUTRAL));
-			resist.addAll(getTypesWithOffenseEffectiveness(type, Efficacy.RESIST));
+			DamageRelations damageRelations = typeToCheck.getDamageRelations();
+			for(Type typeToCheckAgainst : typesToCheckAgainst)
+			{
+				if(damageRelations.causesDoubleDamageTo(typeToCheckAgainst))
+					effective.add(typeToCheckAgainst);
+				else if(damageRelations.causesHalfDamageTo(typeToCheckAgainst))
+					resist.add(typeToCheckAgainst);
+				else if(damageRelations.causesNoDamageTo(typeToCheckAgainst))
+					immune.add(typeToCheckAgainst);
+				else
+					neutral.add(typeToCheckAgainst);
+			}
 		}
 		
 		//Remove duplicates with priority: effective > neutral > resist > immune
@@ -259,19 +224,4 @@ public class TypeEfficacyWrapper implements IFlexObject
 		
 	}
 	
-	private Set<Type> getTypesWithOffenseEffectiveness(Type atk, Efficacy efficacy)
-	{
-		Set<Type> types = new HashSet<>(typesToCheckAgainst);
-		Type type;
-		
-		Iterator<Type> iter = types.iterator();
-		while(iter.hasNext())
-		{
-			type = iter.next();
-			if(efficacyMatrix[atk.getId()][type.getId()] != efficacy.multiplier)
-				iter.remove();
-		}
-			
-		return types;
-	}
 }

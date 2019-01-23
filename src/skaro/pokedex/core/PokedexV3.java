@@ -187,12 +187,9 @@ public class PokedexV3
 		commandServiceBuilder.addService(ServiceType.CONFIG);
 		commandService.addCommand(new AboutCommand(commandServiceBuilder.build()));
 		
-		//ColorService, PokeFlexService
+		//ColorService, PokeFlexService, PerkService
 		commandServiceBuilder.removeService(ServiceType.CONFIG);
 		commandServiceBuilder.addService(ServiceType.POKE_FLEX);
-		commandService.addCommand(new CoverageCommand(commandServiceBuilder.build(), new CoverageResponseFormatter(serviceBuilderColor.build())));
-		
-		//ColorService, PokeFlexService, PerkService
 		commandServiceBuilder.addService(ServiceType.PERK);
 		commandService.addCommand(new AbilityCommand(commandServiceBuilder.build(), new AbilityResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new DataCommand(commandServiceBuilder.build(), new DataResponseFormatter(serviceBuilderEmoji.build())));
@@ -211,6 +208,7 @@ public class PokedexV3
 		commandServiceBuilder.removeService(ServiceType.CACHE);
 		commandServiceBuilder.addService(ServiceType.TYPE);
 		commandService.addCommand(new WeakCommand(commandServiceBuilder.build(), new WeakResponseFormatter(serviceBuilderEmoji.build())));
+		commandService.addCommand(new CoverageCommand(commandServiceBuilder.build(), new CoverageResponseFormatter(serviceBuilderEmoji.build())));
 		
 		//ColorService, PokeFlexService, PerkService, TTSService
 		serviceBuilderColor.addService(ServiceType.TTS);
