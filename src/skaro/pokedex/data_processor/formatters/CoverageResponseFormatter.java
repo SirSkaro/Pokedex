@@ -80,14 +80,13 @@ public class CoverageResponseFormatter implements IDiscordFormatter, IServiceCon
 		String immuneList = efficacyListToString(wrapper.getInteraction(Efficacy.IMMUNE), lang);
 		
 		if(!effectiveList.isEmpty())
-		builder.addField(CommonData.SUPER_EFFECTIVE.getInLanguage(lang), effectiveList, false);
+			builder.addField(CommonData.SUPER_EFFECTIVE.getInLanguage(lang), effectiveList, false);
 		if(!neutralList.isEmpty())
-		builder.addField(CommonData.NEUTRAL.getInLanguage(lang), neutralList, false);
+			builder.addField(CommonData.NEUTRAL.getInLanguage(lang), neutralList, false);
 		if(!resistList.isEmpty())
-		builder.addField(CommonData.RESIST.getInLanguage(lang), resistList, false);
+			builder.addField(CommonData.RESIST.getInLanguage(lang), resistList, false);
 		if(!immuneList.isEmpty())
-		builder.addField(CommonData.IMMUNE.getInLanguage(lang), immuneList, false);
-		
+			builder.addField(CommonData.IMMUNE.getInLanguage(lang), immuneList, false);
 		
 		builder.setColor(colorService.getColorForWrapper(wrapper));
 		response.setEmbed(builder);

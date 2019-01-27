@@ -11,6 +11,7 @@ import discord4j.core.DiscordClientBuilder;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.presence.Presence;
 import discord4j.core.spec.MessageCreateSpec;
+import reactor.core.publisher.Hooks;
 import reactor.core.scheduler.Schedulers;
 import skaro.pokedex.core.FlexCache.CachedResource;
 import skaro.pokedex.core.ServiceManager.ServiceManagerBuilder;
@@ -106,6 +107,8 @@ public class PokedexV3
 		DiscordClient client = service.getV3Client();
 		InputProcessor inputProcessor = new InputProcessor(commandMap, 190670386239635456L);
 		
+		Hooks.onOperatorDebug();
+		
 		client.getEventDispatcher().on(MessageCreateEvent.class) 
 	        .map(MessageCreateEvent::getMessage)	//Get the message of the event
 	        .filter(msg -> msg.getContent().isPresent())	//only process if the message is not empty
@@ -192,7 +195,6 @@ public class PokedexV3
 		commandServiceBuilder.addService(ServiceType.POKE_FLEX);
 		commandServiceBuilder.addService(ServiceType.PERK);
 		commandService.addCommand(new AbilityCommand(commandServiceBuilder.build(), new AbilityResponseFormatter(serviceBuilderColor.build())));
-		commandService.addCommand(new DataCommand(commandServiceBuilder.build(), new DataResponseFormatter(serviceBuilderEmoji.build())));
 		commandService.addCommand(new RandpokeCommand(commandServiceBuilder.build(), new RandpokeResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new SetCommand(commandServiceBuilder.build()));
 		commandService.addCommand(new ShinyCommand(commandServiceBuilder.build(), new ShinyResponseFormatter(serviceBuilderColor.build())));
@@ -203,6 +205,7 @@ public class PokedexV3
 		commandService.addCommand(new ItemCommand(commandServiceBuilder.build(), new ItemResponseFormatter(serviceBuilderEmoji.build())));
 		commandService.addCommand(new LearnCommand(commandServiceBuilder.build(), new LearnResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new MoveCommand(commandServiceBuilder.build(), new MoveResponseFormatter(serviceBuilderEmoji.build())));
+		commandService.addCommand(new DataCommand(commandServiceBuilder.build(), new DataResponseFormatter(serviceBuilderEmoji.build())));
 		
 		//ColorService, PokeFlexService, PerkService, TypeService
 		commandServiceBuilder.removeService(ServiceType.CACHE);

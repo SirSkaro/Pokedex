@@ -37,7 +37,7 @@ public class TypeData implements ICachedData
 	{
 		List<PokeFlexRequest> concurrentRequests = new ArrayList<>();
 		
-		System.out.println("[LearnMethodData] Getting Method data from external API...");
+		System.out.println("[TypeData] Getting Type data from external API...");
 		
 		for(int i = 1; i < 19; i++)
 			concurrentRequests.add(new Request(Endpoint.TYPE, Integer.toString(i)));

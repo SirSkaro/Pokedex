@@ -18,9 +18,9 @@ import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Statistic;
-import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.ability.Ability;
 import skaro.pokeflex.objects.egg_group.EggGroup;
 import skaro.pokeflex.objects.evolution_chain.Chain;
@@ -72,7 +72,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 	}
 
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedCreateSpec builder) 
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
@@ -81,13 +81,11 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		EvolutionChain evoChain = (EvolutionChain)data.getValue(EvolutionChain.class.getName(), 0);
 		
-		//Header
 		response.addToReply("**__"+
 				TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+
 				" | #" + species.getId() +
 				" | " + TextFormatter.formatGeneration(species.getGeneration().getName(), lang) + "__**");
 		
-		//Body
 		builder.addField(DataField.BASE_STATS.getFieldTitle(lang), formatBaseStats(pokemon, lang), true);
 		builder.addField(DataField.TYPING.getFieldTitle(lang), formatTypes(data.get(Type.class.getName()), lang), true);
 		builder.addField(DataField.ABILITIES.getFieldTitle(lang), formatAbilities(data.get(Ability.class.getName()), lang), true);
@@ -98,26 +96,26 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		builder.addField(DataField.EGG_GROUP.getFieldTitle(lang), formatEggGroups(data.get(EggGroup.class.getName()),lang), true);
 		builder.addField(DataField.HATCH_TIME.getFieldTitle(lang), calcHatchTime(species, lang), true);
 		
-		//Optional data
 		if(hasMultipleForms(data.get(PokemonForm.class.getName())))
 			builder.addField(DataField.FORMS.getFieldTitle(lang), formatForms(data.get(PokemonForm.class.getName()), species, lang), true);
 		if(!isOnlyEvolution(evoChain))
 		{
 			builder.addField(DataField.EVO_CHAIN.getFieldTitle(lang), formatEvolutionChain(species, data.get(PokemonSpecies.class.getName()), evoChain, lang), true);
-			builder.addField(DataField.EVO_REQ.getFieldTitle(lang), formatEvolutionDetails(evoChain, pokemon.getName()), true);
+			
+			String evolutionRequirements = formatEvolutionDetails(evoChain, pokemon.getName());
+			if(!evolutionRequirements.isEmpty())
+				builder.addField(DataField.EVO_REQ.getFieldTitle(lang), evolutionRequirements, true);
 		}
 		
-		//Extra
 		builder.setImage(pokemon.getModel().getUrl());
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.setColor(colorService.getColorForType(type));
-		
 		
 		response.setEmbed(builder);
 		return response;
 	}
 	
-	private String formatEggGroups(List<Object> groups, Language lang)
+	private String formatEggGroups(List<IFlexObject> groups, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
 		EggGroup tempGroup;
@@ -131,21 +129,19 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		return builder.substring(0, builder.length() - 3);
 	}
 	
-	private boolean hasMultipleForms(List<Object> forms)
+	private boolean hasMultipleForms(List<IFlexObject> forms)
 	{
 		return forms.size() > 1;
 	}
 	
-	private String formatForms(List<Object> forms, PokemonSpecies species, Language lang)
+	private String formatForms(List<IFlexObject> forms, PokemonSpecies species, Language lang)
 	{
 		List<String> resultList = new ArrayList<String>();
-		PokemonForm tempForm;
-		String formName;
 		
 		for(Object form : forms)
 		{
-			tempForm = (PokemonForm)form;
-			formName = TextFormatter.flexFormToProper(tempForm.getFormInLanguage(lang.getFlexKey()));
+			PokemonForm tempForm = (PokemonForm)form;
+			String formName = TextFormatter.flexFormToProper(tempForm.getFormInLanguage(lang.getFlexKey()));
 			if(!resultList.contains(formName))
 			{
 				if(formName.isEmpty())
@@ -202,7 +198,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 			if(chain.getSpecies().getName().equals(tempSpecies.getName()))
 			{
 				builder.append(TextFormatter.flexFormToProper(tempSpecies.getNameInLanguage(lang.getFlexKey())));
-				builder.append(" -> ");
+				builder.append(" ➔ ");
 				break;
 			}
 		}
@@ -286,7 +282,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		return pokemon.getHeight()/10.0 + " m*/* " + pokemon.getWeight()/10.0 + " kg";
 	}
 	
-	private String formatAbilities(List<Object> abilities, Language lang)
+	private String formatAbilities(List<IFlexObject> abilities, Language lang)
 	{
 		List<String> resultList = new ArrayList<String>();
 		Ability tempAbility;
@@ -300,7 +296,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		return listToItemizedString(resultList);
 	}
 	
-	private String formatTypes(List<Object> types, Language lang)
+	private String formatTypes(List<IFlexObject> types, Language lang)
 	{
 		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		StringBuilder builder = new StringBuilder();
@@ -309,7 +305,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		for(Object type : types)
 		{
 			tempType = (Type)type;
-			builder.append(emojiService.getTypeEmoji(TypeService.getByName(tempType.getName())));
+			builder.append(emojiService.getTypeEmoji(tempType.getName()));
 			builder.append(" ");
 			builder.append(TextFormatter.flexFormToProper(tempType.getNameInLanguage(lang.getFlexKey())) + "\n");
 		}
