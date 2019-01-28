@@ -81,9 +81,7 @@ public class HelpCommand extends AbstractCommand
 		}
 		catch(Exception e)
 		{
-			Response errorResponse = new Response();
-			this.addErrorMessage(errorResponse, input, "1014", e); 
-			return Mono.just(errorResponse);
+			return Mono.just(this.createErrorResponse(input, e));
 		}
 	}
 	

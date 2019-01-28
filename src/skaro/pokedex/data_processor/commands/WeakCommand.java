@@ -82,41 +82,33 @@ public class WeakCommand extends AbstractCommand
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>());
+		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 		
-		try
-		{
-			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-			
-			if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON) //argument is a Pokemon
-			{	
-				String pokemonName = input.getArg(0).getFlexForm();
-				Request pokemonRequest = new Request(Endpoint.POKEMON, pokemonName);
-				result = result.flatMap(dataMap -> pokemonRequest.makeRequest(factory)
-							.ofType(Pokemon.class)
-							.flatMap(pokemon -> this.addAdopter(pokemon, builder))
-							.doOnNext(pokemon -> {
-								dataMap.put(Pokemon.class.getName(), pokemon);
-								dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapper(pokemon.getTypes()));
-							})
-							.map(pokemon -> new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
-							.flatMap(speciesRequest -> speciesRequest.makeRequest(factory))
-							.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
-							.then(Mono.just(dataMap)));
-			}
-			else //data is a list of types
-			{
-				result = result.doOnNext(dataMap -> dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapperFromArguments(input.getArgs())));
-			}
-			
-			this.addRandomExtraMessage(builder);
-			return result.map(dataMap -> formatter.format(input, dataMap, builder));
+		if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
+		{	
+			String pokemonName = input.getArg(0).getFlexForm();
+			Request pokemonRequest = new Request(Endpoint.POKEMON, pokemonName);
+			result = result.flatMap(dataMap -> pokemonRequest.makeRequest(factory)
+						.ofType(Pokemon.class)
+						.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+						.doOnNext(pokemon -> {
+							dataMap.put(Pokemon.class.getName(), pokemon);
+							dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapper(pokemon.getTypes()));
+						})
+						.map(pokemon -> new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
+						.flatMap(speciesRequest -> speciesRequest.makeRequest(factory))
+						.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
+						.then(Mono.just(dataMap)));
 		}
-		catch(Exception e)
+		else
 		{
-			Response response = new Response();
-			this.addErrorMessage(response, input, "1006", e); 
-			return Mono.just(response);
+			result = result.doOnNext(dataMap -> dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapperFromArguments(input.getArgs())));
 		}
+		
+		this.addRandomExtraMessage(builder);
+		return result
+				.map(dataMap -> formatter.format(input, dataMap, builder))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
 	private TypeEfficacyWrapper createWrapper(List<Type> types)

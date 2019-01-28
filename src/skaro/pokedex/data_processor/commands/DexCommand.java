@@ -79,34 +79,26 @@ public class DexCommand extends AbstractCommand
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		Mono<MultiMap<IFlexObject>> result;
 		
-		//Obtain data
-		try
-		{
-			String pokemonName = input.getArg(0).getFlexForm();
-			String versionName = input.getArg(1).getFlexForm();
-			Request request = new Request(Endpoint.POKEMON, pokemonName);
-			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-			
-			result = Mono.just(new MultiMap<IFlexObject>())
-						.flatMap(dataMap -> request.makeRequest(factory)//request Pokemon
-							.ofType(Pokemon.class)
-							.flatMap(pokemon -> this.addAdopter(pokemon, builder))
-							.doOnNext(pokemon -> dataMap.put(Pokemon.class.getName(), pokemon))
-							.flatMap(pokemon -> Flux.just(new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
-									.concatWithValues(new Request(Endpoint.VERSION, versionName))
-									.flatMap(concurrentRequest -> concurrentRequest.makeRequest(factory))
-									.ofType(IFlexObject.class)
-									.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
-									.then(Mono.just(dataMap))));
-			
-			this.addRandomExtraMessage(builder);
-			return result.map(dataMap -> formatter.format(input, dataMap, builder));
-		}
-		catch(Exception e)
-		{
-			Response response = new Response();
-			this.addErrorMessage(response, input, "1010", e); 
-			return Mono.just(response);
-		}
+		String pokemonName = input.getArg(0).getFlexForm();
+		String versionName = input.getArg(1).getFlexForm();
+		Request request = new Request(Endpoint.POKEMON, pokemonName);
+		factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+		
+		result = Mono.just(new MultiMap<IFlexObject>())
+					.flatMap(dataMap -> request.makeRequest(factory)
+						.ofType(Pokemon.class)
+						.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+						.doOnNext(pokemon -> dataMap.put(Pokemon.class.getName(), pokemon))
+						.flatMap(pokemon -> Flux.just(new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
+								.concatWithValues(new Request(Endpoint.VERSION, versionName))
+								.flatMap(concurrentRequest -> concurrentRequest.makeRequest(factory))
+								.ofType(IFlexObject.class)
+								.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
+								.then(Mono.just(dataMap))));
+		
+		this.addRandomExtraMessage(builder);
+		return result
+				.map(dataMap -> formatter.format(input, dataMap, builder))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 }

@@ -130,7 +130,6 @@ public class LocationCommand extends AbstractCommand
 				return Mono.just(reply);
 			}
 			
-			//Format reply
 			reply.addToReply("**"+TextFormatter.flexFormToProper(pokemon.getName())+"** can be found in **"+(encounterDataFromVersion.size())+
 					"** location(s) in **"+TextFormatter.flexFormToProper(versionDBForm)+"** version");
 			reply.setEmbed(formatEmbed(encounterDataFromVersion, versionDBForm, pokemon));
@@ -139,8 +138,7 @@ public class LocationCommand extends AbstractCommand
 		} 
 		catch(Exception e)
 		{ 
-			this.addErrorMessage(reply, input, "1011", e); 
-			return Mono.just(reply);
+			return Mono.just(this.createErrorResponse(input, e));
 		}
 	}
 	

@@ -74,33 +74,26 @@ public class StatsCommand extends AbstractCommand
 		if(!input.isValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
-		try
-		{
-			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-			EmbedCreateSpec builder = new EmbedCreateSpec();
-			String pokemonName = input.getArg(0).getFlexForm();
-			Mono<MultiMap<IFlexObject>> result;
-			
-			Request request = new Request(Endpoint.POKEMON, pokemonName);
-			result = Mono.just(new MultiMap<IFlexObject>())
-					.flatMap(dataMap -> request.makeRequest(factory)
-						.ofType(Pokemon.class)
-						.flatMap(pokemon -> this.addAdopter(pokemon, builder))
-						.doOnNext(pokemon -> dataMap.put(Pokemon.class.getName(), pokemon))
-						.map(pokemon -> new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
-						.flatMap(speciesRequest -> speciesRequest.makeRequest(factory))
-						.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
-						.then(Mono.just(dataMap)));
-			
-			this.addRandomExtraMessage(builder);
-			return result.map(dataMap -> formatter.format(input, dataMap, builder));
-		}
-		catch(Exception e)
-		{
-			Response response = new Response();
-			this.addErrorMessage(response, input, "1001", e); 
-			return Mono.just(response);
-		}
+		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		String pokemonName = input.getArg(0).getFlexForm();
+		Mono<MultiMap<IFlexObject>> result;
+		
+		Request request = new Request(Endpoint.POKEMON, pokemonName);
+		result = Mono.just(new MultiMap<IFlexObject>())
+				.flatMap(dataMap -> request.makeRequest(factory)
+					.ofType(Pokemon.class)
+					.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+					.doOnNext(pokemon -> dataMap.put(Pokemon.class.getName(), pokemon))
+					.map(pokemon -> new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
+					.flatMap(speciesRequest -> speciesRequest.makeRequest(factory))
+					.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
+					.then(Mono.just(dataMap)));
+		
+		this.addRandomExtraMessage(builder);
+		return result
+				.map(dataMap -> formatter.format(input, dataMap, builder))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
 }

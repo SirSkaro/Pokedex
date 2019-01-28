@@ -77,28 +77,21 @@ public class CoverageCommand extends AbstractCommand
 		if(!input.isValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
-		try
-		{
-			EmbedCreateSpec builder = new EmbedCreateSpec();
-			Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>());
-			
-			result = result.flatMap(dataMap -> Flux.fromIterable(input.getArgs())
-						.flatMap(userArgument -> getTypeFromArgument(userArgument))
-						.collectList()
-						.map(typeNames -> createWrapper(typeNames))
-						.doOnNext(typeWrapper -> dataMap.put(TypeEfficacyWrapper.class.getName(), typeWrapper))
-						.then(Mono.just(dataMap))
-						);
-			
-			this.addRandomExtraMessage(builder);
-			return result.map(dataMap ->formatter.format(input, dataMap, builder));
-		}
-		catch(Exception e)
-		{
-			Response response = new Response();
-			this.addErrorMessage(response, input, "1007", e); 
-			return Mono.just(response);
-		}
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>());
+		
+		result = result
+				.flatMap(dataMap -> Flux.fromIterable(input.getArgs())
+				.flatMap(userArgument -> getTypeFromArgument(userArgument))
+				.collectList()
+				.map(typeNames -> createWrapper(typeNames))
+				.doOnNext(typeWrapper -> dataMap.put(TypeEfficacyWrapper.class.getName(), typeWrapper))
+				.then(Mono.just(dataMap)));
+		
+		this.addRandomExtraMessage(builder);
+		return result
+				.map(dataMap -> formatter.format(input, dataMap, builder))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
 	private Mono<String> getTypeFromArgument(AbstractArgument argument)

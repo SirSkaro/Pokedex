@@ -105,19 +105,20 @@ public abstract class AbstractCommand implements IServiceConsumer
 		return result.toString();
 	}
 	
-	protected void addErrorMessage(Response reply, Input input, String errCode, Exception e)
+	protected Response createErrorResponse(Input input, Throwable error)
 	{
+		Response response = new Response();
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		
-		reply.addToReply("**Error Report**");
-		builder.setDescription("Could not get requested data. My external API may be down or may not have your data. Please try again later.\n\n"
+		response.addToReply("**Error Report** - "+commandName+" command");
+		builder.setDescription("Some error occured while processing your request! Please try again later.\n\n"
 				+ "If you think this is a bug, please __screenshot this report__ and post it in the Support Server!");
-		builder.addField("Error Code", errCode, true);
-		builder.addField("Technical Error", e.getClass().getSimpleName(), true);
+		builder.addField("Technical Error", error.getClass().getSimpleName(), true);
 		builder.addField("User Input", input.argsToString(), true);
-		builder.addField("Link to Support Server", "[Click here to report](https://discord.gg/D5CfFkN)", true);
+		builder.addField("Link to Support Server", "[Support Server link](https://discord.gg/D5CfFkN)", true);
 		
-		reply.setEmbed(builder);
+		response.setEmbed(builder);
+		return response;
 	}
 	
 	protected void addRandomExtraMessage(EmbedCreateSpec builder)

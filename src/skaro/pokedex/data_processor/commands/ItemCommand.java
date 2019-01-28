@@ -79,36 +79,28 @@ public class ItemCommand extends AbstractCommand
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		String itemName = input.getArg(0).getFlexForm();
 		
-		try
-		{
-			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-			FlexCache flexCache = (FlexCache)services.getService(ServiceType.CACHE);
-			TypeData cachedTypeData = (TypeData)flexCache.getCachedData(CachedResource.TYPE);
+		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+		FlexCache flexCache = (FlexCache)services.getService(ServiceType.CACHE);
+		TypeData cachedTypeData = (TypeData)flexCache.getCachedData(CachedResource.TYPE);
 
-			Request request = new Request(Endpoint.ITEM, itemName);
-			result = Mono.just(new MultiMap<IFlexObject>())
-					.flatMap(dataMap -> request.makeRequest(factory)
-						.ofType(Item.class)
-						.doOnNext(item -> {
-							dataMap.put(Item.class.getName(), item);
-							if(item.getNgType() != null)
-								dataMap.put(Type.class.getName(), cachedTypeData.getByName(item.getNgType().toLowerCase()));
-						})
-						.map(item -> new RequestURL(item.getCategory().getUrl(), Endpoint.ITEM_CATEGORY))
-						.flatMap(itemCategoryRequest -> itemCategoryRequest.makeRequest(factory))
-						.ofType(ItemCategory.class)
-						.doOnNext(itemCategory -> dataMap.put(ItemCategory.class.getName(), itemCategory))
-						.then(Mono.just(dataMap)));
-			
-			this.addRandomExtraMessage(builder);
-			return result.map(dataMap -> formatter.format(input, dataMap, builder));
-		}
-		catch(Exception e)
-		{
-			Response response = new Response();
-			this.addErrorMessage(response, input, "1004", e); 
-			e.printStackTrace();
-			return Mono.just(response);
-		}
+		Request request = new Request(Endpoint.ITEM, itemName);
+		result = Mono.just(new MultiMap<IFlexObject>())
+				.flatMap(dataMap -> request.makeRequest(factory)
+					.ofType(Item.class)
+					.doOnNext(item -> {
+						dataMap.put(Item.class.getName(), item);
+						if(item.getNgType() != null)
+							dataMap.put(Type.class.getName(), cachedTypeData.getByName(item.getNgType().toLowerCase()));
+					})
+					.map(item -> new RequestURL(item.getCategory().getUrl(), Endpoint.ITEM_CATEGORY))
+					.flatMap(itemCategoryRequest -> itemCategoryRequest.makeRequest(factory))
+					.ofType(ItemCategory.class)
+					.doOnNext(itemCategory -> dataMap.put(ItemCategory.class.getName(), itemCategory))
+					.then(Mono.just(dataMap)));
+		
+		this.addRandomExtraMessage(builder);
+		return result
+				.map(dataMap -> formatter.format(input, dataMap, builder))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 }

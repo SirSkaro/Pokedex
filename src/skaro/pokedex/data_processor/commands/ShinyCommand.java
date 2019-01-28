@@ -81,75 +81,61 @@ public class ShinyCommand extends AbstractCommand
 		PerkService perkService = (PerkService)services.getService(ServiceType.PERK);
 		
 		if(!perkService.userHasCommandPrivileges(requester))
-			return Mono.just(createNonPrivilegedReply(input));
+		{
+			return Mono.just(createNonPrivilegedReply(input))
+					.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+		}
 		
-		try
-		{
-			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-			EmbedCreateSpec builder = new EmbedCreateSpec();
-			String pokemonName = input.getArg(0).getFlexForm();
-			Mono<MultiMap<IFlexObject>> result;
-			
-			Request request = new Request(Endpoint.POKEMON, pokemonName);
-			result = Mono.just(new MultiMap<IFlexObject>())
-					.flatMap(dataMap -> request.makeRequest(factory)
-						.ofType(Pokemon.class)
-						.flatMap(pokemon -> this.addAdopter(pokemon, builder))
-						.doOnNext(pokemon -> dataMap.put(Pokemon.class.getName(), pokemon))
-						.map(pokemon -> new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
-						.flatMap(speciesRequest -> speciesRequest.makeRequest(factory))
-						.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
-						.then(Mono.just(dataMap)));
-			
-			this.addRandomExtraMessage(builder);
-			return result.map(dataMap -> formatter.format(input, dataMap, builder));
-		}
-		catch(Exception e)
-		{
-			Response response = new Response();
-			this.addErrorMessage(response, input, "1012b", e); 
-			return Mono.just(response);
-		}
+		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		String pokemonName = input.getArg(0).getFlexForm();
+		Mono<MultiMap<IFlexObject>> result;
+		
+		Request request = new Request(Endpoint.POKEMON, pokemonName);
+		result = Mono.just(new MultiMap<IFlexObject>())
+				.flatMap(dataMap -> request.makeRequest(factory)
+					.ofType(Pokemon.class)
+					.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+					.doOnNext(pokemon -> dataMap.put(Pokemon.class.getName(), pokemon))
+					.map(pokemon -> new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
+					.flatMap(speciesRequest -> speciesRequest.makeRequest(factory))
+					.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
+					.then(Mono.just(dataMap)));
+		
+		this.addRandomExtraMessage(builder);
+		return result
+				.map(dataMap -> formatter.format(input, dataMap, builder))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 
 	private Response createNonPrivilegedReply(Input input)
 	{
-		String path;
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Response response = new Response();
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 
-		try
+		//Easter egg: if the user specifies the default non-privilaged Pokemon, use the Patreon logo instead
+		if(!input.getArg(0).getDbForm().equals(defaultPokemon))
 		{
-			//format embed
-			//Easter egg: if the user specifies the default non-privilaged Pokemon, use the Patreon logo instead
-			if(!input.getArg(0).getDbForm().equals(defaultPokemon))
-			{
-				builder.setImage("attachment://jirachi.gif");
-				builder.setColor(colorService.getColorForType("psychic"));
-				path = baseModelPath + "/"+ defaultPokemon +".gif";
-				response.addImage(new File(path));
-				builder.setFooter("Pledge $1 to receive this perk!", this.getPatreonLogo());
-			}
-			else
-			{
-				builder.setColor(colorService.getColorForPatreon());
-				builder.setImage(this.getPatreonLogo());
-			}
-			
-			//format reply
-			response.addToReply("Pledge $1/month on Patreon to gain access to all HD shiny Pokemon!");
-			builder.addField("Patreon link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);
-			builder.setThumbnail(this.getPatreonBanner());
-			
-			response.setEmbed(builder);
-			return response;
+			builder.setImage("attachment://jirachi.gif");
+			builder.setColor(colorService.getColorForType("psychic"));
+			String path = baseModelPath + "/"+ defaultPokemon +".gif";
+			response.addImage(new File(path));
+			builder.setFooter("Pledge $1 to receive this perk!", this.getPatreonLogo());
 		}
-		catch (Exception e) 
+		else
 		{
-			this.addErrorMessage(response, input, "1012a", e); 
-			return response;
+			builder.setColor(colorService.getColorForPatreon());
+			builder.setImage(this.getPatreonLogo());
 		}
+		
+		//format reply
+		response.addToReply("Pledge $1/month on Patreon to gain access to all HD shiny Pokemon!");
+		builder.addField("Patreon link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);
+		builder.setThumbnail(this.getPatreonBanner());
+		
+		response.setEmbed(builder);
+		return response;
 	}
 
 }

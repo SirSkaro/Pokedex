@@ -91,23 +91,16 @@ public class SetCommand extends AbstractCommand
 	public Mono<Response> discordReply(Input input, User requester)
 	{ 
 		Response response = new Response();
-		String tier, pokemonName;
-		int generation;
-		
-		//Check if input is valid
+
 		if(!inputIsValid(response, input))
 			return Mono.just(response);
 		
-		tier = input.getArg(1).getDbForm().toUpperCase();
-		pokemonName = input.getArg(0).getFlexForm();
+		String tier = input.getArg(1).getDbForm().toUpperCase();
+		String pokemonName = input.getArg(0).getFlexForm();
+		int generation = Integer.parseInt(input.getArg(2).getDbForm());
+		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 		
-		//Obtain data
-		try 
-		{
-			generation = Integer.parseInt(input.getArg(2).getDbForm());
-			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-			
-			Mono<Response> result = Mono.just(new MultiMap<IFlexObject>())
+		Mono<Response> result = Mono.just(new MultiMap<IFlexObject>())
 			.flatMap(dataMap -> Flux.fromIterable(createRequests(pokemonName, generation))
 					.flatMap(request -> request.makeRequest(factory)
 					.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject)))
@@ -118,19 +111,11 @@ public class SetCommand extends AbstractCommand
 							.ofType(Set.class)
 							.doOnNext(sets -> formatHeader(response, pokemon, sets, tier, generation))
 							.flatMap(sets -> formatEmbed(pokemon, sets, tier))
-							.doOnNext(embedBuilder -> response.setEmbed(embedBuilder))
-							))
+							.doOnNext(embedBuilder -> response.setEmbed(embedBuilder))))
 			.then(Mono.just(response));
-			
-			return result;
-		} 
-		catch(Exception e)
-		{
-			Response errorResponse = new Response();
-			this.addErrorMessage(errorResponse, input, "1007", e);
-			e.printStackTrace();
-			return Mono.just(errorResponse);
-		}
+		
+		return result
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
 	private void formatHeader(Response response, Pokemon pokemon, Set sets, String tier, int generation)

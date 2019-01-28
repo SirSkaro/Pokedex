@@ -85,65 +85,54 @@ public class DataCommand extends AbstractCommand
 		if(!input.isValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 
-		try
-		{
-			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-			EmbedCreateSpec builder = new EmbedCreateSpec();
-			String pokemonArgument = input.getArg(0).getFlexForm();
-			Request pokemonRequest = new Request(Endpoint.POKEMON, pokemonArgument);
-			
-			Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>())
-					.flatMap(dataMap -> pokemonRequest.makeRequest(factory)
-							.ofType(Pokemon.class)
-							.flatMap(pokemon -> this.addAdopter(pokemon, builder))
-							.doOnNext(pokemon -> {
-								dataMap.put(Pokemon.class.getName(), pokemon);
-								addTypesToMap(pokemon, dataMap);
-							})
-							.flatMap(pokemon -> Mono.just(new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
-									.flatMap(request -> request.makeRequest(factory))
-									.ofType(PokemonSpecies.class)
-									.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
-									.flatMap(species -> Flux.just(new RequestURL(species.getEvolutionChain().getUrl(), Endpoint.EVOLUTION_CHAIN))
-											.concatWithValues(new RequestURL(species.getGrowthRate().getUrl(), Endpoint.GROWTH_RATE))
-											.concatWithValues(pokemon.getAbilities()
-													.stream()
-													.map(ability -> new RequestURL(ability.getAbility().getUrl(), Endpoint.ABILITY))
-													.toArray(RequestURL[]::new))
-											.concatWithValues(species.getEggGroups()
-													.stream()
-													.map(eggGroup -> new RequestURL(eggGroup.getUrl(), Endpoint.EGG_GROUP))
-													.toArray(RequestURL[]::new))
-											.concatWithValues(species.getVarieties()
-													.stream()
-													.filter(variety -> !pokemon.getName().equals(variety.getPokemon().getName()))
-													.map(variety -> new RequestURL(variety.getPokemon().getUrl(), Endpoint.POKEMON))
-													.toArray(RequestURL[]::new))
-											.flatMap(request -> request.makeRequest(factory))
-											.doOnNext(flexObj -> dataMap.add(flexObj.getClass().getName(), flexObj))
-											.then(Mono.fromCallable(() -> getEvolutionChain(dataMap))))
-									.map(evoChain -> getPokemonInChain(evoChain, pokemon))
-									.flatMap(pokemonRequests -> Flux.fromIterable(pokemonRequests)
-											.concatWithValues(getPokemonForms(dataMap)
-													.stream()
-													.toArray(RequestURL[]::new))
-											.flatMap(request -> request.makeRequest(factory))
-											.doOnNext(flexObj -> dataMap.add(flexObj.getClass().getName(), flexObj))
-											.then(Mono.just(dataMap))
-									).then(Mono.just(dataMap))
-								).then(Mono.just(dataMap))
-							);
-			
-			this.addRandomExtraMessage(builder);
-			return result
-					.map(dataMap -> formatter.format(input, dataMap, builder));
-		}
-		catch(Exception e)
-		{
-			Response response = new Response();
-			this.addErrorMessage(response, input, "1002", e);
-			return Mono.just(response);
-		}
+		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		String pokemonArgument = input.getArg(0).getFlexForm();
+		Request pokemonRequest = new Request(Endpoint.POKEMON, pokemonArgument);
+		
+		Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>())
+				.flatMap(dataMap -> pokemonRequest.makeRequest(factory)
+						.ofType(Pokemon.class)
+						.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+						.doOnNext(pokemon -> {
+							dataMap.put(Pokemon.class.getName(), pokemon);
+							addTypesToMap(pokemon, dataMap);
+						})
+						.flatMap(pokemon -> Mono.just(new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
+								.flatMap(request -> request.makeRequest(factory))
+								.ofType(PokemonSpecies.class)
+								.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
+								.flatMap(species -> Flux.just(new RequestURL(species.getEvolutionChain().getUrl(), Endpoint.EVOLUTION_CHAIN))
+										.concatWithValues(new RequestURL(species.getGrowthRate().getUrl(), Endpoint.GROWTH_RATE))
+										.concatWithValues(pokemon.getAbilities()
+												.stream()
+												.map(ability -> new RequestURL(ability.getAbility().getUrl(), Endpoint.ABILITY))
+												.toArray(RequestURL[]::new))
+										.concatWithValues(species.getEggGroups()
+												.stream()
+												.map(eggGroup -> new RequestURL(eggGroup.getUrl(), Endpoint.EGG_GROUP))
+												.toArray(RequestURL[]::new))
+										.concatWithValues(species.getVarieties()
+												.stream()
+												.filter(variety -> !pokemon.getName().equals(variety.getPokemon().getName()))
+												.map(variety -> new RequestURL(variety.getPokemon().getUrl(), Endpoint.POKEMON))
+												.toArray(RequestURL[]::new))
+										.flatMap(request -> request.makeRequest(factory))
+										.doOnNext(flexObj -> dataMap.add(flexObj.getClass().getName(), flexObj))
+										.then(Mono.fromCallable(() -> getEvolutionChain(dataMap))))
+								.map(evoChain -> getPokemonInChain(evoChain, pokemon))
+								.flatMap(pokemonRequests -> Flux.fromIterable(pokemonRequests)
+										.concatWithValues(getPokemonForms(dataMap)
+												.stream()
+												.toArray(RequestURL[]::new))
+										.flatMap(request -> request.makeRequest(factory))
+										.doOnNext(flexObj -> dataMap.add(flexObj.getClass().getName(), flexObj))
+										.then(Mono.just(dataMap)))));
+		
+		this.addRandomExtraMessage(builder);
+		return result
+				.map(dataMap -> formatter.format(input, dataMap, builder))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
 	private void addTypesToMap(Pokemon pokemon, MultiMap<IFlexObject> map)

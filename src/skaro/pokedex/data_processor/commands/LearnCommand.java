@@ -64,7 +64,7 @@ public class LearnCommand extends AbstractCommand
 		aliases.put("学习", Language.CHINESE_SIMPMLIFIED);
 		aliases.put("배우다", Language.KOREAN);
 		
-		createHelpMessage("primal groudon, roar, attract", "Mew, Thunder, Iron tail, Ice Beam, Stealth Rock, Spikes", "Golurk, Fly", "gible, earthquake, dual chop",
+		createHelpMessage("primal groudon, roar, attract", "Mew, Thunder, Iron tail, Ice Beam, Stealth Rock", "Golurk, Fly", "gible, earthquake, dual chop",
 				"https://i.imgur.com/EkXAXCP.gif");
 	}
 	
@@ -119,63 +119,56 @@ public class LearnCommand extends AbstractCommand
 		List<PokeFlexRequest> initialRequests = new ArrayList<>();
 		MultiMap<IFlexObject> dataToFormat = new MultiMap<>();
 		
-		try
+		factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+		
+		//Get data for every valid move
+		for(int i = 1; i < input.getArgs().size(); i++)
 		{
-			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-			
-			//Get data for every valid move
-			for(int i = 1; i < input.getArgs().size(); i++)
-			{
-				AbstractArgument arg = input.getArg(i);
-				if(arg.isValid())
-					initialRequests.add(new Request(Endpoint.MOVE, arg.getFlexForm()));
-				else
-					dataToFormat.add(LearnMethodWrapper.class.getName(), new LearnMethodWrapper(arg.getRawInput()));
-			}
-			
-			//Get data of Pokemon
-			initialRequests.add(new Request(Endpoint.POKEMON, input.getArg(0).getFlexForm()));
-			
-			result = Mono.just(dataToFormat)
-					.flatMap(dataMap -> Flux.fromIterable(initialRequests)
-						.flatMap(request -> request.makeRequest(factory))
-						.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
-						.filter(flexObject -> flexObject instanceof Pokemon)
-						.ofType(Pokemon.class)
-						.flatMap(pokemon -> this.addAdopter(pokemon, builder))
-						.flatMap(pokemon -> Mono.just(dataMap.get(skaro.pokeflex.objects.move.Move.class.getName()))
-								.ofType(List.class)
-								.flatMap(movesToCheckFor -> Mono.just(new RequestURL(pokemon.getSpecies().getUrl(), Endpoint.POKEMON_SPECIES))
-										.flatMap(request -> request.makeRequest(factory))
-										.ofType(PokemonSpecies.class)
-										.doOnNext(sepcies -> dataMap.put(PokemonSpecies.class.getName(), sepcies))
-										.flatMap(species -> Mono.just(new RequestURL(species.getEvolutionChain().getUrl(), Endpoint.EVOLUTION_CHAIN))
+			AbstractArgument arg = input.getArg(i);
+			if(arg.isValid())
+				initialRequests.add(new Request(Endpoint.MOVE, arg.getFlexForm()));
+			else
+				dataToFormat.add(LearnMethodWrapper.class.getName(), new LearnMethodWrapper(arg.getRawInput()));
+		}
+		
+		//Get data of Pokemon
+		initialRequests.add(new Request(Endpoint.POKEMON, input.getArg(0).getFlexForm()));
+		
+		result = Mono.just(dataToFormat)
+				.flatMap(dataMap -> Flux.fromIterable(initialRequests)
+					.flatMap(request -> request.makeRequest(factory))
+					.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
+					.filter(flexObject -> flexObject instanceof Pokemon)
+					.ofType(Pokemon.class)
+					.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+					.flatMap(pokemon -> Mono.just(dataMap.get(skaro.pokeflex.objects.move.Move.class.getName()))
+							.ofType(List.class)
+							.flatMap(movesToCheckFor -> Mono.just(new RequestURL(pokemon.getSpecies().getUrl(), Endpoint.POKEMON_SPECIES))
+									.flatMap(request -> request.makeRequest(factory))
+									.ofType(PokemonSpecies.class)
+									.doOnNext(sepcies -> dataMap.put(PokemonSpecies.class.getName(), sepcies))
+									.flatMap(species -> Mono.just(new RequestURL(species.getEvolutionChain().getUrl(), Endpoint.EVOLUTION_CHAIN))
+											.flatMap(request -> request.makeRequest(factory))
+											.ofType(EvolutionChain.class)
+											.flatMap(evolutionChain -> Flux.fromIterable(getAllPreEvolutions(evolutionChain, species))
 												.flatMap(request -> request.makeRequest(factory))
-												.ofType(EvolutionChain.class)
-												.flatMap(evolutionChain -> Flux.fromIterable(getAllPreEvolutions(evolutionChain, species))
-													.flatMap(request -> request.makeRequest(factory))
-													.ofType(PokemonSpecies.class)
-													.map(preEvoSpecies -> new Request(Endpoint.POKEMON, String.valueOf(preEvoSpecies.getId())))
-													.flatMap(preEvoPokemonRequest -> preEvoPokemonRequest.makeRequest(factory))
-													.ofType(Pokemon.class)
-													.collectList()
-													.map(preEvoList -> getAllLearnableMoves(pokemon, preEvoList))
-													.flatMap(allLearnableMoves -> Flux.fromIterable(movesToCheckFor)
-															.ofType(skaro.pokeflex.objects.move.Move.class)
-															.map(moveToCheckFor -> new LearnMethodWrapper(allLearnableMoves.get(((skaro.pokeflex.objects.move.Move)moveToCheckFor).getName()), (skaro.pokeflex.objects.move.Move)moveToCheckFor, learnMethodData))
-															.doOnNext(methodWrapper -> dataMap.add(LearnMethodWrapper.class.getName(), (IFlexObject) methodWrapper))
-															.then(Mono.just(dataMap)))))))
-						.then(Mono.just(dataMap)));
+												.ofType(PokemonSpecies.class)
+												.map(preEvoSpecies -> new Request(Endpoint.POKEMON, String.valueOf(preEvoSpecies.getId())))
+												.flatMap(preEvoPokemonRequest -> preEvoPokemonRequest.makeRequest(factory))
+												.ofType(Pokemon.class)
+												.collectList()
+												.map(preEvoList -> getAllLearnableMoves(pokemon, preEvoList))
+												.flatMap(allLearnableMoves -> Flux.fromIterable(movesToCheckFor)
+														.ofType(skaro.pokeflex.objects.move.Move.class)
+														.map(moveToCheckFor -> new LearnMethodWrapper(allLearnableMoves.get(((skaro.pokeflex.objects.move.Move)moveToCheckFor).getName()), (skaro.pokeflex.objects.move.Move)moveToCheckFor, learnMethodData))
+														.doOnNext(methodWrapper -> dataMap.add(LearnMethodWrapper.class.getName(), (IFlexObject) methodWrapper))
+														.then(Mono.just(dataMap)))))))
+					.then(Mono.just(dataMap)));
 			
 			this.addRandomExtraMessage(builder);
-			return result.map(dataMap -> formatter.format(input, dataMap, builder));
-		}
-		catch(Exception e)
-		{
-			Response response = new Response();
-			this.addErrorMessage(response, input, "1007", e);
-			return Mono.just(response);
-		}
+			return result
+					.map(dataMap -> formatter.format(input, dataMap, builder))
+					.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
 	private Map<String, Move> getAllLearnableMoves(Pokemon thisPokemon, List<Pokemon> preEvolutions)

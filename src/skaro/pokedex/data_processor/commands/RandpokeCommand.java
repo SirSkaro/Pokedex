@@ -74,31 +74,23 @@ public class RandpokeCommand extends AbstractCommand
 	@Override
 	public Mono<Response> discordReply(Input input, User requester)
 	{
-		try
-		{
-			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-			EmbedCreateSpec builder = new EmbedCreateSpec();
-			int randDexNum = ThreadLocalRandom.current().nextInt(1, 807 + 1);
-			Mono<MultiMap<IFlexObject>> result;
-			
-			result = Mono.just(new MultiMap<IFlexObject>())
-					.flatMap(dataMap -> Flux.fromIterable(createRequests(randDexNum))
-						.flatMap(request -> request.makeRequest(factory))
-						.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
-						.then(Mono.just(dataMap)));
-			
-			this.addRandomExtraMessage(builder);
-			return result.flatMap(dataMap -> Mono.just(dataMap.getValue(Pokemon.class.getName(), 0))
-					.ofType(Pokemon.class)
-					.flatMap(pokemon -> this.addAdopter(pokemon, builder))
-					.map(pokemon -> formatter.format(input, dataMap, builder)));
-		}
-		catch(Exception e)
-		{
-			Response response = new Response();
-			this.addErrorMessage(response, input, "1002", e); 
-			return Mono.just(response);
-		}
+		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		int randDexNum = ThreadLocalRandom.current().nextInt(1, 807 + 1);
+		Mono<MultiMap<IFlexObject>> result;
+		
+		result = Mono.just(new MultiMap<IFlexObject>())
+				.flatMap(dataMap -> Flux.fromIterable(createRequests(randDexNum))
+					.flatMap(request -> request.makeRequest(factory))
+					.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
+					.then(Mono.just(dataMap)));
+		
+		this.addRandomExtraMessage(builder);
+		return result.flatMap(dataMap -> Mono.just(dataMap.getValue(Pokemon.class.getName(), 0))
+				.ofType(Pokemon.class)
+				.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+				.map(pokemon -> formatter.format(input, dataMap, builder)))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
 	private List<PokeFlexRequest> createRequests(int pokedexNumber)

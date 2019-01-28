@@ -118,7 +118,7 @@ public class PokedexV3
 	        						.flatMap(channel ->  input.getCommand().discordReply(input, author)	//Pass the input to the command to get a response
 	        								.flatMap( response -> response.getAsSpec())
 	        								.flatMap( spec -> channel.createMessage(spec))
-	        								//.onErrorResume(error -> channel.createMessage(createErrorMessage()))
+	        								.onErrorResume(error -> channel.createMessage(createErrorMessage()))
 	        								)))) //Send the response
 	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
 
@@ -129,7 +129,7 @@ public class PokedexV3
 	private static MessageCreateSpec createErrorMessage()
 	{
 		return new MessageCreateSpec()
-				.setContent("Some error occurred and I could not recover. Please report this in the support server: https://discord.gg/D5CfFkN");
+				.setContent("Some error occurred and I could not recover. If this persists please report this in the support server: https://discord.gg/D5CfFkN");
 				
 	}
 	

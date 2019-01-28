@@ -82,36 +82,29 @@ public class MoveCommand extends AbstractCommand
 		Mono<MultiMap<IFlexObject>> result;
 		String moveName = input.getArg(0).getFlexForm();
 		
-		try
-		{
-			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-			FlexCache flexCache = (FlexCache)services.getService(ServiceType.CACHE);
-			TypeData cachedTypeData = (TypeData)flexCache.getCachedData(CachedResource.TYPE);
-			Request initialRequest = new Request(Endpoint.MOVE, moveName);
-			
-			result = Mono.just(new MultiMap<IFlexObject>())
-					.flatMap(dataMap -> initialRequest.makeRequest(factory)
-						.ofType(Move.class)
-						.doOnNext(move -> {
-							dataMap.put(Move.class.getName(), move);
-							dataMap.put(Type.class.getName(), cachedTypeData.getByName(move.getType().getName()));
-						})
-						.flatMap(move -> Flux.just(new RequestURL(move.getDamageClass().getUrl(), Endpoint.MOVE_DAMAGE_CLASS))
-								.concatWithValues(new RequestURL(move.getTarget().getUrl(), Endpoint.MOVE_TARGET))
-								.concatWithValues(new RequestURL(move.getContestType().getUrl(), Endpoint.CONTEST_TYPE))
-								.flatMap(request -> request.makeRequest(factory))
-								.doOnNext(flexObject -> dataMap.put(flexObject.getClass().getName(), flexObject))
-								.then(Mono.just(dataMap))));
-			
-			this.addRandomExtraMessage(builder);
-			return result.map(dataMap -> formatter.format(input, dataMap, builder));
-		}
-		catch(Exception e)
-		{
-			Response response = new Response();
-			this.addErrorMessage(response, input, "1006", e); 
-			return Mono.just(response);
-		}
+		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+		FlexCache flexCache = (FlexCache)services.getService(ServiceType.CACHE);
+		TypeData cachedTypeData = (TypeData)flexCache.getCachedData(CachedResource.TYPE);
+		Request initialRequest = new Request(Endpoint.MOVE, moveName);
+		
+		result = Mono.just(new MultiMap<IFlexObject>())
+				.flatMap(dataMap -> initialRequest.makeRequest(factory)
+					.ofType(Move.class)
+					.doOnNext(move -> {
+						dataMap.put(Move.class.getName(), move);
+						dataMap.put(Type.class.getName(), cachedTypeData.getByName(move.getType().getName()));
+					})
+					.flatMap(move -> Flux.just(new RequestURL(move.getDamageClass().getUrl(), Endpoint.MOVE_DAMAGE_CLASS))
+							.concatWithValues(new RequestURL(move.getTarget().getUrl(), Endpoint.MOVE_TARGET))
+							.concatWithValues(new RequestURL(move.getContestType().getUrl(), Endpoint.CONTEST_TYPE))
+							.flatMap(request -> request.makeRequest(factory))
+							.doOnNext(flexObject -> dataMap.put(flexObject.getClass().getName(), flexObject))
+							.then(Mono.just(dataMap))));
+		
+		this.addRandomExtraMessage(builder);
+		return result
+				.map(dataMap -> formatter.format(input, dataMap, builder))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
 }

@@ -77,9 +77,7 @@ public class CommandsCommand extends AbstractCommand
 		}
 		catch(Exception e)
 		{
-			Response errorResponse = new Response();
-			this.addErrorMessage(errorResponse, input, "1013", e); 
-			return Mono.just(errorResponse);
+			return Mono.just(this.createErrorResponse(input, e));
 		}
 	}
 
