@@ -9,14 +9,16 @@ import com.patreon.PatreonAPI;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.User;
 import discord4j.core.object.presence.Presence;
-import discord4j.core.spec.MessageCreateSpec;
-import reactor.core.publisher.Hooks;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import skaro.pokedex.core.FlexCache.CachedResource;
 import skaro.pokedex.core.ServiceManager.ServiceManagerBuilder;
 import skaro.pokedex.data_processor.CommandService;
 import skaro.pokedex.data_processor.LearnMethodData;
+import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
@@ -46,6 +48,7 @@ import skaro.pokedex.data_processor.formatters.RandpokeResponseFormatter;
 import skaro.pokedex.data_processor.formatters.ShinyResponseFormatter;
 import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
 import skaro.pokedex.data_processor.formatters.WeakResponseFormatter;
+import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.InputProcessor;
 import skaro.pokeflex.api.PokeFlexFactory;
 
@@ -107,18 +110,16 @@ public class PokedexV3
 		DiscordClient client = service.getV3Client();
 		InputProcessor inputProcessor = new InputProcessor(commandMap, 190670386239635456L);
 		
-		Hooks.onOperatorDebug();
-		
 		client.getEventDispatcher().on(MessageCreateEvent.class) 
 	        .map(MessageCreateEvent::getMessage)	//Get the message of the event
 	        .filter(msg -> msg.getContent().isPresent())	//only process if the message is not empty
 	        .flatMap(msg -> inputProcessor.processInput(msg.getContent().get())	//Unwrap the message from the Optional
 	        		.flatMap(input -> msg.getAuthor()	//Get the author
 	        				.flatMap(author -> msg.getChannel()	//Get the channel
-	        						.flatMap(channel ->  input.getCommand().discordReply(input, author)	//Pass the input to the command to get a response
-	        								.flatMap( response -> response.getAsSpec())
-	        								.flatMap( spec -> channel.createMessage(spec))
-	        								.onErrorResume(error -> channel.createMessage(createErrorMessage()))
+	        						.flatMap(channel ->  getResponse(input, author)	//Pass the input to the command to get a response
+	        								.flatMap(response -> response.getAsSpec())
+	        								.flatMap(spec -> channel.createMessage(spec)
+	        										.onErrorContinue((t,o) -> System.out.println("oopse!")))
 	        								)))) //Send the response
 	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
 
@@ -126,11 +127,16 @@ public class PokedexV3
 		client.login().block(); 
 	}
 	
-	private static MessageCreateSpec createErrorMessage()
+	private static Mono<Response> getResponse(Input input, User author)
 	{
-		return new MessageCreateSpec()
-				.setContent("Some error occurred and I could not recover. If this persists please report this in the support server: https://discord.gg/D5CfFkN");
-				
+		try
+		{
+			return input.getCommand().discordReply(input, author);
+		}
+		catch(Exception e)
+		{
+			return Mono.just(input.getCommand().createErrorResponse(input, e));
+		}
 	}
 	
 	private static FlexCache createCacheService(PokeFlexFactory factory)
@@ -164,7 +170,9 @@ public class PokedexV3
 	
 	private static PokeFlexService createPokeFlexService(ConfigurationService configService)
 	{
-		return new PokeFlexService(configService.getPokeFlexURL());
+		ScheduledExecutorService pokedexThreadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 6);
+		Scheduler scheduler = Schedulers.fromExecutorService(pokedexThreadPool);
+		return new PokeFlexService(configService.getPokeFlexURL(), scheduler);
 	}
 	
 	private static void populateCommandMap(PokedexManager manager, CommandService commandService) throws ServiceException, ServiceConsumerException

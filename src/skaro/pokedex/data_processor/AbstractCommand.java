@@ -81,6 +81,22 @@ public abstract class AbstractCommand implements IServiceConsumer
 		return services.hasServices(ServiceType.COLOR);
 	}
 	
+	public Response createErrorResponse(Input input, Throwable error)
+	{
+		Response response = new Response();
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		
+		response.addToReply("**Error Report** - "+commandName+" command");
+		builder.setDescription("Some error occured while processing your request! Please try again later.\n\n"
+				+ "If you think this is a bug, please __screenshot this report__ and post it in the Support Server!");
+		builder.addField("Technical Error", error.getClass().getSimpleName(), true);
+		builder.addField("User Input", input.argsToString(), true);
+		builder.addField("Link to Support Server", "[Support Server link](https://discord.gg/D5CfFkN)", true);
+		
+		response.setEmbed(builder);
+		return response;
+	}
+	
 	abstract public boolean makesWebRequest();
 	abstract public String getArguments();
 	abstract public Mono<Response> discordReply(Input input, User author);
@@ -103,22 +119,6 @@ public abstract class AbstractCommand implements IServiceConsumer
 		result.append(list.get(i).toString());
 		
 		return result.toString();
-	}
-	
-	protected Response createErrorResponse(Input input, Throwable error)
-	{
-		Response response = new Response();
-		EmbedCreateSpec builder = new EmbedCreateSpec();
-		
-		response.addToReply("**Error Report** - "+commandName+" command");
-		builder.setDescription("Some error occured while processing your request! Please try again later.\n\n"
-				+ "If you think this is a bug, please __screenshot this report__ and post it in the Support Server!");
-		builder.addField("Technical Error", error.getClass().getSimpleName(), true);
-		builder.addField("User Input", input.argsToString(), true);
-		builder.addField("Link to Support Server", "[Support Server link](https://discord.gg/D5CfFkN)", true);
-		
-		response.setEmbed(builder);
-		return response;
 	}
 	
 	protected void addRandomExtraMessage(EmbedCreateSpec builder)
