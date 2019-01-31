@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import skaro.pokedex.core.ICachedData;
+import skaro.pokedex.core.PokeFlexService;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.move_learn_method.MoveLearnMethod;
@@ -16,7 +16,7 @@ public class LearnMethodData implements ICachedData
 {
 	private final Map<String, MoveLearnMethod> methodMap;
 	
-	public LearnMethodData(PokeFlexFactory factory)
+	public LearnMethodData(PokeFlexService factory)
 	{
 		methodMap = new HashMap<String, MoveLearnMethod>();
 		initialize(factory);
@@ -28,7 +28,7 @@ public class LearnMethodData implements ICachedData
 		return methodMap.get(name);
 	}
 	
-	private void initialize(PokeFlexFactory factory)
+	private void initialize(PokeFlexService factory)
 	{
 		List<PokeFlexRequest> concurrentRequests = new ArrayList<>();
 		
@@ -37,7 +37,7 @@ public class LearnMethodData implements ICachedData
 		for(int i = 1; i < 11; i++)
 			concurrentRequests.add(new Request(Endpoint.MOVE_LEARN_METHOD, Integer.toString(i)));
 		
-		factory.createFlexObjects(concurrentRequests)
+		factory.createFlexObjects(concurrentRequests, factory.getScheduler())
 			.ofType(MoveLearnMethod.class)
 			.doOnNext(learnMethod -> methodMap.put(learnMethod.getName(), learnMethod))
 		.subscribe(value -> System.out.println("[LearnMethodData] Cached data"), 

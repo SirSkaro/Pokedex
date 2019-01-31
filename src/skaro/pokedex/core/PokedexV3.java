@@ -50,7 +50,6 @@ import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
 import skaro.pokedex.data_processor.formatters.WeakResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.InputProcessor;
-import skaro.pokeflex.api.PokeFlexFactory;
 
 public class PokedexV3 
 {
@@ -139,7 +138,7 @@ public class PokedexV3
 		}
 	}
 	
-	private static FlexCache createCacheService(PokeFlexFactory factory)
+	private static FlexCache createCacheService(PokeFlexService factory)
 	{
 		FlexCache result = new FlexCache();
 		result.addCachedResource(CachedResource.LEARN_METHOD, new LearnMethodData(factory));
@@ -170,8 +169,7 @@ public class PokedexV3
 	
 	private static PokeFlexService createPokeFlexService(ConfigurationService configService)
 	{
-		ScheduledExecutorService pokedexThreadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 6);
-		Scheduler scheduler = Schedulers.fromExecutorService(pokedexThreadPool);
+		Scheduler scheduler = Schedulers.newParallel("test", 6);
 		return new PokeFlexService(configService.getPokeFlexURL(), scheduler);
 	}
 	
