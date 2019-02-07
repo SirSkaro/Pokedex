@@ -12,10 +12,11 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.core.FlexCache;
+import skaro.pokedex.core.FlexCache.CachedResource;
 import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.PokeFlexService;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
-import skaro.pokedex.core.FlexCache.CachedResource;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.LearnMethodData;
@@ -27,7 +28,6 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
-import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
@@ -108,20 +108,16 @@ public class LearnCommand extends AbstractCommand
 	@Override
 	public Mono<Response> discordReply(Input input, User requester)
 	{ 
-		//Check if input is valid
 		if(!inputIsValid(null, input))
 			return Mono.just(formatter.invalidInputResponse(input));
 		
-		PokeFlexFactory factory;
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		LearnMethodData learnMethodData = (LearnMethodData)((FlexCache)services.getService(ServiceType.CACHE)).getCachedData(CachedResource.LEARN_METHOD);
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		Mono<MultiMap<IFlexObject>> result;
 		List<PokeFlexRequest> initialRequests = new ArrayList<>();
 		MultiMap<IFlexObject> dataToFormat = new MultiMap<>();
 		
-		factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
-		
-		//Get data for every valid move
 		for(int i = 1; i < input.getArgs().size(); i++)
 		{
 			AbstractArgument arg = input.getArg(i);
@@ -136,9 +132,11 @@ public class LearnCommand extends AbstractCommand
 		
 		result = Mono.just(dataToFormat)
 				.flatMap(dataMap -> Flux.fromIterable(initialRequests)
+					.parallel()
+					.runOn(factory.getScheduler())
 					.flatMap(request -> request.makeRequest(factory))
 					.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
-					.filter(flexObject -> flexObject instanceof Pokemon)
+					.sequential()
 					.ofType(Pokemon.class)
 					.flatMap(pokemon -> this.addAdopter(pokemon, builder))
 					.flatMap(pokemon -> Mono.just(dataMap.get(skaro.pokeflex.objects.move.Move.class.getName()))
@@ -151,7 +149,10 @@ public class LearnCommand extends AbstractCommand
 											.flatMap(request -> request.makeRequest(factory))
 											.ofType(EvolutionChain.class)
 											.flatMap(evolutionChain -> Flux.fromIterable(getAllPreEvolutions(evolutionChain, species))
+												.parallel()
+												.runOn(factory.getScheduler())
 												.flatMap(request -> request.makeRequest(factory))
+												.sequential()
 												.ofType(PokemonSpecies.class)
 												.map(preEvoSpecies -> new Request(Endpoint.POKEMON, String.valueOf(preEvoSpecies.getId())))
 												.flatMap(preEvoPokemonRequest -> preEvoPokemonRequest.makeRequest(factory))

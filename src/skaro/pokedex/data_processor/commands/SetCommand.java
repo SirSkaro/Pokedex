@@ -12,6 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.core.ColorService;
 import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.PokeFlexService;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
@@ -22,7 +23,6 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
-import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
@@ -98,12 +98,15 @@ public class SetCommand extends AbstractCommand
 		String tier = input.getArg(1).getDbForm().toUpperCase();
 		String pokemonName = input.getArg(0).getFlexForm();
 		int generation = Integer.parseInt(input.getArg(2).getDbForm());
-		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		
 		Mono<Response> result = Mono.just(new MultiMap<IFlexObject>())
 			.flatMap(dataMap -> Flux.fromIterable(createRequests(pokemonName, generation))
+					.parallel()
+					.runOn(factory.getScheduler())
 					.flatMap(request -> request.makeRequest(factory)
 					.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject)))
+					.sequential()
 					.then(Mono.just(dataMap)))
 			.flatMap(dataMap -> Mono.just(dataMap.getValue(Pokemon.class.getName(), 0))
 					.ofType(Pokemon.class)

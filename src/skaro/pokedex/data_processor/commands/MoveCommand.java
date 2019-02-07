@@ -9,6 +9,7 @@ import reactor.core.publisher.Mono;
 import skaro.pokedex.core.FlexCache;
 import skaro.pokedex.core.FlexCache.CachedResource;
 import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.PokeFlexService;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
@@ -20,7 +21,6 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
-import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.move.Move;
@@ -82,7 +82,7 @@ public class MoveCommand extends AbstractCommand
 		Mono<MultiMap<IFlexObject>> result;
 		String moveName = input.getArg(0).getFlexForm();
 		
-		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		FlexCache flexCache = (FlexCache)services.getService(ServiceType.CACHE);
 		TypeData cachedTypeData = (TypeData)flexCache.getCachedData(CachedResource.TYPE);
 		Request initialRequest = new Request(Endpoint.MOVE, moveName);
@@ -97,8 +97,11 @@ public class MoveCommand extends AbstractCommand
 					.flatMap(move -> Flux.just(new RequestURL(move.getDamageClass().getUrl(), Endpoint.MOVE_DAMAGE_CLASS))
 							.concatWithValues(new RequestURL(move.getTarget().getUrl(), Endpoint.MOVE_TARGET))
 							.concatWithValues(new RequestURL(move.getContestType().getUrl(), Endpoint.CONTEST_TYPE))
+							.parallel()
+							.runOn(factory.getScheduler())
 							.flatMap(request -> request.makeRequest(factory))
 							.doOnNext(flexObject -> dataMap.put(flexObject.getClass().getName(), flexObject))
+							.sequential()
 							.then(Mono.just(dataMap))));
 		
 		this.addRandomExtraMessage(builder);

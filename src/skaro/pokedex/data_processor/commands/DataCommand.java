@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 import skaro.pokedex.core.FlexCache;
 import skaro.pokedex.core.FlexCache.CachedResource;
 import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.PokeFlexService;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
@@ -23,7 +24,6 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
-import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
@@ -85,7 +85,7 @@ public class DataCommand extends AbstractCommand
 		if(!input.isValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 
-		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		String pokemonArgument = input.getArg(0).getFlexForm();
 		Request pokemonRequest = new Request(Endpoint.POKEMON, pokemonArgument);
@@ -117,16 +117,22 @@ public class DataCommand extends AbstractCommand
 												.filter(variety -> !pokemon.getName().equals(variety.getPokemon().getName()))
 												.map(variety -> new RequestURL(variety.getPokemon().getUrl(), Endpoint.POKEMON))
 												.toArray(RequestURL[]::new))
+										.parallel()
+										.runOn(factory.getScheduler())
 										.flatMap(request -> request.makeRequest(factory))
 										.doOnNext(flexObj -> dataMap.add(flexObj.getClass().getName(), flexObj))
+										.sequential()
 										.then(Mono.fromCallable(() -> getEvolutionChain(dataMap))))
 								.map(evoChain -> getPokemonInChain(evoChain, pokemon))
 								.flatMap(pokemonRequests -> Flux.fromIterable(pokemonRequests)
 										.concatWithValues(getPokemonForms(dataMap)
 												.stream()
 												.toArray(RequestURL[]::new))
+										.parallel()
+										.runOn(factory.getScheduler())
 										.flatMap(request -> request.makeRequest(factory))
 										.doOnNext(flexObj -> dataMap.add(flexObj.getClass().getName(), flexObj))
+										.sequential()
 										.then(Mono.just(dataMap)))));
 		
 		this.addRandomExtraMessage(builder);

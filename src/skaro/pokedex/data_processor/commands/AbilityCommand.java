@@ -18,7 +18,6 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
-import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
@@ -97,17 +96,19 @@ public class AbilityCommand extends AbstractCommand
 		{
 			Request request = new Request(Endpoint.POKEMON, userInput);
 			result = Mono.just(new MultiMap<IFlexObject>())
-					.flatMap(dataMap -> request.makeRequest(factory)//request Pokemon
+					.flatMap(dataMap -> request.makeRequest(factory)
 							.ofType(Pokemon.class)
 							.flatMap(pokemon -> this.addAdopter(pokemon, builder))
 							.doOnNext(pokemon -> dataMap.put(Pokemon.class.getName(), pokemon))
 							.flatMap(pokemon -> Flux.fromIterable(pokemon.getAbilities())
-									.publishOn(factory.getScheduler())
-									.map(ability -> new RequestURL(ability.getAbility().getUrl(), Endpoint.ABILITY)) //request Ability
+									.map(ability -> new RequestURL(ability.getAbility().getUrl(), Endpoint.ABILITY)) 
 									.ofType(PokeFlexRequest.class)
-									.concatWithValues(new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName())) //request PokemonSpecies
+									.concatWithValues(new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
+									.parallel()
+									.runOn(factory.getScheduler())
 									.flatMap(concurrentRequest -> concurrentRequest.makeRequest(factory))
 									.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
+									.sequential()
 									.then(Mono.just(dataMap))));
 		}
 

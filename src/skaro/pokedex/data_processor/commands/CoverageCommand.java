@@ -9,6 +9,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.PokeFlexService;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
@@ -79,10 +80,14 @@ public class CoverageCommand extends AbstractCommand
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>());
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		
 		result = result
 				.flatMap(dataMap -> Flux.fromIterable(input.getArgs())
+				.parallel()
+				.runOn(factory.getScheduler())
 				.flatMap(userArgument -> getTypeFromArgument(userArgument))
+				.sequential()
 				.collectList()
 				.map(typeNames -> createWrapper(typeNames))
 				.doOnNext(typeWrapper -> dataMap.put(TypeEfficacyWrapper.class.getName(), typeWrapper))

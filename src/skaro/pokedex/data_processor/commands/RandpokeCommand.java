@@ -11,6 +11,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.PokeFlexService;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
@@ -21,7 +22,6 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
-import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
@@ -74,15 +74,18 @@ public class RandpokeCommand extends AbstractCommand
 	@Override
 	public Mono<Response> discordReply(Input input, User requester)
 	{
-		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		int randDexNum = ThreadLocalRandom.current().nextInt(1, 807 + 1);
 		Mono<MultiMap<IFlexObject>> result;
 		
 		result = Mono.just(new MultiMap<IFlexObject>())
 				.flatMap(dataMap -> Flux.fromIterable(createRequests(randDexNum))
+					.parallel()
+					.runOn(factory.getScheduler())
 					.flatMap(request -> request.makeRequest(factory))
 					.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
+					.sequential()
 					.then(Mono.just(dataMap)));
 		
 		this.addRandomExtraMessage(builder);

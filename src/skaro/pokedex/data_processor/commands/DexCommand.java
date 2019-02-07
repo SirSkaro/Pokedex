@@ -7,6 +7,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.core.IServiceManager;
+import skaro.pokedex.core.PokeFlexService;
 import skaro.pokedex.core.ServiceConsumerException;
 import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
@@ -17,7 +18,6 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
-import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 
@@ -75,14 +75,13 @@ public class DexCommand extends AbstractCommand
 		if(!input.isValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
-		PokeFlexFactory factory;
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		Mono<MultiMap<IFlexObject>> result;
 		
 		String pokemonName = input.getArg(0).getFlexForm();
 		String versionName = input.getArg(1).getFlexForm();
 		Request request = new Request(Endpoint.POKEMON, pokemonName);
-		factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 		
 		result = Mono.just(new MultiMap<IFlexObject>())
 					.flatMap(dataMap -> request.makeRequest(factory)
@@ -91,9 +90,11 @@ public class DexCommand extends AbstractCommand
 						.doOnNext(pokemon -> dataMap.put(Pokemon.class.getName(), pokemon))
 						.flatMap(pokemon -> Flux.just(new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
 								.concatWithValues(new Request(Endpoint.VERSION, versionName))
+								.parallel()
+								.runOn(factory.getScheduler())
 								.flatMap(concurrentRequest -> concurrentRequest.makeRequest(factory))
-								.ofType(IFlexObject.class)
 								.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
+								.sequential()
 								.then(Mono.just(dataMap))));
 		
 		this.addRandomExtraMessage(builder);
