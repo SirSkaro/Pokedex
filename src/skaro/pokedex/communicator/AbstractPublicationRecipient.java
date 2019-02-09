@@ -2,7 +2,7 @@ package skaro.pokedex.communicator;
 
 import java.util.Optional;
 
-import skaro.pokedex.core.ConfigurationService;
+import skaro.pokedex.services.ConfigurationService;
 import sx.blah.discord.api.IDiscordClient;
 
 public abstract class AbstractPublicationRecipient 

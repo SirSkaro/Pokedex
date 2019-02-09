@@ -1,12 +1,11 @@
-package skaro.pokedex.data_processor;
+package skaro.pokedex.services;
 
 import java.util.Map;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
-import skaro.pokedex.core.IService;
-import skaro.pokedex.core.ServiceType;
+import skaro.pokedex.data_processor.AbstractCommand;
 
 public class CommandService implements IService
 {

@@ -1,4 +1,4 @@
-package skaro.pokedex.core;
+package skaro.pokedex.services;
 
 import java.awt.Color;
 import java.util.HashMap;

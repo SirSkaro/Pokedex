@@ -10,16 +10,16 @@ import java.util.concurrent.ThreadLocalRandom;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.core.ColorService;
-import skaro.pokedex.core.IServiceConsumer;
-import skaro.pokedex.core.IServiceManager;
-import skaro.pokedex.core.PerkService;
-import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.IServiceConsumer;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PerkService;
+import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 
 public abstract class AbstractCommand implements IServiceConsumer

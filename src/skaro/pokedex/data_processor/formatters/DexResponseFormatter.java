@@ -9,17 +9,17 @@ import javax.sound.sampled.AudioInputStream;
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
-import skaro.pokedex.core.ColorService;
-import skaro.pokedex.core.IServiceConsumer;
-import skaro.pokedex.core.IServiceManager;
-import skaro.pokedex.core.ServiceConsumerException;
-import skaro.pokedex.core.ServiceType;
-import skaro.pokedex.core.TTSConverter;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.AbstractArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.IServiceConsumer;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokedex.services.TextToSpeechService;
 import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
@@ -77,7 +77,7 @@ public class DexResponseFormatter implements IDiscordFormatter, IServiceConsumer
 		Version version = (Version)data.getValue(Version.class.getName(), 0);
 		Language lang = input.getLanguage();
 		Optional<AudioInputStream> audioCheck;
-		TTSConverter tts;
+		TextToSpeechService tts;
 		
 		//Format names of entities
 		String pokemonName = TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()));
@@ -107,7 +107,7 @@ public class DexResponseFormatter implements IDiscordFormatter, IServiceConsumer
 		builder.setThumbnail(pokemon.getSprites().getFrontDefault());
 		
 		//Add audio reply
-		tts = (TTSConverter)services.getService(ServiceType.TTS);
+		tts = (TextToSpeechService)services.getService(ServiceType.TTS);
 		audioCheck = tts.convertToAudio(lang, replyContent);
 		if(audioCheck.isPresent())
 			response.setPlayBack(audioCheck.get());

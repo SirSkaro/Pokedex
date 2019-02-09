@@ -6,7 +6,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import skaro.pokedex.communicator.Publisher;
-import skaro.pokedex.data_processor.CommandService;
+import skaro.pokedex.services.CommandService;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.IShard;
 import sx.blah.discord.api.events.EventSubscriber;

@@ -8,10 +8,10 @@ import java.util.regex.Pattern;
 
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.CommandService;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.ParsedText;
+import skaro.pokedex.services.CommandService;
 
 public class InputProcessor 
 {

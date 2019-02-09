@@ -1,16 +1,12 @@
-package skaro.pokedex.data_processor;
+package skaro.pokedex.services;
 
 import java.util.List;
 
-import skaro.pokedex.core.FlexCache;
-import skaro.pokedex.core.FlexCache.CachedResource;
-import skaro.pokedex.core.IService;
-import skaro.pokedex.core.IServiceConsumer;
-import skaro.pokedex.core.IServiceManager;
-import skaro.pokedex.core.ServiceConsumerException;
-import skaro.pokedex.core.ServiceType;
+import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TypeEfficacyWrapper;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper.EfficacyCategory;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper.EfficacyInteractionBuilder;
+import skaro.pokedex.services.FlexCacheService.CachedResource;
 
 public class TypeService implements IService, IServiceConsumer
 {	 		
@@ -48,7 +44,7 @@ public class TypeService implements IService, IServiceConsumer
     
     private TypeEfficacyWrapper buildEfficacyWrapper(EfficacyCategory whichEfficacy, List<String> typeNames)
     {
-    	FlexCache cache = (FlexCache)services.getService(ServiceType.CACHE);
+    	FlexCacheService cache = (FlexCacheService)services.getService(ServiceType.CACHE);
     	TypeData cachedTypeData = (TypeData)cache.getCachedData(CachedResource.TYPE);
     	EfficacyInteractionBuilder builder = TypeEfficacyWrapper
     			.EfficacyInteractionBuilder

@@ -1,4 +1,4 @@
-package skaro.pokedex.core;
+package skaro.pokedex.services;
 
 import discord4j.core.DiscordClient;
 

@@ -1,15 +1,16 @@
-package skaro.pokedex.core;
+package skaro.pokedex.services;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import skaro.pokedex.core.ICachedData;
 import skaro.pokeflex.api.IFlexObject;
 
-public class FlexCache implements IService
+public class FlexCacheService implements IService
 {
 	private Map<CachedResource, ICachedData> cache;
 	
-	public FlexCache()
+	public FlexCacheService()
 	{
 		cache = new HashMap<>();
 	}

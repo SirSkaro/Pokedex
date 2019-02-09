@@ -1,4 +1,4 @@
-package skaro.pokedex.core;
+package skaro.pokedex.services;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,6 +9,9 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;				//in Discord4J's dependencies
 import com.fasterxml.jackson.databind.ObjectMapper;			//in Discord4J's dependencies
+
+import skaro.pokedex.core.ConfigurationType;
+import skaro.pokedex.core.ResourceManager;
 
 /**
  * A singleton class for parsing the configuration file "config.json".

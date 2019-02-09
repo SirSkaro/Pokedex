@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Optional;
 
-import skaro.pokedex.core.ConfigurationService;
+import skaro.pokedex.services.ConfigurationService;
 
 public class MySQLManager 
 {

@@ -10,18 +10,18 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.core.FlexCache;
-import skaro.pokedex.core.FlexCache.CachedResource;
-import skaro.pokedex.core.IServiceManager;
-import skaro.pokedex.core.PokeFlexService;
-import skaro.pokedex.core.ServiceConsumerException;
-import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.services.FlexCacheService;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokeFlexService;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexRequest;
@@ -143,7 +143,7 @@ public class DataCommand extends AbstractCommand
 	
 	private void addTypesToMap(Pokemon pokemon, MultiMap<IFlexObject> map)
 	{
-		FlexCache cache = (FlexCache)services.getService(ServiceType.CACHE);
+		FlexCacheService cache = (FlexCacheService)services.getService(ServiceType.CACHE);
 		
 		pokemon.getTypes()
 			.stream()

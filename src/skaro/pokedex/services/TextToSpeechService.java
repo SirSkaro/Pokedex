@@ -1,4 +1,4 @@
-package skaro.pokedex.core;
+package skaro.pokedex.services;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,17 +12,17 @@ import marytts.exceptions.MaryConfigurationException;
 import marytts.exceptions.SynthesisException;
 import skaro.pokedex.input_processor.Language;
 
-public class TTSConverter implements IService
+public class TextToSpeechService implements IService
 {
-	private MaryInterface maryTTS;
+	private MaryInterface textToSpeechEngine;
 	private Map<Language, String> voiceMap;
     
-    public TTSConverter()
+    public TextToSpeechService()
     {	
     	System.out.println("[TTSConverter] Initializing English MaryTTS server...");
         try
         {
-    		maryTTS = new LocalMaryInterface();
+    		textToSpeechEngine = new LocalMaryInterface();
     		voiceMap = new HashMap<Language,String>();
     		
     		voiceMap.put(Language.ENGLISH, "dfki-spike-hsmm");
@@ -53,10 +53,10 @@ public class TTSConverter implements IService
         try
         {
         	//Make sure only one thread can use the MaryInterface at one time
-        	synchronized(maryTTS)
+        	synchronized(textToSpeechEngine)
         	{
-        		maryTTS.setVoice(voiceMap.get(lang));
-            	return Optional.of(maryTTS.generateAudio(input));
+        		textToSpeechEngine.setVoice(voiceMap.get(lang));
+            	return Optional.of(textToSpeechEngine.generateAudio(input));
         	}
         }
         catch (SynthesisException ex)

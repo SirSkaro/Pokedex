@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import skaro.pokedex.core.ICachedData;
-import skaro.pokedex.core.PokeFlexService;
+import skaro.pokedex.services.PokeFlexService;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;

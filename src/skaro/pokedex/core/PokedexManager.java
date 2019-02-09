@@ -3,6 +3,10 @@ package skaro.pokedex.core;
 import java.util.HashMap;
 import java.util.Map;
 
+import skaro.pokedex.services.IService;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceType;
+
 public class PokedexManager implements IServiceManager
 {
 	private Map<ServiceType, IService> services;	

@@ -3,16 +3,16 @@ package skaro.pokedex.data_processor.commands;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.core.ColorService;
-import skaro.pokedex.core.IServiceManager;
-import skaro.pokedex.core.ServiceConsumerException;
-import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.CommandService;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.CommandService;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
 
 public class CommandsCommand extends AbstractCommand 
 {

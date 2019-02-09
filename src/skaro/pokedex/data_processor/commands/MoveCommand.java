@@ -6,12 +6,6 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.core.FlexCache;
-import skaro.pokedex.core.FlexCache.CachedResource;
-import skaro.pokedex.core.IServiceManager;
-import skaro.pokedex.core.PokeFlexService;
-import skaro.pokedex.core.ServiceConsumerException;
-import skaro.pokedex.core.ServiceType;
 import skaro.pokedex.data_processor.AbstractCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
@@ -19,6 +13,12 @@ import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.services.FlexCacheService;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokeFlexService;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.Request;
@@ -83,7 +83,7 @@ public class MoveCommand extends AbstractCommand
 		String moveName = input.getArg(0).getFlexForm();
 		
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
-		FlexCache flexCache = (FlexCache)services.getService(ServiceType.CACHE);
+		FlexCacheService flexCache = (FlexCacheService)services.getService(ServiceType.CACHE);
 		TypeData cachedTypeData = (TypeData)flexCache.getCachedData(CachedResource.TYPE);
 		Request initialRequest = new Request(Endpoint.MOVE, moveName);
 		

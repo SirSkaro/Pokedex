@@ -1,4 +1,4 @@
-package skaro.pokedex.core;
+package skaro.pokedex.services;
 
 import reactor.core.scheduler.Scheduler;
 import skaro.pokeflex.api.PokeFlexFactory;

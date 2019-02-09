@@ -14,13 +14,9 @@ import discord4j.core.object.presence.Presence;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-import skaro.pokedex.core.FlexCache.CachedResource;
-import skaro.pokedex.core.ServiceManager.ServiceManagerBuilder;
-import skaro.pokedex.data_processor.CommandService;
 import skaro.pokedex.data_processor.LearnMethodData;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.TypeService;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
 import skaro.pokedex.data_processor.commands.CommandsCommand;
@@ -50,6 +46,22 @@ import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
 import skaro.pokedex.data_processor.formatters.WeakResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.InputProcessor;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.CommandService;
+import skaro.pokedex.services.ConfigurationService;
+import skaro.pokedex.services.DiscordService;
+import skaro.pokedex.services.EmojiService;
+import skaro.pokedex.services.FlexCacheService;
+import skaro.pokedex.services.PerkService;
+import skaro.pokedex.services.PokeFlexService;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceException;
+import skaro.pokedex.services.ServiceManager;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokedex.services.TextToSpeechService;
+import skaro.pokedex.services.TypeService;
+import skaro.pokedex.services.FlexCacheService.CachedResource;
+import skaro.pokedex.services.ServiceManager.ServiceManagerBuilder;
 
 public class PokedexV3 
 {
@@ -84,7 +96,7 @@ public class PokedexV3
 		CommandService commandMap = new CommandService();
 		PerkService perkService = createPatreonService(configurationService);
 		PokeFlexService pokeFlexService = createPokeFlexService(configurationService);
-		FlexCache flexCacheService = createCacheService(pokeFlexService);
+		FlexCacheService flexCacheService = createCacheService(pokeFlexService);
 		TypeService typeService = new TypeService();
 		
 		PokedexManager manager = PokedexManager.PokedexConfigurator.newInstance()
@@ -95,7 +107,7 @@ public class PokedexV3
 								.withService(new ColorService())
 								.withService(new EmojiService())
 								.withService(pokeFlexService)
-								.withService(new TTSConverter())
+								.withService(new TextToSpeechService())
 								.withService(flexCacheService)
 								.withService(typeService)
 								.configure();
@@ -138,9 +150,9 @@ public class PokedexV3
 		}
 	}
 	
-	private static FlexCache createCacheService(PokeFlexService factory)
+	private static FlexCacheService createCacheService(PokeFlexService factory)
 	{
-		FlexCache result = new FlexCache();
+		FlexCacheService result = new FlexCacheService();
 		result.addCachedResource(CachedResource.LEARN_METHOD, new LearnMethodData(factory));
 		result.addCachedResource(CachedResource.TYPE, new TypeData(factory));
 		
