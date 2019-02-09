@@ -3,7 +3,7 @@ package skaro.pokedex.data_processor.commands;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
@@ -15,7 +15,7 @@ import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 
-public class HelpCommand extends AbstractCommand 
+public class HelpCommand extends PokedexCommand 
 {
 	Response defaultResponse;
 	
@@ -26,7 +26,7 @@ public class HelpCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "help".intern();
-		argCats.add(ArgumentCategory.ANY_NONE);
+		orderedArgumentCategories.add(ArgumentCategory.ANY_NONE);
 		expectedArgRange = new ArgumentRange(0,1);
 		defaultResponse = new Response();
 		
@@ -62,7 +62,7 @@ public class HelpCommand extends AbstractCommand
 		String arg = input.getArg(0).getDbForm();
 		Response reply = new Response();
 		CommandService commands;
-		AbstractCommand command;
+		PokedexCommand command;
 		
 		try
 		{

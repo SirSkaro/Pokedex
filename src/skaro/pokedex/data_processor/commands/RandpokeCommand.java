@@ -10,7 +10,7 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
@@ -26,7 +26,7 @@ import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 
-public class RandpokeCommand extends AbstractCommand 
+public class RandpokeCommand extends PokedexCommand 
 {
 	public RandpokeCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
@@ -35,7 +35,7 @@ public class RandpokeCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "randpoke".intern();
-		argCats.add(ArgumentCategory.NONE);
+		orderedArgumentCategories.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
 		aliases.put("rand", Language.ENGLISH);
 		aliases.put("randompoke", Language.ENGLISH);

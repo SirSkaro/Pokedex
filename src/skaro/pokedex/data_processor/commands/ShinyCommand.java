@@ -7,7 +7,7 @@ import org.eclipse.jetty.util.MultiMap;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
@@ -26,7 +26,7 @@ import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
-public class ShinyCommand extends AbstractCommand 
+public class ShinyCommand extends PokedexCommand 
 {
 	private final String baseModelPath;
 	private final String defaultPokemon;
@@ -38,7 +38,7 @@ public class ShinyCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "shiny".intern();
-		argCats.add(ArgumentCategory.POKEMON);
+		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
 		baseModelPath = ConfigurationService.getInstance().get().getModelBasePath();
 		defaultPokemon = "jirachi";

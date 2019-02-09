@@ -4,19 +4,19 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 
 public class Input 
 {
-	private List<AbstractArgument> args;
+	private List<CommandArgument> args;
 	private String function;
 	private InputErrorStatus errorStatus;
 	private Language lang;
-	private AbstractCommand command;
+	private PokedexCommand command;
 	
-	public Input(String func, AbstractCommand cmd, Language l)
+	public Input(String func, PokedexCommand cmd, Language l)
 	{
-		args = new ArrayList<AbstractArgument>();
+		args = new ArrayList<CommandArgument>();
 		function = func;
 		errorStatus = InputErrorStatus.NO_ERROR;
 		lang = l;
@@ -24,23 +24,23 @@ public class Input
 	}
 	
 	//Get and Set methods
-	public List<AbstractArgument> getArgs() { return args; }
+	public List<CommandArgument> getArgs() { return args; }
 	public String getFunction() { return function; }
 	public boolean isValid() { return errorStatus == InputErrorStatus.NO_ERROR; }
 	public InputErrorStatus getError() { return errorStatus; }
 	public Language getLanguage() { return lang; }
-	public AbstractCommand getCommand() { return command; }
+	public PokedexCommand getCommand() { return command; }
 	
 	public void setFunction(String function) { this.function = function; }
 	public void setErrorStatus(InputErrorStatus status) {this.errorStatus = status; }
 	
 	//Utility methods	
-	public void addArgs(List<AbstractArgument> list)
+	public void addArgs(List<CommandArgument> list)
 	{
 		args.addAll(list);
 	}
 	
-	public AbstractArgument getArg(int index)
+	public CommandArgument getArg(int index)
 	{
 		return args.get(index);
 	}
@@ -48,7 +48,7 @@ public class Input
 	public LinkedList<String> argsAsList()
 	{
 		LinkedList<String> list = new LinkedList<String>();
-		for(AbstractArgument arg : args)
+		for(CommandArgument arg : args)
 			list.add(arg.getFlexForm());
 		
 		return list;
@@ -61,7 +61,7 @@ public class Input
 		
 		StringBuilder builder = new StringBuilder();
 		
-		for(AbstractArgument arg : args)
+		for(CommandArgument arg : args)
 			builder.append(arg.toString() + ", ");
 		
 		return builder.substring(0, builder.length() - 2);

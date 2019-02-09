@@ -3,7 +3,7 @@ package skaro.pokedex.data_processor.commands;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -14,7 +14,7 @@ import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 
-public class CommandsCommand extends AbstractCommand 
+public class CommandsCommand extends PokedexCommand 
 {
 	public CommandsCommand(IServiceManager services) throws ServiceConsumerException
 	{
@@ -23,7 +23,7 @@ public class CommandsCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "commands".intern();
-		argCats.add(ArgumentCategory.NONE);
+		orderedArgumentCategories.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
 		aliases.put("cmds", Language.ENGLISH);
 		aliases.put("useage", Language.ENGLISH);

@@ -9,7 +9,7 @@ import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper.Efficacy;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
@@ -54,7 +54,7 @@ public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsume
 			break;
 			case INVALID_ARGUMENT:
 				response.addToReply("Could not process your request due to the following problem(s):".intern());
-				for(AbstractArgument arg : input.getArgs())
+				for(CommandArgument arg : input.getArgs())
 					if(!arg.isValid())
 						response.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
 				response.addToReply("\n*top suggestion*: did you include commas between inputs?");

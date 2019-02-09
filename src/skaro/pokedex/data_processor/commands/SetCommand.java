@@ -10,10 +10,10 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.services.ColorService;
@@ -31,7 +31,7 @@ import skaro.pokeflex.objects.set.Iv;
 import skaro.pokeflex.objects.set.Set;
 import skaro.pokeflex.objects.set.Set_;
 
-public class SetCommand extends AbstractCommand 
+public class SetCommand extends PokedexCommand 
 {
 	public SetCommand(IServiceManager services) throws ServiceConsumerException
 	{
@@ -40,9 +40,9 @@ public class SetCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "set".intern();
-		argCats.add(ArgumentCategory.POKEMON);
-		argCats.add(ArgumentCategory.META);
-		argCats.add(ArgumentCategory.GEN);
+		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
+		orderedArgumentCategories.add(ArgumentCategory.META);
+		orderedArgumentCategories.add(ArgumentCategory.GEN);
 		expectedArgRange = new ArgumentRange(3,3);
 		
 		createHelpMessage("Gengar, OU, 4", "Pikachu, NU, 5", "Groudon, Uber, 6", "tapu lele, ou, 7",
@@ -71,7 +71,7 @@ public class SetCommand extends AbstractCommand
 				break;
 				case INVALID_ARGUMENT:
 					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(AbstractArgument arg : input.getArgs())
+					for(CommandArgument arg : input.getArgs())
 						if(!arg.isValid())
 							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
 					reply.addToReply("\n*top suggestion*: Only Smogon metas are supported."

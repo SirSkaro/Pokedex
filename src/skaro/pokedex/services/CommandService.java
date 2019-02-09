@@ -5,11 +5,11 @@ import java.util.Map;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 
 public class CommandService implements IService
 {
-	private Cache<String, AbstractCommand> cache;
+	private Cache<String, PokedexCommand> cache;
 	
 	public CommandService()
 	{
@@ -23,7 +23,7 @@ public class CommandService implements IService
 		return ServiceType.COMMAND;
 	}
 	
-	public void addCommand(AbstractCommand command)
+	public void addCommand(PokedexCommand command)
 	{
 		cache.put(command.getCommandName(), command);
 		for(String alias : command.getAliases().keySet())
@@ -35,12 +35,12 @@ public class CommandService implements IService
 		return cache.asMap().containsKey(cmd);
 	}
 	
-	public AbstractCommand get(String key)
+	public PokedexCommand get(String key)
 	{
 		return cache.getIfPresent(key);
 	}
 
-	public Map<String, AbstractCommand> getCacheAsMap()
+	public Map<String, PokedexCommand> getCacheAsMap()
 	{
 		return cache.asMap();
 	}

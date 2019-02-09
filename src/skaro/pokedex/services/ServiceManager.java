@@ -3,7 +3,7 @@ package skaro.pokedex.services;
 import java.util.HashMap;
 import java.util.Map;
 
-import skaro.pokedex.core.PokedexManager;
+import skaro.pokedex.core.PokedexApplicationManager;
 
 public class ServiceManager implements IServiceManager 
 {
@@ -32,9 +32,9 @@ public class ServiceManager implements IServiceManager
 	public static class ServiceManagerBuilder
 	{
 		private Map<ServiceType, IService> services;
-		private PokedexManager availableServices;
+		private PokedexApplicationManager availableServices;
 		
-		public static ServiceManagerBuilder newInstance(PokedexManager allServices) 
+		public static ServiceManagerBuilder newInstance(PokedexApplicationManager allServices) 
 		{ 
 			ServiceManagerBuilder builder = new ServiceManagerBuilder(); 
 			builder.services = new HashMap<>();

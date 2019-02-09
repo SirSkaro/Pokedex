@@ -6,7 +6,7 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
@@ -24,7 +24,7 @@ import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.ability.Ability;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 
-public class AbilityCommand extends AbstractCommand 
+public class AbilityCommand extends PokedexCommand 
 {	
 	public AbilityCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
@@ -33,7 +33,7 @@ public class AbilityCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 
 		commandName = "ability".intern();
-		argCats.add(ArgumentCategory.POKE_ABIL);
+		orderedArgumentCategories.add(ArgumentCategory.POKE_ABIL);
 		expectedArgRange = new ArgumentRange(1,1);
 
 		aliases.put("ab", Language.ENGLISH);

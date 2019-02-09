@@ -5,7 +5,7 @@ import java.util.Optional;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -15,7 +15,7 @@ import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 
-public class AboutCommand extends AbstractCommand 
+public class AboutCommand extends PokedexCommand 
 {
 	private Response staticDiscordReply;
 	
@@ -35,7 +35,7 @@ public class AboutCommand extends AbstractCommand
 			version = configurator.get().getVersion();
 		
 		commandName = "about".intern();
-		argCats.add(ArgumentCategory.NONE);
+		orderedArgumentCategories.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
 		
 		staticDiscordReply = new Response();

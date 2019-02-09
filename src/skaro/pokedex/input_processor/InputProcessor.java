@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.ParsedText;
@@ -35,9 +35,9 @@ public class InputProcessor
 		//Utility variables
 		Optional<ParsedText> parseTest = parseTextMessage(input);
 		ParsedText parsedText;
-		AbstractCommand command;
+		PokedexCommand command;
 		Input result;
-		List<AbstractArgument> argsFromParse;
+		List<CommandArgument> argsFromParse;
 		Iterator<String> argItr;
 		Language lang;
 		
@@ -69,7 +69,7 @@ public class InputProcessor
 			result.addArgs(argsFromParse);
 		}
 		
-		for(AbstractArgument abstractArg : result.getArgs())
+		for(CommandArgument abstractArg : result.getArgs())
 			if(!abstractArg.isValid())
 			{
 				result.setErrorStatus(InputErrorStatus.INVALID_ARGUMENT);
@@ -79,7 +79,7 @@ public class InputProcessor
 		return Mono.just(result);
 	}
 	
-	private boolean hasExpectedNumberOfArguments(ParsedText text, AbstractCommand cmd)
+	private boolean hasExpectedNumberOfArguments(ParsedText text, PokedexCommand cmd)
 	{
 		ArgumentRange range = cmd.getExpectedArgumentRange();
 		int numArgs = text.getNumberOfArguments();

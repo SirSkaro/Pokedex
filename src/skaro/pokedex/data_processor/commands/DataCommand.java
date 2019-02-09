@@ -10,7 +10,7 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
@@ -33,7 +33,7 @@ import skaro.pokeflex.objects.pokemon.Form;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
-public class DataCommand extends AbstractCommand 
+public class DataCommand extends PokedexCommand 
 {
 	public DataCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
@@ -42,7 +42,7 @@ public class DataCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "data".intern();
-		argCats.add(ArgumentCategory.POKEMON);
+		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
 		
 		aliases.put("pokemon", Language.ENGLISH);

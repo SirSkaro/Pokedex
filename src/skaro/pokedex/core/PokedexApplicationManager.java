@@ -7,7 +7,7 @@ import skaro.pokedex.services.IService;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.ServiceType;
 
-public class PokedexManager implements IServiceManager
+public class PokedexApplicationManager implements IServiceManager
 {
 	private Map<ServiceType, IService> services;	
 	
@@ -26,7 +26,7 @@ public class PokedexManager implements IServiceManager
 		return true;
 	}
 	
-	private PokedexManager(PokedexConfigurator builder)
+	private PokedexApplicationManager(PokedexConfigurator builder)
 	{
 		this.services = builder.services;
 	}
@@ -43,9 +43,9 @@ public class PokedexManager implements IServiceManager
 			return builder;
 		}
 		
-		public PokedexManager configure()
+		public PokedexApplicationManager configure()
 		{
-			return new PokedexManager(this);
+			return new PokedexApplicationManager(this);
 		}
 		
 		public PokedexConfigurator withService(IService service)

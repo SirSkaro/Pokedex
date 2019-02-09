@@ -7,7 +7,7 @@ import org.eclipse.jetty.util.MultiMap;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
@@ -23,7 +23,7 @@ import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
-public class StatsCommand extends AbstractCommand  
+public class StatsCommand extends PokedexCommand  
 {	
 	public StatsCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
@@ -32,8 +32,8 @@ public class StatsCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "stats".intern();
-		argCats = new ArrayList<ArgumentCategory>();
-		argCats.add(ArgumentCategory.POKEMON);
+		orderedArgumentCategories = new ArrayList<ArgumentCategory>();
+		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
 		
 		aliases.put("statistiken", Language.GERMAN);

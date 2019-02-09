@@ -49,6 +49,7 @@ import skaro.pokedex.input_processor.InputProcessor;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.CommandService;
 import skaro.pokedex.services.ConfigurationService;
+import skaro.pokedex.services.ConfigurationType;
 import skaro.pokedex.services.DiscordService;
 import skaro.pokedex.services.EmojiService;
 import skaro.pokedex.services.FlexCacheService;
@@ -99,7 +100,7 @@ public class PokedexV3
 		FlexCacheService flexCacheService = createCacheService(pokeFlexService);
 		TypeService typeService = new TypeService();
 		
-		PokedexManager manager = PokedexManager.PokedexConfigurator.newInstance()
+		PokedexApplicationManager manager = PokedexApplicationManager.PokedexConfigurator.newInstance()
 								.withService(configurationService)
 								.withService(commandMap)
 								.withService(createDiscordService(configurationService, shardIDToManage, totalShards))
@@ -121,7 +122,7 @@ public class PokedexV3
 		DiscordClient client = service.getV3Client();
 		InputProcessor inputProcessor = new InputProcessor(commandMap, 190670386239635456L);
 		
-		client.getEventDispatcher().on(MessageCreateEvent.class) 
+		client.getEventDispatcher().on(MessageCreateEvent.class)
 	        .map(MessageCreateEvent::getMessage)	//Get the message of the event
 	        .filter(msg -> msg.getContent().isPresent())	//only process if the message is not empty
 	        .flatMap(msg -> inputProcessor.processInput(msg.getContent().get())	//Unwrap the message from the Optional
@@ -185,7 +186,7 @@ public class PokedexV3
 		return new PokeFlexService(configService.getPokeFlexURL(), scheduler);
 	}
 	
-	private static void populateCommandMap(PokedexManager manager, CommandService commandService) throws ServiceException, ServiceConsumerException
+	private static void populateCommandMap(PokedexApplicationManager manager, CommandService commandService) throws ServiceException, ServiceConsumerException
 	{
 		ServiceManagerBuilder commandServiceBuilder = ServiceManager.ServiceManagerBuilder.newInstance(manager)
 				.addService(ServiceType.COLOR);

@@ -5,7 +5,7 @@ import org.eclipse.jetty.util.MultiMap;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
@@ -26,7 +26,7 @@ import skaro.pokeflex.objects.item.Item;
 import skaro.pokeflex.objects.item_category.ItemCategory;
 import skaro.pokeflex.objects.type.Type;
 
-public class ItemCommand extends AbstractCommand
+public class ItemCommand extends PokedexCommand
 {
 	public ItemCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
@@ -35,7 +35,7 @@ public class ItemCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "item".intern();
-		argCats.add(ArgumentCategory.ITEM);
+		orderedArgumentCategories.add(ArgumentCategory.ITEM);
 		expectedArgRange = new ArgumentRange(1,1);
 		
 		aliases.put("itm", Language.ENGLISH);

@@ -8,11 +8,11 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -27,7 +27,7 @@ import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.move.Move;
 
-public class CoverageCommand extends AbstractCommand 
+public class CoverageCommand extends PokedexCommand 
 {
 	public CoverageCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
@@ -36,7 +36,7 @@ public class CoverageCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "coverage".intern();
-		argCats.add(ArgumentCategory.MOVE_TYPE_LIST);
+		orderedArgumentCategories.add(ArgumentCategory.MOVE_TYPE_LIST);
 		expectedArgRange = new ArgumentRange(1,4);
 		aliases.put("strong", Language.ENGLISH);
 		aliases.put("cov", Language.ENGLISH);
@@ -99,7 +99,7 @@ public class CoverageCommand extends AbstractCommand
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
-	private Mono<String> getTypeFromArgument(AbstractArgument argument)
+	private Mono<String> getTypeFromArgument(CommandArgument argument)
 	{
 		Mono<String> result;
 		

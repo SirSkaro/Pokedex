@@ -10,15 +10,8 @@ import java.util.Optional;
 import com.fasterxml.jackson.databind.JsonNode;				//in Discord4J's dependencies
 import com.fasterxml.jackson.databind.ObjectMapper;			//in Discord4J's dependencies
 
-import skaro.pokedex.core.ConfigurationType;
 import skaro.pokedex.core.ResourceManager;
 
-/**
- * A singleton class for parsing the configuration file "config.json".
- * The data member "isDebugSession" should be set to TRUE if Pokedex
- * is being tested; FALSE otherwise.
- *
- */
 public class ConfigurationService implements IService
 {
 	private static String dataKey = "production".intern();

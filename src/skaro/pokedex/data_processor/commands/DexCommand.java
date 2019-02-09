@@ -6,7 +6,7 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
@@ -21,7 +21,7 @@ import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 
-public class DexCommand extends AbstractCommand
+public class DexCommand extends PokedexCommand
 {
 	public DexCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
@@ -30,8 +30,8 @@ public class DexCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "dex".intern();
-		argCats.add(ArgumentCategory.POKEMON);
-		argCats.add(ArgumentCategory.VERSION);
+		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
+		orderedArgumentCategories.add(ArgumentCategory.VERSION);
 		expectedArgRange = new ArgumentRange(2,2);
 		
 		aliases.put("pokedex", Language.ENGLISH);

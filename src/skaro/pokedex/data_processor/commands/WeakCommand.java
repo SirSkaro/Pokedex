@@ -9,11 +9,11 @@ import org.eclipse.jetty.util.MultiMap;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -29,7 +29,7 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon.Type;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
-public class WeakCommand extends AbstractCommand 
+public class WeakCommand extends PokedexCommand 
 {
 	public WeakCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
@@ -38,8 +38,8 @@ public class WeakCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "weak".intern();
-		argCats = new ArrayList<ArgumentCategory>();
-		argCats.add(ArgumentCategory.POKE_TYPE_LIST);
+		orderedArgumentCategories = new ArrayList<ArgumentCategory>();
+		orderedArgumentCategories.add(ArgumentCategory.POKE_TYPE_LIST);
 		expectedArgRange = new ArgumentRange(1,2);
 		
 		aliases.put("weakness", Language.ENGLISH);
@@ -121,7 +121,7 @@ public class WeakCommand extends AbstractCommand
 		return typeService.getEfficacyOnDefense(typeNames);
 	}
 	
-	private TypeEfficacyWrapper createWrapperFromArguments(List<AbstractArgument> types)
+	private TypeEfficacyWrapper createWrapperFromArguments(List<CommandArgument> types)
 	{
 		TypeService typeService = (TypeService)services.getService(ServiceType.TYPE);
 		List<String> typeNames = types.stream()

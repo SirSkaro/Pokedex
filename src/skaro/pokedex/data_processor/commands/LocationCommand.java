@@ -9,11 +9,11 @@ import java.util.Set;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.formatters.TextFormatter;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -31,7 +31,7 @@ import skaro.pokeflex.objects.encounter.EncounterPotential;
 import skaro.pokeflex.objects.encounter.VersionDetail;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 
-public class LocationCommand extends AbstractCommand 
+public class LocationCommand extends PokedexCommand 
 {
 	public LocationCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
@@ -40,8 +40,8 @@ public class LocationCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "location".intern();
-		argCats.add(ArgumentCategory.POKEMON);
-		argCats.add(ArgumentCategory.VERSION);
+		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
+		orderedArgumentCategories.add(ArgumentCategory.VERSION);
 		expectedArgRange = new ArgumentRange(2,2);
 		aliases.put("loc", Language.ENGLISH);
 		
@@ -74,7 +74,7 @@ public class LocationCommand extends AbstractCommand
 				break;
 				case INVALID_ARGUMENT:
 					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(AbstractArgument arg : input.getArgs())
+					for(CommandArgument arg : input.getArgs())
 						if(!arg.isValid())
 							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
 					reply.addToReply("\n*top suggestion*: Not updated for gen7. Try versions from gens 1-6?");

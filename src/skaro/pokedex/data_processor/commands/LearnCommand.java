@@ -11,12 +11,12 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.LearnMethodData;
 import skaro.pokedex.data_processor.LearnMethodWrapper;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -37,7 +37,7 @@ import skaro.pokeflex.objects.pokemon.Move;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
-public class LearnCommand extends AbstractCommand
+public class LearnCommand extends PokedexCommand
 {
 	public LearnCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
@@ -46,8 +46,8 @@ public class LearnCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "learn".intern();
-		argCats.add(ArgumentCategory.POKEMON);
-		argCats.add(ArgumentCategory.MOVE_LIST);
+		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
+		orderedArgumentCategories.add(ArgumentCategory.MOVE_LIST);
 		expectedArgRange = new ArgumentRange(2,5);
 		
 		aliases.put("knows", Language.ENGLISH);
@@ -120,7 +120,7 @@ public class LearnCommand extends AbstractCommand
 		
 		for(int i = 1; i < input.getArgs().size(); i++)
 		{
-			AbstractArgument arg = input.getArg(i);
+			CommandArgument arg = input.getArg(i);
 			if(arg.isValid())
 				initialRequests.add(new Request(Endpoint.MOVE, arg.getFlexForm()));
 			else

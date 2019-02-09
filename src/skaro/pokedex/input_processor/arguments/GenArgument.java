@@ -1,10 +1,10 @@
 package skaro.pokedex.input_processor.arguments;
 
 import skaro.pokedex.data_processor.formatters.TextFormatter;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Language;
 
-public class GenArgument extends AbstractArgument 
+public class GenArgument extends CommandArgument 
 {
 	public GenArgument()
 	{
@@ -15,7 +15,7 @@ public class GenArgument extends AbstractArgument
 	{
 		//Set up argument
 		this.dbForm = TextFormatter.dbFormat(argument, lang).replaceAll("[^0-9]", "");
-		this.cat = ArgumentCategory.GEN;
+		this.category = ArgumentCategory.GEN;
 		this.rawInput = argument;
 		
 		//Check if resource is recognized. If it is not recognized, attempt to spell check it.

@@ -22,45 +22,37 @@ import skaro.pokedex.services.PerkService;
 import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 
-public abstract class AbstractCommand implements IServiceConsumer
+public abstract class PokedexCommand implements IServiceConsumer
 {
 	protected ArgumentRange expectedArgRange;
 	protected String commandName;
-	protected List<ArgumentCategory> argCats;
+	protected List<ArgumentCategory> orderedArgumentCategories;
 	protected List<String> extraMessages;
 	protected EmbedCreateSpec helpMessage;
 	protected Map<String, Language> aliases;
 	protected IDiscordFormatter formatter;
 	protected IServiceManager services;
 	
-	public AbstractCommand(IServiceManager serviceManager)
+	public PokedexCommand(IServiceManager serviceManager)
 	{
 		services = serviceManager;
-		argCats = new ArrayList<>();
+		orderedArgumentCategories = new ArrayList<>();
 		aliases = new HashMap<>();
-		extraMessages = new ArrayList<>();
-		
-		extraMessages.add("If you like Pokedex, consider becoming a Patreon for perks! (%patreon for link)");
-		extraMessages.add("Stay up to date with Pokedex: join the support server! (%invite for link)");
-		extraMessages.add("Want your name next to a Pokemon? Adopt a Pokemon with Patreon! (%patreon for link)");
+		populateDefaultExtraMessage();
 	}
 	
-	public AbstractCommand(IServiceManager serviceManager, IDiscordFormatter discordFormatter)
+	public PokedexCommand(IServiceManager serviceManager, IDiscordFormatter discordFormatter)
 	{
 		services = serviceManager;
 		formatter = discordFormatter;
-		argCats = new ArrayList<>();
+		orderedArgumentCategories = new ArrayList<>();
 		aliases = new HashMap<>();
-		extraMessages = new ArrayList<>();
-		
-		extraMessages.add("If you like Pokedex, consider becoming a Patreon for perks! (%patreon for link)");
-		extraMessages.add("Stay up to date with Pokedex: join the support server! (%invite for link)");
-		extraMessages.add("Want your name next to a Pokemon? Adopt a Pokemon with Patreon! (%patreon for link)");
+		populateDefaultExtraMessage();
 	}
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
-	public List<ArgumentCategory> getArgumentCats() { return argCats; }
+	public List<ArgumentCategory> getArgumentCats() { return orderedArgumentCategories; }
 	public Map<String, Language> getAliases() { return aliases; }
 	public List<String> getExtraMessages() { return extraMessages; }
 	public EmbedCreateSpec getHelpMessage() { return helpMessage; }
@@ -186,6 +178,15 @@ public abstract class AbstractCommand implements IServiceConsumer
 	protected String getPatreonBanner()
 	{
 		return "https://c5.patreon.com/external/logo/become_a_patron_button.png".intern();
+	}
+	
+	private void populateDefaultExtraMessage()
+	{
+		extraMessages = new ArrayList<>();
+		
+		extraMessages.add("If you like Pokedex, consider becoming a Patreon for perks! (%patreon for link)");
+		extraMessages.add("Stay up to date with Pokedex: join the support server! (%invite for link)");
+		extraMessages.add("Want your name next to a Pokemon? Adopt a Pokemon with Patreon! (%patreon for link)");
 	}
 	
 	private void addAliasFields(EmbedCreateSpec builder)

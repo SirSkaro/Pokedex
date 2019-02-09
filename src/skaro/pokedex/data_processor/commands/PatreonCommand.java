@@ -3,7 +3,7 @@ package skaro.pokedex.data_processor.commands;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.AbstractCommand;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -13,7 +13,7 @@ import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 
-public class PatreonCommand extends AbstractCommand 
+public class PatreonCommand extends PokedexCommand 
 {
 	private Response staticDiscordReply;
 	
@@ -24,7 +24,7 @@ public class PatreonCommand extends AbstractCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "patreon".intern();
-		argCats.add(ArgumentCategory.NONE);
+		orderedArgumentCategories.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
 		aliases.put("donate", Language.ENGLISH);

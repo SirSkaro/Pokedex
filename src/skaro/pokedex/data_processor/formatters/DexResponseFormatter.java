@@ -11,7 +11,7 @@ import org.eclipse.jetty.util.MultiMap;
 import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
@@ -56,7 +56,7 @@ public class DexResponseFormatter implements IDiscordFormatter, IServiceConsumer
 			break;
 			case INVALID_ARGUMENT:
 				response.addToReply("Could not process your request due to the following problem(s):".intern());
-				for(AbstractArgument arg : input.getArgs())
+				for(CommandArgument arg : input.getArgs())
 					if(!arg.isValid())
 						response.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
 			break;
