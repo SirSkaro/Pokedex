@@ -51,20 +51,55 @@ public class DiscordMessageEventHandler
 	
 	private Mono<Message> processMessageEvent(Message messageReceived, String messageContent)
 	{
-		return setUpReply(messageReceived, messageContent)
+		return prepareReply(messageReceived, messageContent)
+				.flatMap(reply -> sendAckMessageIfMakingWebRequests(reply))
+				.flatMap(reply -> getResponseAndAddSpecToStructure(reply))
+				.flatMap(reply -> deleteAckMessageIfMakingWebRequests(reply))
 				.flatMap(reply -> sendReply(reply))
 				.onErrorContinue((t,o) -> System.out.println("What? Impossible!"));
 	}
 	
-	private Mono<ReplyStructure> setUpReply(Message receivedMessage, String messageContent)
+	private Mono<ReplyStructure> prepareReply(Message receivedMessage, String messageContent)
 	{
 		return Mono.just(new ReplyStructure())
 				.flatMap(struct -> addAuthorOfMessageToStructure(struct, receivedMessage))
 				.filter(struct -> !struct.author.isBot())
 				.flatMap(struct -> parseAndAddInputToStructure(struct, messageContent))
 				.flatMap(struct -> addChannelOfMessageToStructure(struct, receivedMessage))
-				.filter(struct -> !rateLimiter.channelIsRateLimited(struct.channel.getId()))
-				.flatMap(struct -> getResponseAndAddSpecToStructure(struct));
+				.filter(struct -> !rateLimiter.channelIsRateLimited(struct.channel.getId()));
+	}
+	
+	private Mono<ReplyStructure> sendAckMessageIfMakingWebRequests(ReplyStructure struct)
+	{
+		if(!struct.input.getCommand().makesWebRequest())
+			return Mono.just(struct);
+		
+		String ackContent = struct.author.getUsername() +", gathering data for your request...";
+		return struct.channel.createMessage(ackContent)
+				.doOnNext(ackMessage -> struct.ackMessage = ackMessage)
+				.map(ackMessage -> struct);
+	}
+	
+	private Mono<ReplyStructure> getResponseAndAddSpecToStructure(ReplyStructure struct)
+	{
+		return getResponseFromCommand(struct)
+				.flatMap(response -> response.getAsSpec())
+				.doOnNext(spec -> struct.spec = spec)
+				.map(user -> struct);
+	}
+	
+	private Mono<ReplyStructure> deleteAckMessageIfMakingWebRequests(ReplyStructure struct)
+	{
+		if(!struct.input.getCommand().makesWebRequest())
+			return Mono.just(struct);
+		
+		return struct.ackMessage.delete()
+				.thenReturn(struct);
+	}
+	
+	private Mono<Message> sendReply(ReplyStructure struct)
+	{
+		return struct.channel.createMessage(struct.spec);
 	}
 	
 	private Mono<ReplyStructure> addAuthorOfMessageToStructure(ReplyStructure struct, Message message)
@@ -88,14 +123,6 @@ public class DiscordMessageEventHandler
 				.map(user -> struct);
 	}
 	
-	private Mono<ReplyStructure> getResponseAndAddSpecToStructure(ReplyStructure struct)
-	{
-		return getResponseFromCommand(struct)
-				.flatMap(response -> response.getAsSpec())
-				.doOnNext(spec -> struct.spec = spec)
-				.map(user -> struct);
-	}
-	
 	private Mono<Response> getResponseFromCommand(ReplyStructure struct)
 	{
 		Input input = struct.input;
@@ -112,13 +139,9 @@ public class DiscordMessageEventHandler
 		}
 	}
 	
-	private Mono<Message> sendReply(ReplyStructure struct)
-	{
-		return struct.channel.createMessage(struct.spec);
-	}
-
 	private class ReplyStructure
 	{
+		Message ackMessage;
 		MessageChannel channel;
 		User author;
 		Input input;
