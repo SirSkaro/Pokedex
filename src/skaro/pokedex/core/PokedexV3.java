@@ -9,13 +9,11 @@ import com.patreon.PatreonAPI;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.User;
+import discord4j.core.event.domain.message.MessageUpdateEvent;
 import discord4j.core.object.presence.Presence;
-import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import skaro.pokedex.data_processor.LearnMethodData;
-import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
 import skaro.pokedex.data_processor.commands.AboutCommand;
@@ -44,7 +42,6 @@ import skaro.pokedex.data_processor.formatters.RandpokeResponseFormatter;
 import skaro.pokedex.data_processor.formatters.ShinyResponseFormatter;
 import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
 import skaro.pokedex.data_processor.formatters.WeakResponseFormatter;
-import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.InputProcessor;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.CommandService;
@@ -53,16 +50,16 @@ import skaro.pokedex.services.ConfigurationType;
 import skaro.pokedex.services.DiscordService;
 import skaro.pokedex.services.EmojiService;
 import skaro.pokedex.services.FlexCacheService;
+import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokedex.services.PerkService;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceException;
 import skaro.pokedex.services.ServiceManager;
+import skaro.pokedex.services.ServiceManager.ServiceManagerBuilder;
 import skaro.pokedex.services.ServiceType;
 import skaro.pokedex.services.TextToSpeechService;
 import skaro.pokedex.services.TypeService;
-import skaro.pokedex.services.FlexCacheService.CachedResource;
-import skaro.pokedex.services.ServiceManager.ServiceManagerBuilder;
 
 public class PokedexV3 
 {
@@ -121,34 +118,17 @@ public class PokedexV3
 		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
 		DiscordClient client = service.getV3Client();
 		InputProcessor inputProcessor = new InputProcessor(commandMap, 190670386239635456L);
+		DiscordMessageEventHandler messageHandler = new DiscordMessageEventHandler(inputProcessor);
 		
 		client.getEventDispatcher().on(MessageCreateEvent.class)
-	        .map(MessageCreateEvent::getMessage)	//Get the message of the event
-	        .filter(msg -> msg.getContent().isPresent())	//only process if the message is not empty
-	        .flatMap(msg -> inputProcessor.processInput(msg.getContent().get())	//Unwrap the message from the Optional
-	        		.flatMap(input -> msg.getAuthor()	//Get the author
-	        				.flatMap(author -> msg.getChannel()	//Get the channel
-	        						.flatMap(channel ->  getResponse(input, author)	//Pass the input to the command to get a response
-	        								.flatMap(response -> response.getAsSpec())
-	        								.flatMap(spec -> channel.createMessage(spec)
-	        										.onErrorContinue((t,o) -> System.out.println("oopse!")))
-	        								)))) //Send the response
+			.flatMap(event -> messageHandler.onMessageCreateEvent(event))
+	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
+		
+		client.getEventDispatcher().on(MessageUpdateEvent.class)
+			.flatMap(event -> messageHandler.onMessageEditEvent(event))
 	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
 
-
 		client.login().block(); 
-	}
-	
-	private static Mono<Response> getResponse(Input input, User author)
-	{
-		try
-		{
-			return input.getCommand().discordReply(input, author);
-		}
-		catch(Exception e)
-		{
-			return Mono.just(input.getCommand().createErrorResponse(input, e));
-		}
 	}
 	
 	private static FlexCacheService createCacheService(PokeFlexService factory)

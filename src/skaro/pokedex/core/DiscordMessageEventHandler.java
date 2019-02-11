@@ -3,6 +3,7 @@ package skaro.pokedex.core;
 import java.util.Optional;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.event.domain.message.MessageUpdateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.MessageChannel;
 import discord4j.core.object.entity.User;
@@ -12,11 +13,15 @@ import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.InputProcessor;
-import sx.blah.discord.handle.impl.events.guild.channel.message.MessageEditEvent;
 
 public class DiscordMessageEventHandler
 {
 	private InputProcessor inputProcessor;
+	
+	public DiscordMessageEventHandler(InputProcessor inputProcessor)
+	{
+		this.inputProcessor = inputProcessor;
+	}
 
 	public Mono<Message> onMessageCreateEvent(MessageCreateEvent event)
 	{
@@ -26,30 +31,65 @@ public class DiscordMessageEventHandler
 		if(!possibleContent.isPresent())
 			return Mono.empty();
 
-		return Mono.just(possibleContent.get())
-				.flatMap(messageConent -> setUpReply(newlyReceivedMessage, messageConent))
-				.flatMap(reply -> sendReply(reply))
-				.onErrorContinue((t,o) -> System.out.println("What? Impossible!"));
+		return processMessageEvent(newlyReceivedMessage, possibleContent.get());
 	}
 
-	public static void onMessageEditEvent(MessageEditEvent event)
+	public Mono<Message> onMessageEditEvent(MessageUpdateEvent event)
 	{
+		Mono<Message> newlyReceivedMessage = event.getMessage();
+		Optional<String> possibleContent = event.getCurrentContent();
 
+		if(!possibleContent.isPresent())
+			return Mono.empty();
+
+		return newlyReceivedMessage
+				.flatMap(message -> processMessageEvent(message, possibleContent.get()));
+	}
+	
+	private Mono<Message> processMessageEvent(Message messageReceived, String messageContent)
+	{
+		return setUpReply(messageReceived, messageContent)
+				.flatMap(reply -> sendReply(reply))
+				.onErrorContinue((t,o) -> System.out.println("What? Impossible!"));
 	}
 	
 	private Mono<ReplyStructure> setUpReply(Message receivedMessage, String messageContent)
 	{
 		return Mono.just(new ReplyStructure())
-				.flatMap(replyStruct -> inputProcessor.processInput(messageContent)
-						.doOnNext(input -> replyStruct.input = input)
-						.then(receivedMessage.getAuthor())
-						.doOnNext(author -> replyStruct.author = author)
-						.then(receivedMessage.getChannel())
-						.doOnNext(channel -> replyStruct.channel = channel)
-						.then(getResponseFromCommand(replyStruct))
-						.flatMap(response -> response.getAsSpec())
-						.doOnNext(spec -> replyStruct.spec = spec)
-						.then(Mono.just(replyStruct)));
+				.flatMap(struct -> addNonBotAuthorOfMessageToStructure(struct, receivedMessage))
+				.flatMap(struct -> parseAndAddContentToStructure(struct, messageContent))
+				.flatMap(struct -> addChannelOfMessageToStructure(struct, receivedMessage))
+				.flatMap(struct -> getResponseAndAddSpecToStructure(struct));
+	}
+	
+	private Mono<ReplyStructure> addNonBotAuthorOfMessageToStructure(ReplyStructure struct, Message message)
+	{
+		return message.getAuthor()
+				.filter(user -> user.isBot())
+				.doOnNext(author -> struct.author = author)
+				.map(user -> struct);
+	}
+	
+	private Mono<ReplyStructure> parseAndAddContentToStructure(ReplyStructure struct, String messageContent)
+	{
+		return inputProcessor.processInput(messageContent)
+				.doOnNext(input -> struct.input = input)
+				.map(user -> struct);
+	}
+	
+	private Mono<ReplyStructure> addChannelOfMessageToStructure(ReplyStructure struct, Message message)
+	{
+		return message.getChannel()
+				.doOnNext(channel -> struct.channel = channel)
+				.map(user -> struct);
+	}
+	
+	private Mono<ReplyStructure> getResponseAndAddSpecToStructure(ReplyStructure struct)
+	{
+		return getResponseFromCommand(struct)
+				.flatMap(response -> response.getAsSpec())
+				.doOnNext(spec -> struct.spec = spec)
+				.map(user -> struct);
 	}
 	
 	private Mono<Response> getResponseFromCommand(ReplyStructure struct)
