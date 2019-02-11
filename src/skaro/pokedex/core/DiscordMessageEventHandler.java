@@ -9,6 +9,7 @@ import discord4j.core.object.entity.MessageChannel;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.MessageCreateSpec;
 import reactor.core.publisher.Mono;
+import skaro.pokedex.data_processor.ChannelRateLimiter;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
@@ -17,10 +18,12 @@ import skaro.pokedex.input_processor.InputProcessor;
 public class DiscordMessageEventHandler
 {
 	private InputProcessor inputProcessor;
+	private ChannelRateLimiter rateLimiter;
 	
-	public DiscordMessageEventHandler(InputProcessor inputProcessor)
+	public DiscordMessageEventHandler(InputProcessor inputProcessor, ChannelRateLimiter rateLimiter)
 	{
 		this.inputProcessor = inputProcessor;
+		this.rateLimiter = rateLimiter;
 	}
 
 	public Mono<Message> onMessageCreateEvent(MessageCreateEvent event)
@@ -56,21 +59,22 @@ public class DiscordMessageEventHandler
 	private Mono<ReplyStructure> setUpReply(Message receivedMessage, String messageContent)
 	{
 		return Mono.just(new ReplyStructure())
-				.flatMap(struct -> addNonBotAuthorOfMessageToStructure(struct, receivedMessage))
-				.flatMap(struct -> parseAndAddContentToStructure(struct, messageContent))
+				.flatMap(struct -> addAuthorOfMessageToStructure(struct, receivedMessage))
+				.filter(struct -> !struct.author.isBot())
+				.flatMap(struct -> parseAndAddInputToStructure(struct, messageContent))
 				.flatMap(struct -> addChannelOfMessageToStructure(struct, receivedMessage))
+				.filter(struct -> !rateLimiter.channelIsRateLimited(struct.channel.getId()))
 				.flatMap(struct -> getResponseAndAddSpecToStructure(struct));
 	}
 	
-	private Mono<ReplyStructure> addNonBotAuthorOfMessageToStructure(ReplyStructure struct, Message message)
+	private Mono<ReplyStructure> addAuthorOfMessageToStructure(ReplyStructure struct, Message message)
 	{
 		return message.getAuthor()
-				.filter(user -> user.isBot())
 				.doOnNext(author -> struct.author = author)
 				.map(user -> struct);
 	}
 	
-	private Mono<ReplyStructure> parseAndAddContentToStructure(ReplyStructure struct, String messageContent)
+	private Mono<ReplyStructure> parseAndAddInputToStructure(ReplyStructure struct, String messageContent)
 	{
 		return inputProcessor.processInput(messageContent)
 				.doOnNext(input -> struct.input = input)

@@ -1,5 +1,6 @@
 package skaro.pokedex.core;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -13,6 +14,7 @@ import discord4j.core.event.domain.message.MessageUpdateEvent;
 import discord4j.core.object.presence.Presence;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+import skaro.pokedex.data_processor.ChannelRateLimiter;
 import skaro.pokedex.data_processor.LearnMethodData;
 import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.commands.AbilityCommand;
@@ -118,7 +120,8 @@ public class PokedexV3
 		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
 		DiscordClient client = service.getV3Client();
 		InputProcessor inputProcessor = new InputProcessor(commandMap, 190670386239635456L);
-		DiscordMessageEventHandler messageHandler = new DiscordMessageEventHandler(inputProcessor);
+		ChannelRateLimiter rateLimiter = new ChannelRateLimiter(2, Duration.ofSeconds(10));
+		DiscordMessageEventHandler messageHandler = new DiscordMessageEventHandler(inputProcessor, rateLimiter);
 		
 		client.getEventDispatcher().on(MessageCreateEvent.class)
 			.flatMap(event -> messageHandler.onMessageCreateEvent(event))
