@@ -68,8 +68,8 @@ public class CommandsCommand extends PokedexCommand
 					+ ":small_blue_diamond:__Don't forget your commas!__\n"
 					+ ":small_blue_diamond:You don't need to include '[' or '<' characters.", false);
 			
-			commands.getCacheAsMap().forEach((commandName, command) -> {
-				builder.addField(":small_orange_diamond:"+ commandName, ("%"+commandName + " ["+ command.getArguments()).intern() + "]", true);
+			commands.getAllCommands().forEach(command -> {
+				builder.addField(formatCommandFieldTitle(command), formatCommandDescription(command), true);
 			});
 			
 			response.setEmbed(builder);
@@ -79,6 +79,16 @@ public class CommandsCommand extends PokedexCommand
 		{
 			return Mono.just(this.createErrorResponse(input, e));
 		}
+	}
+	
+	private String formatCommandFieldTitle(PokedexCommand command)
+	{
+		return (":small_orange_diamond:"+ command.getCommandName()).intern();
+	}
+	
+	private String formatCommandDescription(PokedexCommand command)
+	{
+		return ("%"+command.getCommandName() + " ["+ command.getArguments() + "]").intern();
 	}
 
 }

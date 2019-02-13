@@ -6,8 +6,8 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.event.domain.message.MessageUpdateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.MessageChannel;
+import discord4j.core.object.entity.PrivateChannel;
 import discord4j.core.object.entity.User;
-import discord4j.core.spec.MessageCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.ChannelRateLimiter;
 import skaro.pokedex.data_processor.PokedexCommand;
@@ -53,7 +53,7 @@ public class DiscordMessageEventHandler
 	{
 		return prepareReply(messageReceived, messageContent)
 				.flatMap(reply -> sendAckMessageIfMakingWebRequests(reply))
-				.flatMap(reply -> getResponseAndAddSpecToStructure(reply))
+				.flatMap(reply -> executeCommandAndAddResponseToStructure(reply))
 				.flatMap(reply -> deleteAckMessageIfMakingWebRequests(reply))
 				.flatMap(reply -> sendReply(reply))
 				.onErrorContinue((t,o) -> System.out.println("What? Impossible!"));
@@ -64,9 +64,10 @@ public class DiscordMessageEventHandler
 		return Mono.just(new ReplyStructure())
 				.flatMap(struct -> addAuthorOfMessageToStructure(struct, receivedMessage))
 				.filter(struct -> !struct.author.isBot())
-				.flatMap(struct -> parseAndAddInputToStructure(struct, messageContent))
 				.flatMap(struct -> addChannelOfMessageToStructure(struct, receivedMessage))
-				.filter(struct -> !rateLimiter.channelIsRateLimited(struct.channel.getId()));
+				.filter(struct -> !rateLimiter.channelIsRateLimited(struct.channel.getId()))
+				.flatMap(struct -> addPrivateChannelToStructure(struct, struct.author))
+				.flatMap(struct -> parseAndAddInputToStructure(struct, messageContent));
 	}
 	
 	private Mono<ReplyStructure> sendAckMessageIfMakingWebRequests(ReplyStructure struct)
@@ -80,11 +81,10 @@ public class DiscordMessageEventHandler
 				.map(ackMessage -> struct);
 	}
 	
-	private Mono<ReplyStructure> getResponseAndAddSpecToStructure(ReplyStructure struct)
+	private Mono<ReplyStructure> executeCommandAndAddResponseToStructure(ReplyStructure struct)
 	{
 		return getResponseFromCommand(struct)
-				.flatMap(response -> response.getAsSpec())
-				.doOnNext(spec -> struct.spec = spec)
+				.doOnNext(response -> struct.response = response)
 				.map(user -> struct);
 	}
 	
@@ -99,7 +99,17 @@ public class DiscordMessageEventHandler
 	
 	private Mono<Message> sendReply(ReplyStructure struct)
 	{
-		return struct.channel.createMessage(struct.spec);
+		Response response = struct.response;
+		
+		if(response.isPrivateMessage())
+		{
+			return response.getAsSpec()
+					.flatMap(spec -> struct.privateChannel.createMessage(spec))
+					.flatMap(directMessage -> struct.channel.createMessage("Sent to your inbox!"));
+		}
+		
+		return response.getAsSpec()
+				.flatMap(spec -> struct.channel.createMessage(spec));
 	}
 	
 	private Mono<ReplyStructure> addAuthorOfMessageToStructure(ReplyStructure struct, Message message)
@@ -113,16 +123,23 @@ public class DiscordMessageEventHandler
 	{
 		return inputProcessor.processInput(messageContent)
 				.doOnNext(input -> struct.input = input)
-				.map(user -> struct);
+				.map(input -> struct);
 	}
 	
 	private Mono<ReplyStructure> addChannelOfMessageToStructure(ReplyStructure struct, Message message)
 	{
 		return message.getChannel()
 				.doOnNext(channel -> struct.channel = channel)
-				.map(user -> struct);
+				.map(channel -> struct);
 	}
 	
+	private Mono<ReplyStructure> addPrivateChannelToStructure(ReplyStructure struct, User author)
+	{
+		return author.getPrivateChannel()
+				.doOnNext(channel -> struct.privateChannel = channel)
+				.map(channel -> struct);
+	}
+
 	private Mono<Response> getResponseFromCommand(ReplyStructure struct)
 	{
 		Input input = struct.input;
@@ -143,8 +160,9 @@ public class DiscordMessageEventHandler
 	{
 		Message ackMessage;
 		MessageChannel channel;
+		PrivateChannel privateChannel;
 		User author;
 		Input input;
-		MessageCreateSpec spec;
+		Response response;
 	}
 }
