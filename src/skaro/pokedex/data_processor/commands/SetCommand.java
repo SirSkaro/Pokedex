@@ -71,7 +71,7 @@ public class SetCommand extends PokedexCommand
 				break;
 				case INVALID_ARGUMENT:
 					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(CommandArgument arg : input.getArgs())
+					for(CommandArgument arg : input.getArguments())
 						if(!arg.isValid())
 							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
 					reply.addToReply("\n*top suggestion*: Only Smogon metas are supported."
@@ -95,9 +95,9 @@ public class SetCommand extends PokedexCommand
 		if(!inputIsValid(response, input))
 			return Mono.just(response);
 		
-		String tier = input.getArg(1).getDbForm().toUpperCase();
-		String pokemonName = input.getArg(0).getFlexForm();
-		int generation = Integer.parseInt(input.getArg(2).getDbForm());
+		String tier = input.getArgument(1).getDbForm().toUpperCase();
+		String pokemonName = input.getArgument(0).getFlexForm();
+		int generation = Integer.parseInt(input.getArgument(2).getDbForm());
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		
 		Mono<Response> result = Mono.just(new MultiMap<IFlexObject>())

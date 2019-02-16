@@ -58,9 +58,9 @@ public class LearnResponseFormatter implements IDiscordFormatter, IServiceConsum
 		
 		//Because inputs that are not valid (case 2) are allowed this far, it is necessary to check if
 		//the Pokemon is valid but allow other arguments to go unchecked
-		if(!input.getArg(0).isValid())
+		if(!input.getArgument(0).isValid())
 		{
-			response.addToReply("\""+input.getArg(0).getRawInput()+"\" is not a recognized Pokemon in "+input.getLanguage().getName());
+			response.addToReply("\""+input.getArgument(0).getRawInput()+"\" is not a recognized Pokemon in "+input.getLanguage().getName());
 			return response;
 		}
 		

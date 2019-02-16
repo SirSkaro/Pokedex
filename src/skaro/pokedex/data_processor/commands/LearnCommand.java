@@ -95,7 +95,7 @@ public class LearnCommand extends PokedexCommand
 			
 			//Because inputs that are not valid (case 2) are allowed this far, it is necessary to check if
 			//the Pokemon is valid but allow other arguments to go unchecked
-			if(!input.getArg(0).isValid())
+			if(!input.getArgument(0).isValid())
 			{
 				return false;
 			}
@@ -118,9 +118,9 @@ public class LearnCommand extends PokedexCommand
 		List<PokeFlexRequest> initialRequests = new ArrayList<>();
 		MultiMap<IFlexObject> dataToFormat = new MultiMap<>();
 		
-		for(int i = 1; i < input.getArgs().size(); i++)
+		for(int i = 1; i < input.getArguments().size(); i++)
 		{
-			CommandArgument arg = input.getArg(i);
+			CommandArgument arg = input.getArgument(i);
 			if(arg.isValid())
 				initialRequests.add(new Request(Endpoint.MOVE, arg.getFlexForm()));
 			else
@@ -128,7 +128,7 @@ public class LearnCommand extends PokedexCommand
 		}
 		
 		//Get data of Pokemon
-		initialRequests.add(new Request(Endpoint.POKEMON, input.getArg(0).getFlexForm()));
+		initialRequests.add(new Request(Endpoint.POKEMON, input.getArgument(0).getFlexForm()));
 		
 		result = Mono.just(dataToFormat)
 				.flatMap(dataMap -> Flux.fromIterable(initialRequests)

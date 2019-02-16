@@ -52,7 +52,7 @@ public abstract class PokedexCommand implements IServiceConsumer
 	
 	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
-	public List<ArgumentCategory> getArgumentCats() { return orderedArgumentCategories; }
+	public List<ArgumentCategory> getArgumentCategories() { return orderedArgumentCategories; }
 	public Map<String, Language> getAliases() { return aliases; }
 	public List<String> getExtraMessages() { return extraMessages; }
 	public EmbedCreateSpec getHelpMessage() { return helpMessage; }

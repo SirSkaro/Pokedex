@@ -52,7 +52,7 @@ public class CoverageResponseFormatter implements IDiscordFormatter, IServiceCon
 			break;
 			case INVALID_ARGUMENT:
 				response.addToReply("Could not process your request due to the following problem(s):".intern());
-				for(CommandArgument arg : input.getArgs())
+				for(CommandArgument arg : input.getArguments())
 					if(!arg.isValid())
 						response.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized Type or Move in "+ input.getLanguage().getName());
 				response.addToReply("\n*top suggestion*: did you include commas between inputs?");

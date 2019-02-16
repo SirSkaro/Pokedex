@@ -53,7 +53,7 @@ public class AbilityResponseFormatter implements IDiscordFormatter, IServiceCons
 				response.addToReply("You must specify exactly one Pokemon or Ability as input for this command.".intern());
 			break;
 			case INVALID_ARGUMENT:
-				response.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Pokemon or Ability in " + input.getLanguage().getName());
+				response.addToReply("\""+input.getArgument(0).getRawInput() +"\" is not a recognized Pokemon or Ability in " + input.getLanguage().getName());
 			break;
 			default:
 				response.addToReply("A technical error occured (code 103)");
@@ -67,7 +67,7 @@ public class AbilityResponseFormatter implements IDiscordFormatter, IServiceCons
 	{
 		Language lang = input.getLanguage();
 		
-		if(input.getArg(0).getCategory() == ArgumentCategory.ABILITY)
+		if(input.getArgument(0).getCategory() == ArgumentCategory.ABILITY)
 			return formatFromAbilityArgument(data, lang, builder);
 		return formatFromPokemonArgument(data, lang, builder);
 	}

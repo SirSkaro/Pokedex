@@ -56,7 +56,7 @@ public class DexResponseFormatter implements IDiscordFormatter, IServiceConsumer
 			break;
 			case INVALID_ARGUMENT:
 				response.addToReply("Could not process your request due to the following problem(s):".intern());
-				for(CommandArgument arg : input.getArgs())
+				for(CommandArgument arg : input.getArguments())
 					if(!arg.isValid())
 						response.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
 			break;
@@ -101,7 +101,7 @@ public class DexResponseFormatter implements IDiscordFormatter, IServiceConsumer
 				+TextFormatter.flexFormToProper(version.getNameInLanguage(lang.getFlexKey()))+"__**");
 		
 		builder.setDescription(replyContent);
-		builder.setColor(colorService.getColorForVersion(input.getArg(1).getFlexForm().replace("-", "")));
+		builder.setColor(colorService.getColorForVersion(input.getArgument(1).getFlexForm().replace("-", "")));
 		
 		//Add thumbnail
 		builder.setThumbnail(pokemon.getSprites().getFrontDefault());

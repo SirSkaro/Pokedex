@@ -88,7 +88,7 @@ public class ShinyCommand extends PokedexCommand
 		
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		EmbedCreateSpec builder = new EmbedCreateSpec();
-		String pokemonName = input.getArg(0).getFlexForm();
+		String pokemonName = input.getArgument(0).getFlexForm();
 		Mono<MultiMap<IFlexObject>> result;
 		
 		Request request = new Request(Endpoint.POKEMON, pokemonName);
@@ -115,7 +115,7 @@ public class ShinyCommand extends PokedexCommand
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 
 		//Easter egg: if the user specifies the default non-privilaged Pokemon, use the Patreon logo instead
-		if(!input.getArg(0).getDbForm().equals(defaultPokemon))
+		if(!input.getArgument(0).getDbForm().equals(defaultPokemon))
 		{
 			builder.setImage("attachment://jirachi.gif");
 			builder.setColor(colorService.getColorForType("psychic"));

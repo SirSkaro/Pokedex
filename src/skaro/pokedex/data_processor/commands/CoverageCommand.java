@@ -83,7 +83,7 @@ public class CoverageCommand extends PokedexCommand
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		
 		result = result
-				.flatMap(dataMap -> Flux.fromIterable(input.getArgs())
+				.flatMap(dataMap -> Flux.fromIterable(input.getArguments())
 				.parallel()
 				.runOn(factory.getScheduler())
 				.flatMap(userArgument -> getTypeFromArgument(userArgument))

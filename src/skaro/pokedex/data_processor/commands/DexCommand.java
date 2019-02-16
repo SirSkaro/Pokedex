@@ -79,8 +79,8 @@ public class DexCommand extends PokedexCommand
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		Mono<MultiMap<IFlexObject>> result;
 		
-		String pokemonName = input.getArg(0).getFlexForm();
-		String versionName = input.getArg(1).getFlexForm();
+		String pokemonName = input.getArgument(0).getFlexForm();
+		String versionName = input.getArgument(1).getFlexForm();
 		Request request = new Request(Endpoint.POKEMON, pokemonName);
 		
 		result = Mono.just(new MultiMap<IFlexObject>())

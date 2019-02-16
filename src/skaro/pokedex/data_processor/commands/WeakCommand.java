@@ -84,9 +84,9 @@ public class WeakCommand extends PokedexCommand
 		Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>());
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		
-		if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON)
+		if(input.getArgument(0).getCategory() == ArgumentCategory.POKEMON)
 		{	
-			String pokemonName = input.getArg(0).getFlexForm();
+			String pokemonName = input.getArgument(0).getFlexForm();
 			Request pokemonRequest = new Request(Endpoint.POKEMON, pokemonName);
 			result = result.flatMap(dataMap -> pokemonRequest.makeRequest(factory)
 						.ofType(Pokemon.class)
@@ -102,7 +102,7 @@ public class WeakCommand extends PokedexCommand
 		}
 		else
 		{
-			result = result.doOnNext(dataMap -> dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapperFromArguments(input.getArgs())));
+			result = result.doOnNext(dataMap -> dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapperFromArguments(input.getArguments())));
 		}
 		
 		this.addRandomExtraMessage(builder);

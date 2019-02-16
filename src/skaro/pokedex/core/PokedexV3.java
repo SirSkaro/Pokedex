@@ -24,6 +24,7 @@ import skaro.pokedex.data_processor.commands.CoverageCommand;
 import skaro.pokedex.data_processor.commands.DataCommand;
 import skaro.pokedex.data_processor.commands.DexCommand;
 import skaro.pokedex.data_processor.commands.HelpCommand;
+import skaro.pokedex.data_processor.commands.InviteCommand;
 import skaro.pokedex.data_processor.commands.ItemCommand;
 import skaro.pokedex.data_processor.commands.LearnCommand;
 import skaro.pokedex.data_processor.commands.MoveCommand;
@@ -181,6 +182,7 @@ public class PokedexV3
 		
 		//ColorService
 		commandService.addCommand(new PatreonCommand(commandServiceBuilder.build()));
+		commandService.addCommand(new InviteCommand(commandServiceBuilder.build()));
 		
 		//ColorService, CommandService
 		commandServiceBuilder.addService(ServiceType.COMMAND);

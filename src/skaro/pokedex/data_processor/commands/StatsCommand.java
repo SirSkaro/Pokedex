@@ -76,7 +76,7 @@ public class StatsCommand extends PokedexCommand
 		
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		EmbedCreateSpec builder = new EmbedCreateSpec();
-		String pokemonName = input.getArg(0).getFlexForm();
+		String pokemonName = input.getArgument(0).getFlexForm();
 		Mono<MultiMap<IFlexObject>> result;
 		
 		Request request = new Request(Endpoint.POKEMON, pokemonName);

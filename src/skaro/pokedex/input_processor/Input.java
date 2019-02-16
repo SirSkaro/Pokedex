@@ -1,69 +1,122 @@
 package skaro.pokedex.input_processor;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import skaro.pokedex.data_processor.PokedexCommand;
+import skaro.pokedex.data_processor.commands.ArgumentRange;
 
 public class Input 
 {
-	private List<CommandArgument> args;
+	private List<CommandArgument> arguments;
 	private String function;
 	private InputErrorStatus errorStatus;
-	private Language lang;
+	private Language language;
 	private PokedexCommand command;
 	
-	public Input(String func, PokedexCommand cmd, Language l)
+	private Input(InputBuilder inputBuilder)
 	{
-		args = new ArrayList<CommandArgument>();
-		function = func;
-		errorStatus = InputErrorStatus.NO_ERROR;
-		lang = l;
-		command = cmd;
+		this.arguments = inputBuilder.arguments;
+		this.function = inputBuilder.function;
+		this.language = inputBuilder.language;
+		this.command = inputBuilder.command;
+		
+		if(!hasExpectedNumberOfArguments())
+			this.errorStatus = InputErrorStatus.ARGUMENT_NUMBER;
+		else
+			this.errorStatus = inputBuilder.errorStatus;
 	}
-	
-	//Get and Set methods
-	public List<CommandArgument> getArgs() { return args; }
+
+	public List<CommandArgument> getArguments() { return arguments; }
 	public String getFunction() { return function; }
 	public boolean isValid() { return errorStatus == InputErrorStatus.NO_ERROR; }
 	public InputErrorStatus getError() { return errorStatus; }
-	public Language getLanguage() { return lang; }
+	public Language getLanguage() { return language; }
 	public PokedexCommand getCommand() { return command; }
 	
-	public void setFunction(String function) { this.function = function; }
-	public void setErrorStatus(InputErrorStatus status) {this.errorStatus = status; }
-	
-	//Utility methods	
-	public void addArgs(List<CommandArgument> list)
+	public static InputBuilder newBuilder()
 	{
-		args.addAll(list);
+		return new InputBuilder();
 	}
 	
-	public CommandArgument getArg(int index)
+	public CommandArgument getArgument(int index)
 	{
-		return args.get(index);
-	}
-	
-	public LinkedList<String> argsAsList()
-	{
-		LinkedList<String> list = new LinkedList<String>();
-		for(CommandArgument arg : args)
-			list.add(arg.getFlexForm());
-		
-		return list;
+		return arguments.get(index);
 	}
 	
 	public String argsToString()
 	{
-		if(args.isEmpty())
+		if(arguments.isEmpty())
 			return "(no input)";
 		
 		StringBuilder builder = new StringBuilder();
 		
-		for(CommandArgument arg : args)
+		for(CommandArgument arg : arguments)
 			builder.append(arg.toString() + ", ");
 		
 		return builder.substring(0, builder.length() - 2);
+	}
+	
+	private boolean hasExpectedNumberOfArguments()
+	{
+		ArgumentRange argumentRange = command.getExpectedArgumentRange();
+		int numberOfArguments = arguments.size();
+		
+		return argumentRange.numberInRange(numberOfArguments);
+	}
+	
+	public static class InputBuilder
+	{
+		private List<CommandArgument> arguments;
+		private String function;
+		private InputErrorStatus errorStatus;
+		private Language language;
+		private PokedexCommand command;
+		
+		public InputBuilder()
+		{
+			arguments = new ArrayList<>();
+			errorStatus = InputErrorStatus.NO_ERROR;
+		}
+		
+		public InputBuilder setFunction(String function)
+		{
+			this.function = function;
+			return this;
+		}
+		
+		public InputBuilder setLanguage(Language language)
+		{
+			this.language = language;
+			return this;
+		}
+		
+		public InputBuilder setCommand(PokedexCommand command)
+		{
+			this.command = command;
+			return this;
+		}
+		
+		public InputBuilder addArguments(List<CommandArgument> newArguments)
+		{
+			arguments.addAll(newArguments);
+			
+			if(anyArgumentsInvalid(newArguments))
+				this.errorStatus = InputErrorStatus.INVALID_ARGUMENT;
+			
+			return this;
+		}
+		
+		public Input build()
+		{
+			return new Input(this);
+		}
+		
+		private boolean anyArgumentsInvalid(List<CommandArgument> argumentsToCheck)
+		{
+			return argumentsToCheck.stream()
+					.anyMatch(argument -> !argument.isValid());
+		}
+		
 	}
 }

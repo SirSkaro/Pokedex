@@ -35,12 +35,12 @@ public class CommandService implements IService
 			cache.put(alias, command);
 	}
 	
-	public boolean hasCommand(String cmd)
+	public boolean commandOrAliasExists(String cmd)
 	{
 		return cache.asMap().containsKey(cmd);
 	}
 	
-	public PokedexCommand get(String key)
+	public PokedexCommand getCommandByAnyAlias(String key)
 	{
 		return cache.getIfPresent(key);
 	}

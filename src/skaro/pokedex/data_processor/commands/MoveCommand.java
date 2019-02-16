@@ -80,7 +80,7 @@ public class MoveCommand extends PokedexCommand
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		Mono<MultiMap<IFlexObject>> result;
-		String moveName = input.getArg(0).getFlexForm();
+		String moveName = input.getArgument(0).getFlexForm();
 		
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		FlexCacheService flexCache = (FlexCacheService)services.getService(ServiceType.CACHE);

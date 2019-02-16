@@ -1,27 +1,30 @@
 package skaro.pokedex.input_processor;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.commands.ArgumentRange;
+import skaro.pokedex.input_processor.Input.InputBuilder;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.NoneArgument;
 import skaro.pokedex.input_processor.arguments.ParsedText;
 import skaro.pokedex.services.CommandService;
 
 public class InputProcessor 
 {
-	private CommandService commandLibrary;
+	private CommandService commandService;
 	private Pattern prefixPattern, postfixPattern, mentionPattern;
 	private long botID;
 	
 	public InputProcessor(CommandService lib, Long id)
 	{
-		commandLibrary = lib;
+		commandService = lib;
 		botID = id;
 		
 		String multilingualWord = "\u3131-\uD79Da-zA-Z\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf";
@@ -30,69 +33,23 @@ public class InputProcessor
 		postfixPattern = Pattern.compile("["+multilingualWord+"]+[\\s]*[(].*[)]");
 		mentionPattern = Pattern.compile("<@[0-9]+>[\\s]*["+multilingualWord+"]+[\\s]*.*");
 	}
-	public Mono<Input> processInput(String input)
+	
+	public Mono<Input> createInputFromRawString(String rawString)
 	{
-		//Utility variables
-		Optional<ParsedText> parseTest = parseTextMessage(input);
-		ParsedText parsedText;
-		PokedexCommand command;
-		Input result;
-		List<CommandArgument> argsFromParse;
-		Iterator<String> argItr;
-		Language lang;
+		Optional<ParsedText> parseTest = parseString(rawString);
 		
-		//If args is null, then the input does not match the command format. Discard.
 		if(!parseTest.isPresent())
 			return Mono.empty();
 		
-		//If argument is not in the map, the command is not supported
-		parsedText = parseTest.get();
-		if(!commandLibrary.hasCommand(parsedText.getFunction()))
+		ParsedText parsedText = parseTest.get();
+		if(!commandService.commandOrAliasExists(parsedText.getFunction()))
 			return Mono.empty();
 		
-		command = commandLibrary.get(parsedText.getFunction());
-		lang = command.getLanguageOfAlias(parsedText.getFunction());
-		result = new Input(parsedText.getFunction(), command, lang);
-		
-		//Check for a legal number of arguments
-		if(!hasExpectedNumberOfArguments(parsedText, command))
-		{
-			result.setErrorStatus(InputErrorStatus.ARGUMENT_NUMBER);
-			return Mono.just(result);
-		}
-		
-		//Parse each argument
-		argItr = parsedText.getArgumentIterator();
-		for(ArgumentCategory argCat : command.getArgumentCats())
-		{
-			argsFromParse = argCat.parse(argItr, lang);
-			result.addArgs(argsFromParse);
-		}
-		
-		for(CommandArgument abstractArg : result.getArgs())
-			if(!abstractArg.isValid())
-			{
-				result.setErrorStatus(InputErrorStatus.INVALID_ARGUMENT);
-				break;
-			}
-		
-		return Mono.just(result);
+		Input input = createInputFromParsedText(parsedText);
+		return Mono.just(input);
 	}
 	
-	private boolean hasExpectedNumberOfArguments(ParsedText text, PokedexCommand cmd)
-	{
-		ArgumentRange range = cmd.getExpectedArgumentRange();
-		int numArgs = text.getNumberOfArguments();
-		
-		return numArgs >= range.getMin() && numArgs <= range.getMax();
-	}
-	
-	/**
-     * A method to parse an incoming message. Tests if the message is a command that
-     * the bot replies textually to. If it is a command
-     * then the message is organized into a String array
-     */
-    private Optional<ParsedText> parseTextMessage(String msg)
+    private Optional<ParsedText> parseString(String msg)
     {
     	Matcher matcher;
     	
@@ -111,20 +68,48 @@ public class InputProcessor
     	if(matcher.matches())
     		return parseMention(msg);
     	
-		//Patterns do not match
 		return Optional.empty();
     }
-    
+	
+	private Input createInputFromParsedText(ParsedText parsedText)
+	{
+		PokedexCommand command = commandService.getCommandByAnyAlias(parsedText.getFunction());
+		Language lang = command.getLanguageOfAlias(parsedText.getFunction());
+		InputBuilder builder = Input.newBuilder();
+		List<CommandArgument> parsedArguments = parseArguments(parsedText, command.getArgumentCategories(), lang);
+		
+		builder.setLanguage(lang);
+		builder.setCommand(command);
+		builder.setFunction(parsedText.getFunction());
+		builder.addArguments(parsedArguments);
+		
+		return builder.build();
+	}
+	
+	private List<CommandArgument> parseArguments(ParsedText parsedText, List<ArgumentCategory> categories, Language lang)
+	{
+		Iterator<String> argItr = parsedText.getArgumentIterator();
+		
+		return categories.stream()
+				.map(category -> category.parse(argItr, lang))
+				.flatMap(Collection::stream)
+				.filter(argument -> !argumentIsNull(argument))
+				.collect(Collectors.toList());
+	}
+	
+	private boolean argumentIsNull(CommandArgument argument)
+	{
+		return (argument instanceof NoneArgument) && !(argument.isValid());
+	}
+	
     private Optional<ParsedText> parsePrefix(String msg)
     {
     	ParsedText result = new ParsedText();
-    	String unprasedArguments;
-    	int index;
     	
-    	index = msg.indexOf(" ");
+    	int index = msg.indexOf(" ");
 		if(index != -1)
 		{
-			unprasedArguments = msg.substring(index + 1);
+			String unprasedArguments = msg.substring(index + 1);
 			result.setArgs(unprasedArguments);
 			result.setFunction(msg.substring(1, index).toLowerCase());
 		}
@@ -137,9 +122,8 @@ public class InputProcessor
     private Optional<ParsedText> parsePostfix(String msg)
     {
     	ParsedText result = new ParsedText();
-    	String unprasedArguments;
     	
-    	unprasedArguments = msg.substring(msg.indexOf("(") + 1, msg.indexOf(")"));
+    	String unprasedArguments = msg.substring(msg.indexOf("(") + 1, msg.indexOf(")"));
 		result.setArgs(unprasedArguments);
 		result.setFunction(msg.substring(0, msg.indexOf("(")).toLowerCase());
 		
@@ -149,18 +133,16 @@ public class InputProcessor
     private Optional<ParsedText> parseMention(String msg)
     {
     	ParsedText result = new ParsedText();
-    	String id;
-    	int indexFunc, indexArgs;
     	
-    	id = msg.substring(msg.indexOf("@") + 1, msg.indexOf(">"));
+    	String id = msg.substring(msg.indexOf("@") + 1, msg.indexOf(">"));
     	if(Long.parseLong(id) != botID)
     		return Optional.empty();
 		
-    	indexFunc = msg.indexOf(" ");
+    	int indexFunc = msg.indexOf(" ");
     	if(indexFunc == -1)
     		return Optional.empty();
     	
-    	indexArgs = msg.indexOf(" ", indexFunc + 1);
+    	int indexArgs = msg.indexOf(" ", indexFunc + 1);
     	if(indexArgs == -1)
     	{
     		result.setFunction(msg.substring(msg.indexOf(">") + 1));

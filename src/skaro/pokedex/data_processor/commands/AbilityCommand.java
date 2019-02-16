@@ -80,11 +80,11 @@ public class AbilityCommand extends PokedexCommand
 
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		Mono<MultiMap<IFlexObject>> result;
-		String userInput = input.getArg(0).getFlexForm();
+		String userInput = input.getArgument(0).getFlexForm();
 
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 
-		if(input.getArg(0).getCategory() == ArgumentCategory.ABILITY)
+		if(input.getArgument(0).getCategory() == ArgumentCategory.ABILITY)
 		{
 			Request request = new Request(Endpoint.ABILITY, userInput);
 			result = Mono.just(new MultiMap<IFlexObject>())

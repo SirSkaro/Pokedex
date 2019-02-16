@@ -87,7 +87,7 @@ public class DataCommand extends PokedexCommand
 
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		EmbedCreateSpec builder = new EmbedCreateSpec();
-		String pokemonArgument = input.getArg(0).getFlexForm();
+		String pokemonArgument = input.getArgument(0).getFlexForm();
 		Request pokemonRequest = new Request(Endpoint.POKEMON, pokemonArgument);
 		
 		Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>())

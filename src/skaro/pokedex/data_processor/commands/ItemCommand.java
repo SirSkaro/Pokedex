@@ -77,7 +77,7 @@ public class ItemCommand extends PokedexCommand
 		
 		Mono<MultiMap<IFlexObject>> result;
 		EmbedCreateSpec builder = new EmbedCreateSpec();
-		String itemName = input.getArg(0).getFlexForm();
+		String itemName = input.getArgument(0).getFlexForm();
 		
 		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 		FlexCacheService flexCache = (FlexCacheService)services.getService(ServiceType.CACHE);

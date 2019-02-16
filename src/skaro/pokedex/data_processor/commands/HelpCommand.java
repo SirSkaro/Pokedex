@@ -56,10 +56,10 @@ public class HelpCommand extends PokedexCommand
 	@Override
 	public Mono<Response> discordReply(Input input, User requester)
 	{ 
-		if(input.getArg(0) instanceof NoneArgument)
+		if(input.getArgument(0) instanceof NoneArgument)
 			return Mono.just(defaultResponse);
 		
-		String arg = input.getArg(0).getDbForm();
+		String arg = input.getArgument(0).getDbForm();
 		Response reply = new Response();
 		CommandService commands;
 		PokedexCommand command;
@@ -68,13 +68,13 @@ public class HelpCommand extends PokedexCommand
 		{
 			commands = (CommandService)services.getService(ServiceType.COMMAND);
 			
-			if(!commands.hasCommand(arg))
+			if(!commands.commandOrAliasExists(arg))
 			{
 				//reply.addToReply("\""+arg +"\" is not a supported command!");
 				return Mono.empty();
 			}
 
-			command = commands.get(arg);
+			command = commands.getCommandByAnyAlias(arg);
 			reply.addToReply("__**"+TextFormatter.flexFormToProper(command.getCommandName())+" Command**__");
 			reply.setEmbed(command.getHelpMessage());
 			return Mono.just(reply);

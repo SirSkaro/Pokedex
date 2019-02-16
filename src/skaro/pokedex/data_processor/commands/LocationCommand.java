@@ -74,7 +74,7 @@ public class LocationCommand extends PokedexCommand
 				break;
 				case INVALID_ARGUMENT:
 					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(CommandArgument arg : input.getArgs())
+					for(CommandArgument arg : input.getArguments())
 						if(!arg.isValid())
 							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
 					reply.addToReply("\n*top suggestion*: Not updated for gen7. Try versions from gens 1-6?");
@@ -108,7 +108,7 @@ public class LocationCommand extends PokedexCommand
 			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 			
 			//Obtain Pokemon data
-			urlParams.add(input.getArg(0).getFlexForm());
+			urlParams.add(input.getArgument(0).getFlexForm());
 			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, urlParams);
 			pokemon = Pokemon.class.cast(flexObj);
 			
@@ -120,13 +120,13 @@ public class LocationCommand extends PokedexCommand
 			encounterData = Encounter.class.cast(flexObj);
 			
 			//Get encounter data from particular version
-			String versionDBForm = input.getArg(1).getDbForm();
+			String versionDBForm = input.getArgument(1).getDbForm();
 			List<EncounterPotential> encounterDataFromVersion = getEncounterDataFromVersion(encounterData, versionDBForm);
 			
 			if(encounterDataFromVersion.isEmpty())
 			{
 				reply.addToReply(TextFormatter.flexFormToProper(pokemon.getName())+" cannot be found by means of a normal encounter in "
-						+ TextFormatter.flexFormToProper(input.getArg(1).getRawInput())+" version");
+						+ TextFormatter.flexFormToProper(input.getArgument(1).getRawInput())+" version");
 				return Mono.just(reply);
 			}
 			
