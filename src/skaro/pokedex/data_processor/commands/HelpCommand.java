@@ -5,7 +5,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.NoneArgument;
@@ -75,7 +75,7 @@ public class HelpCommand extends PokedexCommand
 			}
 
 			command = commands.getCommandByAnyAlias(arg);
-			reply.addToReply("__**"+TextFormatter.flexFormToProper(command.getCommandName())+" Command**__");
+			reply.addToReply("__**"+TextUtility.flexFormToProper(command.getCommandName())+" Command**__");
 			reply.setEmbed(command.getHelpMessage());
 			return Mono.just(reply);
 		}

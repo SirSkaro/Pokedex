@@ -7,6 +7,7 @@ import org.eclipse.jetty.util.MultiMap;
 import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
@@ -71,8 +72,8 @@ public class ShinyResponseFormatter implements IDiscordFormatter, IServiceConsum
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		
 		//Format reply
-		response.addToReply("**__"+TextFormatter.pokemonFlexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+" | #" + Integer.toString(species.getId()) 
-			+ " | " + TextFormatter.formatGeneration(species.getGeneration().getName(), lang) + "__**");
+		response.addToReply("**__"+TextUtility.pokemonFlexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+" | #" + Integer.toString(species.getId()) 
+			+ " | " + TextUtility.formatGeneration(species.getGeneration().getName(), lang) + "__**");
 		
 		//Upload local file
 		path = baseModelPath + "/" + pokemon.getName() + ".gif";

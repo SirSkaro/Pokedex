@@ -4,7 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 
-import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.SpellChecker;
@@ -22,7 +22,7 @@ public class AbilityArgument extends CommandArgument
 		SpellChecker sc = SpellChecker.getInstance();
 		
 		//Set up argument
-		this.dbForm = TextFormatter.dbFormat(argument, lang);
+		this.dbForm = TextUtility.dbFormat(argument, lang);
 		this.category = ArgumentCategory.ABILITY;
 		this.rawInput = argument;
 		
@@ -39,7 +39,7 @@ public class AbilityArgument extends CommandArgument
 				return;
 			}
 			
-			this.dbForm = TextFormatter.dbFormat(correction, lang).intern();
+			this.dbForm = TextUtility.dbFormat(correction, lang).intern();
 			this.rawInput = correction.intern();
 			this.isSpellChecked = true;
 		}

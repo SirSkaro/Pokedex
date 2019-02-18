@@ -7,6 +7,7 @@ import org.eclipse.jetty.util.MultiMap;
 import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper.Efficacy;
 import skaro.pokedex.input_processor.CommandArgument;
@@ -114,7 +115,7 @@ public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsume
 		List<Type> types = wrapper.getTypes();
 		Type type = types.get(0);
 		
-		builder.append("**__"+TextFormatter.pokemonFlexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+" ");
+		builder.append("**__"+TextUtility.pokemonFlexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+" ");
 		builder.append("("+ emojiService.getTypeEmoji(type.getName()) + type.getNameInLanguage(lang.getFlexKey()));
 		
 		if(types.size() > 1)
@@ -169,7 +170,7 @@ public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsume
 		StringBuilder builder = new StringBuilder();
 		types.forEach(type -> {
 			builder.append(markUp);
-			builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
+			builder.append(TextUtility.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
 			builder.append(markUp);
 			builder.append(", ");
 			});

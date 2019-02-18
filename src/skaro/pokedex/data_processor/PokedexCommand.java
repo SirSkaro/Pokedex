@@ -11,7 +11,6 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -165,7 +164,7 @@ public abstract class PokedexCommand implements IServiceConsumer
 	{
 		PerkService checker = (PerkService)services.getService(ServiceType.PERK);
 		Mono<User> result = checker.getPokemonsAdopter(pokemon.getName())
-				.doOnNext(user -> builder.setAuthor(user.getUsername() + "'s "+ TextFormatter.flexFormToProper(pokemon.getName()), null, getPatreonLogo()));
+				.doOnNext(user -> builder.setAuthor(user.getUsername() + "'s "+ TextUtility.flexFormToProper(pokemon.getName()), null, getPatreonLogo()));
 
 		return result.then(Mono.just(pokemon));
 	}

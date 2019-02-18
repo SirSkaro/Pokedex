@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -125,13 +125,13 @@ public class LocationCommand extends PokedexCommand
 			
 			if(encounterDataFromVersion.isEmpty())
 			{
-				reply.addToReply(TextFormatter.flexFormToProper(pokemon.getName())+" cannot be found by means of a normal encounter in "
-						+ TextFormatter.flexFormToProper(input.getArgument(1).getRawInput())+" version");
+				reply.addToReply(TextUtility.flexFormToProper(pokemon.getName())+" cannot be found by means of a normal encounter in "
+						+ TextUtility.flexFormToProper(input.getArgument(1).getRawInput())+" version");
 				return Mono.just(reply);
 			}
 			
-			reply.addToReply("**"+TextFormatter.flexFormToProper(pokemon.getName())+"** can be found in **"+(encounterDataFromVersion.size())+
-					"** location(s) in **"+TextFormatter.flexFormToProper(versionDBForm)+"** version");
+			reply.addToReply("**"+TextUtility.flexFormToProper(pokemon.getName())+"** can be found in **"+(encounterDataFromVersion.size())+
+					"** location(s) in **"+TextUtility.flexFormToProper(versionDBForm)+"** version");
 			reply.setEmbed(formatEmbed(encounterDataFromVersion, versionDBForm, pokemon));
 			
 			return Mono.just(reply);
@@ -161,14 +161,14 @@ public class LocationCommand extends PokedexCommand
 			{
 				sBuilder.append("`|-------------------------|`\n");
 				sBuilder.append(formatLevel(eDetails));
-				sBuilder.append(String.format("`|Method: %-17s|`\n", TextFormatter.flexFormToProper(eDetails.getMethod().getName())));
+				sBuilder.append(String.format("`|Method: %-17s|`\n", TextUtility.flexFormToProper(eDetails.getMethod().getName())));
 				sBuilder.append(String.format("`|Conditions: %-13s|`\n", formatConditions(eDetails)));
 				sBuilder.append(String.format("`|Encounter Rate: %-9s|`\n",eDetails.getChance() + "%"));
 			}
 			
 			detailsList.add(sBuilder.toString());
 			
-			eBuilder.addField(TextFormatter.flexFormToProper(potential.getLocationArea().getName()), sBuilder.toString(), true);
+			eBuilder.addField(TextUtility.flexFormToProper(potential.getLocationArea().getName()), sBuilder.toString(), true);
 		}
 		
 		//Add thumbnail
@@ -198,7 +198,7 @@ public class LocationCommand extends PokedexCommand
 		StringBuilder builder = new StringBuilder();
 		
 		for(ConditionValue cond : details.getConditionValues())
-			builder.append(TextFormatter.flexFormToProper(cond.getName()) + " & ");
+			builder.append(TextUtility.flexFormToProper(cond.getName()) + " & ");
 		
 		return builder.substring(0, builder.length() - 3);
 	}
@@ -224,7 +224,7 @@ public class LocationCommand extends PokedexCommand
 	private Optional<VersionDetail> getVersionDetailFromVersion(EncounterPotential potential, String version) 
 	{
 		for(VersionDetail vDetail : potential.getVersionDetails())
-			if(TextFormatter.flexToDBForm(vDetail.getVersion().getName()).equals(version))
+			if(TextUtility.flexToDBForm(vDetail.getVersion().getName()).equals(version))
 				return Optional.of(vDetail);
 		
 		return Optional.empty();

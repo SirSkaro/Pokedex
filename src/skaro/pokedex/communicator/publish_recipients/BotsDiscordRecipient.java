@@ -6,14 +6,14 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.json.JSONObject;
 
+import discord4j.core.DiscordClient;
 import skaro.pokedex.communicator.AbstractPublicationRecipient;
-import sx.blah.discord.api.IDiscordClient;
 
 public class BotsDiscordRecipient extends AbstractPublicationRecipient 
 {
 	String endpoint;
 			
-	public BotsDiscordRecipient(IDiscordClient client, int shardCount) 
+	public BotsDiscordRecipient(DiscordClient client, int shardCount) 
 	{
 		super(client, shardCount);
 		configID = "bots_discord";
@@ -25,7 +25,7 @@ public class BotsDiscordRecipient extends AbstractPublicationRecipient
 		if(!super.configure())
 			return false;
 		
-		endpoint = "https://bots.discord.pw/api/"+discordClient.getOurUser().getLongID()+"/stats";
+		endpoint = "https://bots.discord.pw/api/"+this.getBotId()+"/stats";
 		return true;
 	}
 
@@ -40,7 +40,7 @@ public class BotsDiscordRecipient extends AbstractPublicationRecipient
 		{
 			object.put("shard_id", shardID);
 			object.put("shard_count", totalShards);
-			object.put("server_count", discordClient.getGuilds().size());
+			object.put("server_count", this.getNumberOfConnectedGuilds());
 			
 			post.setEntity(new StringEntity(object.toString(), "UTF-8"));
 			post.addHeader("Content-type", "application/json");

@@ -9,6 +9,7 @@ import org.eclipse.jetty.util.MultiMap;
 import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
@@ -75,8 +76,8 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 		
 		//Header
 		response.addToReply("**__"+
-				TextFormatter.flexFormToProper(move.getNameInLanguage(lang.getFlexKey()))+
-				" | " + TextFormatter.formatGeneration(move.getGeneration().getName(), lang) + "__**");
+				TextUtility.flexFormToProper(move.getNameInLanguage(lang.getFlexKey()))+
+				" | " + TextUtility.formatGeneration(move.getGeneration().getName(), lang) + "__**");
 		
 		//Data for attacking moves
 		if(!move.getDamageClass().getName().equals("status"))
@@ -134,7 +135,7 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 		
 		builder.append(emojiService.getContestEmoji(contest.getName()));
 		builder.append(" ");
-		builder.append(TextFormatter.flexFormToProper(contest.getNameInLanguage(lang.getFlexKey())));
+		builder.append(TextUtility.flexFormToProper(contest.getNameInLanguage(lang.getFlexKey())));
 		
 		return builder.toString();
 	}
@@ -160,7 +161,7 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 	
 	private String formatTarget(MoveTarget target, Language lang)
 	{
-		return TextFormatter.flexFormToProper(target.getNameInLanguage(lang.getFlexKey()));
+		return TextUtility.flexFormToProper(target.getNameInLanguage(lang.getFlexKey()));
 	}
 	
 	private String formatPP(Move move)
@@ -175,7 +176,7 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 		
 		builder.append(emojiService.getTypeEmoji((type.getName())));
 		builder.append(" ");
-		builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
+		builder.append(TextUtility.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
 		
 		return builder.toString();
 	}
@@ -187,7 +188,7 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 		
 		builder.append(emojiService.getDamageEmoji(category.getName()));
 		builder.append(" ");
-		builder.append(TextFormatter.flexFormToProper(category.getNameInLanguage(lang.getFlexKey())));
+		builder.append(TextUtility.flexFormToProper(category.getNameInLanguage(lang.getFlexKey())));
 		
 		return builder.toString();
 	}

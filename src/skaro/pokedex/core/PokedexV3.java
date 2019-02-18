@@ -2,8 +2,6 @@ package skaro.pokedex.core;
 
 import java.time.Duration;
 import java.util.Optional;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 import com.patreon.PatreonAPI;
 
@@ -17,34 +15,8 @@ import reactor.core.scheduler.Schedulers;
 import skaro.pokedex.data_processor.ChannelRateLimiter;
 import skaro.pokedex.data_processor.LearnMethodData;
 import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.commands.AbilityCommand;
-import skaro.pokedex.data_processor.commands.AboutCommand;
-import skaro.pokedex.data_processor.commands.CommandsCommand;
-import skaro.pokedex.data_processor.commands.CoverageCommand;
-import skaro.pokedex.data_processor.commands.DataCommand;
-import skaro.pokedex.data_processor.commands.DexCommand;
-import skaro.pokedex.data_processor.commands.HelpCommand;
-import skaro.pokedex.data_processor.commands.InviteCommand;
-import skaro.pokedex.data_processor.commands.ItemCommand;
-import skaro.pokedex.data_processor.commands.LearnCommand;
-import skaro.pokedex.data_processor.commands.MoveCommand;
-import skaro.pokedex.data_processor.commands.PatreonCommand;
-import skaro.pokedex.data_processor.commands.RandpokeCommand;
-import skaro.pokedex.data_processor.commands.SetCommand;
-import skaro.pokedex.data_processor.commands.ShinyCommand;
-import skaro.pokedex.data_processor.commands.StatsCommand;
-import skaro.pokedex.data_processor.commands.WeakCommand;
-import skaro.pokedex.data_processor.formatters.AbilityResponseFormatter;
-import skaro.pokedex.data_processor.formatters.CoverageResponseFormatter;
-import skaro.pokedex.data_processor.formatters.DataResponseFormatter;
-import skaro.pokedex.data_processor.formatters.DexResponseFormatter;
-import skaro.pokedex.data_processor.formatters.ItemResponseFormatter;
-import skaro.pokedex.data_processor.formatters.LearnResponseFormatter;
-import skaro.pokedex.data_processor.formatters.MoveResponseFormatter;
-import skaro.pokedex.data_processor.formatters.RandpokeResponseFormatter;
-import skaro.pokedex.data_processor.formatters.ShinyResponseFormatter;
-import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
-import skaro.pokedex.data_processor.formatters.WeakResponseFormatter;
+import skaro.pokedex.data_processor.commands.*;
+import skaro.pokedex.data_processor.formatters.*;
 import skaro.pokedex.input_processor.InputProcessor;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.CommandService;
@@ -94,16 +66,17 @@ public class PokedexV3
 		System.out.println("[Pokedex main] Loading configurations...");
 		
 		ConfigurationService configurationService = ConfigurationService.initialize(ConfigurationType.DEVELOP);
+		Scheduler scheduler = Schedulers.newParallel("pokedex_pool", Runtime.getRuntime().availableProcessors() * 6);
 		CommandService commandMap = new CommandService();
 		PerkService perkService = createPatreonService(configurationService);
-		PokeFlexService pokeFlexService = createPokeFlexService(configurationService);
+		PokeFlexService pokeFlexService = createPokeFlexService(configurationService, scheduler);
 		FlexCacheService flexCacheService = createCacheService(pokeFlexService);
 		TypeService typeService = new TypeService();
 		
 		PokedexApplicationManager manager = PokedexApplicationManager.PokedexConfigurator.newInstance()
 								.withService(configurationService)
 								.withService(commandMap)
-								.withService(createDiscordService(configurationService, shardIDToManage, totalShards))
+								.withService(createDiscordService(configurationService, scheduler, shardIDToManage, totalShards))
 								.withService(perkService)
 								.withService(new ColorService())
 								.withService(new EmojiService())
@@ -126,10 +99,12 @@ public class PokedexV3
 		
 		client.getEventDispatcher().on(MessageCreateEvent.class)
 			.flatMap(event -> messageHandler.onMessageCreateEvent(event))
+			.onErrorContinue((t,o) -> System.out.println("saved the message create event"))
 	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
 		
 		client.getEventDispatcher().on(MessageUpdateEvent.class)
 			.flatMap(event -> messageHandler.onMessageEditEvent(event))
+			.onErrorContinue((t,o) -> System.out.println("saved the message update event"))
 	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
 
 		client.login().block(); 
@@ -144,12 +119,11 @@ public class PokedexV3
 		return result;
 	}
 	
-	private static DiscordService createDiscordService(ConfigurationService configService, int shardID, int shardCount)
+	private static DiscordService createDiscordService(ConfigurationService configService, Scheduler scheduler, int shardID, int shardCount)
 	{
 		Optional<String> discordToken = configService.getAuthToken("discord");
-		ScheduledExecutorService pokedexThreadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 6);
 		DiscordClient discordClient = new DiscordClientBuilder(discordToken.get())
-				.setEventScheduler(Schedulers.fromExecutorService(pokedexThreadPool))
+				.setEventScheduler(scheduler)
 				.setShardCount(shardCount)
 				.setShardIndex(shardID)
 				.setInitialPresence(Presence.online())
@@ -164,9 +138,8 @@ public class PokedexV3
 		return new PerkService(patreonClient);
 	}
 	
-	private static PokeFlexService createPokeFlexService(ConfigurationService configService)
+	private static PokeFlexService createPokeFlexService(ConfigurationService configService, Scheduler scheduler)
 	{
-		Scheduler scheduler = Schedulers.newParallel("test", 6);
 		return new PokeFlexService(configService.getPokeFlexURL(), scheduler);
 	}
 	

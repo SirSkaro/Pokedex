@@ -11,6 +11,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.LearnMethodWrapper;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
@@ -81,15 +82,15 @@ public class LearnResponseFormatter implements IDiscordFormatter, IServiceConsum
 		
 		//Header
 		response.addToReply("**__"+
-				TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+
+				TextUtility.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+
 				" | #" + species.getId() +
-				" | " + TextFormatter.formatGeneration(species.getGeneration().getName(), lang) + "__**");
+				" | " + TextUtility.formatGeneration(species.getGeneration().getName(), lang) + "__**");
 		
 		for(LearnMethodWrapper wrapper : wrappers)
 		{
 			if(!wrapper.isRecognized())
 			{
-				builder.addField(TextFormatter.flexFormToProper(wrapper.getSpecifiedMove()), 
+				builder.addField(TextUtility.flexFormToProper(wrapper.getSpecifiedMove()), 
 						LearnField.NOT_RECOGNIZED.getFieldTitle(lang), true);
 				continue;
 			}
@@ -101,7 +102,7 @@ public class LearnResponseFormatter implements IDiscordFormatter, IServiceConsum
 			else
 				methodText = "*"+ LearnField.ABLE.getFieldTitle(lang) +"*:\n"+ formatLearnMethod(wrapper.getMethods(), lang);
 				
-			builder.addField(TextFormatter.flexFormToProper(wrapper.getMove().getNameInLanguage(lang.getFlexKey())), methodText,true);
+			builder.addField(TextUtility.flexFormToProper(wrapper.getMove().getNameInLanguage(lang.getFlexKey())), methodText,true);
 		}
 		
 		//Set embed color
@@ -123,7 +124,7 @@ public class LearnResponseFormatter implements IDiscordFormatter, IServiceConsum
 		
 		for(MoveLearnMethod method : methods)
 		{
-			methodName = TextFormatter.flexFormToProper(method.getNameInLanguage(lang.getFlexKey()));
+			methodName = TextUtility.flexFormToProper(method.getNameInLanguage(lang.getFlexKey()));
 			
 			//Add the method if there no duplicates
 			if(!(methodTexts.contains(methodName)))

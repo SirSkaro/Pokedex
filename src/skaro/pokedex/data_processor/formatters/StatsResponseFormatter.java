@@ -10,6 +10,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Statistic;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
@@ -71,7 +72,7 @@ public class StatsResponseFormatter implements IDiscordFormatter, IServiceConsum
 		Language lang = input.getLanguage();
 		
 		//header
-		response.addToReply(("**__"+TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+"__**").intern());
+		response.addToReply(("**__"+TextUtility.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+"__**").intern());
 		
 		//main content
 		builder.setTitle(StatField.BASE_STAT_TOTAL.getFieldTitle(lang) +": "+ getBaseStatTotal(pokemon));

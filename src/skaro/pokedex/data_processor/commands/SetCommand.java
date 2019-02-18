@@ -12,7 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -126,11 +126,11 @@ public class SetCommand extends PokedexCommand
 		if(!sets.getSets().isEmpty())
 		{
 			response.addToReply(("__**"+tier+
-					"** sets for **"+TextFormatter.flexFormToProper(pokemon.getName())+
+					"** sets for **"+TextUtility.flexFormToProper(pokemon.getName())+
 					"** from Generation **"+generation+"**__").intern());
 		}
 		else
-			response.addToReply("Smogon doesn't have any sets for " +TextFormatter.flexFormToProper(pokemon.getName())+ " in generation " + generation);
+			response.addToReply("Smogon doesn't have any sets for " +TextUtility.flexFormToProper(pokemon.getName())+ " in generation " + generation);
 	}
 	
 	private List<PokeFlexRequest> createRequests(String pokemon, int gen)
@@ -165,7 +165,7 @@ public class SetCommand extends PokedexCommand
 		
 		if(!hasAtLeastOneSet)
 		{
-			builder.setTitle(TextFormatter.flexFormToProper(pokemon.getName()) + " doesn't have any sets in " + tier +" for this generation");
+			builder.setTitle(TextUtility.flexFormToProper(pokemon.getName()) + " doesn't have any sets in " + tier +" for this generation");
 			builder.setDescription("Try another tier. The link below has an exhaustive list");
 		}
 		
@@ -189,7 +189,7 @@ public class SetCommand extends PokedexCommand
 		Optional<String> evs = evsToString(set.getEvs());
 		Optional<String> ivs = ivsToString(set.getIvs());
 		
-		builder.append(TextFormatter.flexFormToProper(name));
+		builder.append(TextUtility.flexFormToProper(name));
 		if(set.getItems() != null && !set.getItems().isEmpty())
 			builder.append(" @ "+set.getItems().get(0));
 		

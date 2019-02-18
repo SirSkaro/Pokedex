@@ -19,7 +19,7 @@ public class TextToSpeechService implements IService
     
     public TextToSpeechService()
     {	
-    	System.out.println("[TTSConverter] Initializing English MaryTTS server...");
+    	System.out.println("[TTSService] Initializing English MaryTTS server...");
         try
         {
     		textToSpeechEngine = new LocalMaryInterface();
@@ -30,11 +30,11 @@ public class TextToSpeechService implements IService
     		voiceMap.put(Language.GERMAN, "dfki-pavoque-neutral-hsmm");
     		voiceMap.put(Language.ITALIAN, "istc-lucia-hsmm");
         	
-        	System.out.println("[TTSConverter] MaryTTS server successfully initialized");
+        	System.out.println("[TTSService] MaryTTS server successfully initialized");
         }
         catch (MaryConfigurationException ex)
         {
-        	System.out.println("[TTSConverter] Could not initialize MaryTTS servers. Exiting...");
+        	System.out.println("[TTSService] Could not initialize MaryTTS servers. Exiting...");
             System.exit(1);
         }
     }
@@ -61,7 +61,7 @@ public class TextToSpeechService implements IService
         }
         catch (SynthesisException ex)
         {
-            System.out.println("[TTSConverter] Error saying phrase.");
+            System.out.println("[TTSService] Error saying phrase.");
             return Optional.empty();
         }
     }

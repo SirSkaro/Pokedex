@@ -11,6 +11,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.AbilityList;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
@@ -83,17 +84,17 @@ public class AbilityResponseFormatter implements IDiscordFormatter, IServiceCons
 		
 		//Header
 		response.addToReply("**__"+
-			TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+
+			TextUtility.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+
 			" | #" + species.getId() +
-			" | " + TextFormatter.formatGeneration(species.getGeneration().getName(), lang) + "__**");
+			" | " + TextUtility.formatGeneration(species.getGeneration().getName(), lang) + "__**");
 		
-		builder.addField(AbilityField.SLOT1.getFieldTitle(lang), TextFormatter.flexFormToProper(abilities.getSlot1().getNameInLanguage(lang.getFlexKey())), true);
+		builder.addField(AbilityField.SLOT1.getFieldTitle(lang), TextUtility.flexFormToProper(abilities.getSlot1().getNameInLanguage(lang.getFlexKey())), true);
 		
 		if(abilities.hasSlot2())
-			builder.addField(AbilityField.SLOT2.getFieldTitle(lang), TextFormatter.flexFormToProper(abilities.getSlot2().getNameInLanguage(lang.getFlexKey())), true);
+			builder.addField(AbilityField.SLOT2.getFieldTitle(lang), TextUtility.flexFormToProper(abilities.getSlot2().getNameInLanguage(lang.getFlexKey())), true);
 		
 		if(abilities.hasHidden())
-			builder.addField(AbilityField.HIDDEN.getFieldTitle(lang), TextFormatter.flexFormToProper(abilities.getHidden().getNameInLanguage(lang.getFlexKey())), true);
+			builder.addField(AbilityField.HIDDEN.getFieldTitle(lang), TextUtility.flexFormToProper(abilities.getHidden().getNameInLanguage(lang.getFlexKey())), true);
 		
 		//Extra
 		builder.setThumbnail(pokemon.getSprites().getFrontDefault());
@@ -110,9 +111,9 @@ public class AbilityResponseFormatter implements IDiscordFormatter, IServiceCons
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Ability abil = (Ability)data.getValue(Ability.class.getName(), 0);
 		
-		response.addToReply(("**__"+TextFormatter.flexFormToProper(abil.getNameInLanguage(lang.getFlexKey()))+"__**").intern());
+		response.addToReply(("**__"+TextUtility.flexFormToProper(abil.getNameInLanguage(lang.getFlexKey()))+"__**").intern());
 		
-		builder.addField(AbilityField.DEBUT.getFieldTitle(lang), TextFormatter.formatGeneration(abil.getGeneration().getName(), lang), true);
+		builder.addField(AbilityField.DEBUT.getFieldTitle(lang), TextUtility.formatGeneration(abil.getGeneration().getName(), lang), true);
 		builder.addField(AbilityField.OTHER_WITH.getFieldTitle(lang), Integer.toString(abil.getPokemon().size()), true);
 		
 		//English-only data

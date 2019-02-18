@@ -9,12 +9,12 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 
+import discord4j.core.DiscordClient;
 import skaro.pokedex.communicator.AbstractPublicationRecipient;
-import sx.blah.discord.api.IDiscordClient;
 
 public class CarbonitexRecipient extends AbstractPublicationRecipient 
 {
-	public CarbonitexRecipient(IDiscordClient client, int shardCount)
+	public CarbonitexRecipient(DiscordClient client, int shardCount)
 	{
 		super(client, shardCount);
 		configID = "carbonitex";
@@ -32,7 +32,7 @@ public class CarbonitexRecipient extends AbstractPublicationRecipient
     	{
     		// Request parameters and other properties.
     		params.add(new BasicNameValuePair("key", authToken));
-    		params.add(new BasicNameValuePair("servercount", Integer.toString(totalShards * discordClient.getGuilds().size())));
+    		params.add(new BasicNameValuePair("servercount", Integer.toString(totalShards * this.getNumberOfConnectedGuilds())));
     		httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
     		httpclient.execute(httppost);
 					    

@@ -12,6 +12,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Statistic;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
@@ -82,9 +83,9 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		EvolutionChain evoChain = (EvolutionChain)data.getValue(EvolutionChain.class.getName(), 0);
 		
 		response.addToReply("**__"+
-				TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+
+				TextUtility.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+
 				" | #" + species.getId() +
-				" | " + TextFormatter.formatGeneration(species.getGeneration().getName(), lang) + "__**");
+				" | " + TextUtility.formatGeneration(species.getGeneration().getName(), lang) + "__**");
 		
 		builder.addField(DataField.BASE_STATS.getFieldTitle(lang), formatBaseStats(pokemon, lang), true);
 		builder.addField(DataField.TYPING.getFieldTitle(lang), formatTypes(data.get(Type.class.getName()), lang), true);
@@ -123,7 +124,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		for(Object group : groups)
 		{
 			tempGroup = (EggGroup)group;
-			builder.append(TextFormatter.flexFormToProper(tempGroup.getNameInLanguage(lang.getFlexKey()) + "*/* "));
+			builder.append(TextUtility.flexFormToProper(tempGroup.getNameInLanguage(lang.getFlexKey()) + "*/* "));
 		}
 		
 		return builder.substring(0, builder.length() - 3);
@@ -141,11 +142,11 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		for(Object form : forms)
 		{
 			PokemonForm tempForm = (PokemonForm)form;
-			String formName = TextFormatter.flexFormToProper(tempForm.getFormInLanguage(lang.getFlexKey()));
+			String formName = TextUtility.flexFormToProper(tempForm.getFormInLanguage(lang.getFlexKey()));
 			if(!resultList.contains(formName))
 			{
 				if(formName.isEmpty())
-					resultList.add(TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey())));
+					resultList.add(TextUtility.flexFormToProper(species.getNameInLanguage(lang.getFlexKey())));
 				else
 					resultList.add(formName);
 			}
@@ -175,7 +176,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 	
 	private String formatGrowthAndCatchRates(GrowthRate growthRate, int catchRate, Language lang)
 	{
-		return TextFormatter.flexFormToProper(growthRate.getNameInLanguage(lang.getFlexKey())) + "*/* " + catchRate;
+		return TextUtility.flexFormToProper(growthRate.getNameInLanguage(lang.getFlexKey())) + "*/* " + catchRate;
 	}
 	
 	private boolean isOnlyEvolution(EvolutionChain evolutionData)
@@ -197,7 +198,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 			tempSpecies = (PokemonSpecies)species;
 			if(chain.getSpecies().getName().equals(tempSpecies.getName()))
 			{
-				builder.append(TextFormatter.flexFormToProper(tempSpecies.getNameInLanguage(lang.getFlexKey())));
+				builder.append(TextUtility.flexFormToProper(tempSpecies.getNameInLanguage(lang.getFlexKey())));
 				builder.append(" ➔ ");
 				break;
 			}
@@ -207,7 +208,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		formatEvolutionChainResursive(chain.getEvolvesTo(), (List<PokemonSpecies>)speciesInLine, builder, lang);
 		
 		//decorate the text of this Pokemon
-		String thisPokemonName = TextFormatter.flexFormToProper(thisPokemon.getNameInLanguage(lang.getFlexKey()));
+		String thisPokemonName = TextUtility.flexFormToProper(thisPokemon.getNameInLanguage(lang.getFlexKey()));
 		nameIndexStart = builder.indexOf(thisPokemonName);
 		builder.insert(nameIndexStart + thisPokemonName.length(), "__");
 		builder.insert(nameIndexStart, "__");
@@ -226,7 +227,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 				if(evo.getSpecies().getName().equals(species.getName()))
 				{
 					pokemonName = species.getNameInLanguage(lang.getFlexKey());
-					builder.append(TextFormatter.flexFormToProper(pokemonName));
+					builder.append(TextUtility.flexFormToProper(pokemonName));
 					break;
 				}
 			}
@@ -290,7 +291,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		for(Object abil : abilities)
 		{
 			tempAbility = (Ability)abil;
-			resultList.add(TextFormatter.flexFormToProper(tempAbility.getNameInLanguage(lang.getFlexKey())));
+			resultList.add(TextUtility.flexFormToProper(tempAbility.getNameInLanguage(lang.getFlexKey())));
 		}
 		
 		return listToItemizedString(resultList);
@@ -307,7 +308,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 			tempType = (Type)type;
 			builder.append(emojiService.getTypeEmoji(tempType.getName()));
 			builder.append(" ");
-			builder.append(TextFormatter.flexFormToProper(tempType.getNameInLanguage(lang.getFlexKey())) + "\n");
+			builder.append(TextUtility.flexFormToProper(tempType.getNameInLanguage(lang.getFlexKey())) + "\n");
 		}
 		
 		return builder.substring(0, builder.length());
@@ -326,7 +327,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 		
 		for(EvolutionDetail detail : eDetails)
 		{
-			builder.append(TextFormatter.flexFormToProper(detail.getTrigger().getName())+": ");
+			builder.append(TextUtility.flexFormToProper(detail.getTrigger().getName())+": ");
 			
 			if(detail.getMinLevel() != 0)
 				builder.append("Min level: "+detail.getMinLevel() + " & ");
@@ -356,25 +357,25 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 			if(detail.isTurnUpsideDown())
 				builder.append("Turn 3DS upside down & ");
 			if(detail.getItem() != null)
-				builder.append(TextFormatter.flexFormToProper(detail.getItem().getName()) +" & ");
+				builder.append(TextUtility.flexFormToProper(detail.getItem().getName()) +" & ");
 			if(detail.getKnownMoveType() != null)
-				builder.append("Know "+ TextFormatter.flexFormToProper(detail.getKnownMoveType().getName()) +"-type move & ");
+				builder.append("Know "+ TextUtility.flexFormToProper(detail.getKnownMoveType().getName()) +"-type move & ");
 			if(detail.getMinAffection() != 0)
 				builder.append("Min affection: "+detail.getMinAffection() + " & ");
 			if(detail.getPartyType() != null)
-				builder.append("With "+ TextFormatter.flexFormToProper(detail.getPartyType().getName()) +"-type in party & ");
+				builder.append("With "+ TextUtility.flexFormToProper(detail.getPartyType().getName()) +"-type in party & ");
 			if(detail.getTradeSpecies() != null)
-				builder.append("Trade for "+ TextFormatter.flexFormToProper(detail.getTradeSpecies().getName()) +" & ");
+				builder.append("Trade for "+ TextUtility.flexFormToProper(detail.getTradeSpecies().getName()) +" & ");
 			if(detail.getPartySpecies() != null)
-				builder.append("With "+ TextFormatter.flexFormToProper(detail.getPartySpecies().getName()) +" as party member & ");
+				builder.append("With "+ TextUtility.flexFormToProper(detail.getPartySpecies().getName()) +" as party member & ");
 			if(detail.getMinHappiness() != 0)
 				builder.append("Min happiness: "+detail.getMinHappiness() + " & ");
 			if(detail.getHeldItem() != null)
-				builder.append("Holding item "+ TextFormatter.flexFormToProper(detail.getHeldItem().getName()) +" & ");
+				builder.append("Holding item "+ TextUtility.flexFormToProper(detail.getHeldItem().getName()) +" & ");
 			if(detail.getKnownMove() != null)
-				builder.append("Knows move "+ TextFormatter.flexFormToProper(detail.getKnownMove().getName()) +" & ");
+				builder.append("Knows move "+ TextUtility.flexFormToProper(detail.getKnownMove().getName()) +" & ");
 			if(detail.getLocation() != null)
-				builder.append("At location "+ TextFormatter.flexFormToProper(detail.getLocation().getName()) +" & ");
+				builder.append("At location "+ TextUtility.flexFormToProper(detail.getLocation().getName()) +" & ");
 			
 			if(builder.lastIndexOf("&") != -1)
 				builder.deleteCharAt(builder.lastIndexOf("&"));

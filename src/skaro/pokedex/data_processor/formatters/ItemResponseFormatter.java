@@ -9,6 +9,7 @@ import org.eclipse.jetty.util.MultiMap;
 import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
@@ -70,10 +71,10 @@ public class ItemResponseFormatter implements IDiscordFormatter, IServiceConsume
 		Type type = (Type)data.getValue(Type.class.getName(), 0);
 		
 		//Header
-		response.addToReply("**__"+TextFormatter.flexFormToProper(item.getNameInLanguage(lang.getFlexKey()))+"__**");
+		response.addToReply("**__"+TextUtility.flexFormToProper(item.getNameInLanguage(lang.getFlexKey()))+"__**");
 		
 		builder.addField(ItemField.CATEGORY.getFieldTitle(lang), formatCategory((ItemCategory)data.getValue(ItemCategory.class.getName(), 0), lang), true);
-		builder.addField(ItemField.DEBUT.getFieldTitle(lang), TextFormatter.formatGeneration(item.getDebut(), lang), true);
+		builder.addField(ItemField.DEBUT.getFieldTitle(lang), TextUtility.formatGeneration(item.getDebut(), lang), true);
 		
 		if(item.getFlingPower() > 0)
 			builder.addField(ItemField.FLING_POWER.getFieldTitle(lang), Integer.toString(item.getFlingPower()), true);
@@ -112,14 +113,14 @@ public class ItemResponseFormatter implements IDiscordFormatter, IServiceConsume
 		
 		builder.append(emojiService.getTypeEmoji(type.getName()));
 		builder.append(" ");
-		builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
+		builder.append(TextUtility.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
 		
 		return builder.toString();
 	}
 	
 	private String formatCategory(ItemCategory category, Language lang)
 	{
-		return TextFormatter.flexFormToProper(category.getNameInLanguage(lang.getFlexKey()));
+		return TextUtility.flexFormToProper(category.getNameInLanguage(lang.getFlexKey()));
 	}
 
 	private enum ItemField

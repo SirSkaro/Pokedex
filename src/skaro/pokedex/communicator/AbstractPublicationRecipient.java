@@ -2,16 +2,16 @@ package skaro.pokedex.communicator;
 
 import java.util.Optional;
 
+import discord4j.core.DiscordClient;
 import skaro.pokedex.services.ConfigurationService;
-import sx.blah.discord.api.IDiscordClient;
 
 public abstract class AbstractPublicationRecipient 
 {
-	protected IDiscordClient discordClient;
+	protected DiscordClient discordClient;
 	protected int designatedShardID, totalShards;
 	protected String authToken, configID;
 	
-	public AbstractPublicationRecipient(IDiscordClient client, int shardCount)
+	public AbstractPublicationRecipient(DiscordClient client, int shardCount)
 	{
 		discordClient = client;
 		totalShards = shardCount;
@@ -49,5 +49,15 @@ public abstract class AbstractPublicationRecipient
 	protected boolean isDesignatedShard(int shardID)
 	{
 		return shardID == designatedShardID || designatedShardID == -1;
+	}
+	
+	protected int getNumberOfConnectedGuilds()
+	{
+		return discordClient.getGuilds().collectList().block().size();
+	}
+	
+	protected long getBotId()
+	{
+		return discordClient.getSelf().block().getId().asLong();
 	}
 }

@@ -2,8 +2,9 @@ package skaro.pokedex.data_processor;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.lang.reflect.Field;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import javax.sound.sampled.AudioInputStream;
 
@@ -59,28 +60,50 @@ public class Response
 		return privateMessage;
 	}
 	
-	public AudioInputStream getPlayBack(AudioInputStream ais)
+	public boolean hasPlayback()
+	{
+		return audio != null;
+	}
+	
+	public AudioInputStream getPlayback()
 	{
 		return audio;
 	}
 	
-	public Mono<MessageCreateSpec> getAsSpec()
+	public Mono<Consumer<MessageCreateSpec>> getAsSpec()
+    {
+        Consumer<MessageCreateSpec> resultSpec = spec -> spec.setContent(text.toString());
+        
+        if(embed.isPresent())
+            //resultSpec = resultSpec.andThen(spec -> spec.setEmbed(unwrapEmbed()));
+        	resultSpec = resultSpec.andThen(spec -> setEmbedViaReflection(spec));
+        
+        Mono<Consumer<MessageCreateSpec>> result = Mono.just(resultSpec);
+        
+        if(!image.isPresent())
+            return result;
+        
+        return result.doOnNext(spec -> spec.andThen(s -> {
+					try { s.addFile(image.get().getName(), new FileInputStream(image.get())); } 
+					catch (Exception e) { throw Exceptions.propagate(e); }
+				}));
+    }
+
+	private void setEmbedViaReflection(MessageCreateSpec spec)
 	{
-		MessageCreateSpec resultSpec = new MessageCreateSpec()
-				.setContent(text.toString());
+		try
+		{
+			Field field = spec.getClass().getDeclaredField("embed");
+			EmbedCreateSpec mySpec = embed.get();
+			field.setAccessible(true);
+			field.set(spec, mySpec.asRequest());
+		} 
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			System.out.println("no reflection for you");
+		}
 		
-		if(embed.isPresent())
-			resultSpec = resultSpec.setEmbed(embed.get());
-		
-		Mono<MessageCreateSpec> result = Mono.just(resultSpec);
-		
-		if(!image.isPresent())
-			return result;
-		
-		return result.doOnNext(spec -> {
-				try { spec.setFile(image.get().getName(), new FileInputStream(image.get())); } 
-				catch (FileNotFoundException e) { throw Exceptions.propagate(e); }
-			});
 	}
 	
 }

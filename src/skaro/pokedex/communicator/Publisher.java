@@ -8,10 +8,10 @@ import java.util.concurrent.TimeUnit;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
+import discord4j.core.DiscordClient;
 import skaro.pokedex.communicator.publish_recipients.BotsDiscordRecipient;
 import skaro.pokedex.communicator.publish_recipients.CarbonitexRecipient;
 import skaro.pokedex.communicator.publish_recipients.DiscordBotsRecipient;
-import sx.blah.discord.api.IDiscordClient;
 
 public class Publisher 
 {
@@ -31,7 +31,7 @@ public class Publisher
 				.build();
 	}
 	
-	public void populatePublicationRecipients(IDiscordClient discordClient)
+	public void populatePublicationRecipients(DiscordClient discordClient)
 	{
 		List<AbstractPublicationRecipient> recipients = getRecipientList(discordClient);
 
@@ -60,7 +60,7 @@ public class Publisher
 		, 1, 1, TimeUnit.HOURS);
 	}
 	
-	private List<AbstractPublicationRecipient> getRecipientList(IDiscordClient discordClient)
+	private List<AbstractPublicationRecipient> getRecipientList(DiscordClient discordClient)
 	{
 		List<AbstractPublicationRecipient> result = new ArrayList<AbstractPublicationRecipient>();
 

@@ -7,6 +7,7 @@ import org.eclipse.jetty.util.MultiMap;
 import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper.Efficacy;
 import skaro.pokedex.input_processor.CommandArgument;
@@ -117,7 +118,7 @@ public class CoverageResponseFormatter implements IDiscordFormatter, IServiceCon
 		
 		StringBuilder builder = new StringBuilder();
 		types.forEach(type -> {
-			builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
+			builder.append(TextUtility.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
 			builder.append(", ");
 			});
 		
