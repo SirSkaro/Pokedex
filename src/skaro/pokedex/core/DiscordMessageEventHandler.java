@@ -80,13 +80,13 @@ public class DiscordMessageEventHandler
 	private Mono<ReplyStructure> prepareReply(Message receivedMessage, String messageContent)
 	{
 		return Mono.just(new ReplyStructure())
+				.flatMap(struct -> parseAndAddInputToStructure(struct, messageContent))
 				.flatMap(struct -> addAuthorAndVoiceStateToStructure(struct, receivedMessage))
 				.filter(struct -> !struct.author.isBot())
 				.flatMap(struct -> addChannelOfMessageToStructure(struct, receivedMessage))
 				.filterWhen(struct -> botHasPermissionsForThisChannel(struct, PermissionSet.of(Permission.SEND_MESSAGES)))
 				.filter(struct -> !rateLimiter.channelIsRateLimited(struct.channel.getId()))
-				.flatMap(struct -> addPrivateChannelToStructure(struct, struct.author)) 
-				.flatMap(struct -> parseAndAddInputToStructure(struct, messageContent));
+				.flatMap(struct -> addPrivateChannelToStructure(struct, struct.author));
 	}
 	
 	private Mono<Boolean> botHasPermissionsForThisChannel(ReplyStructure struct, PermissionSet neededPermissions)
