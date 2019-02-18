@@ -15,11 +15,15 @@ import com.sedmelluq.discord.lavaplayer.track.playback.NonAllocatingAudioFrameBu
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.event.domain.message.MessageUpdateEvent;
 import discord4j.core.object.VoiceState;
+import discord4j.core.object.entity.GuildChannel;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.MessageChannel;
 import discord4j.core.object.entity.PrivateChannel;
 import discord4j.core.object.entity.User;
+import discord4j.core.object.util.Permission;
+import discord4j.core.object.util.PermissionSet;
+import discord4j.core.object.util.Snowflake;
 import discord4j.voice.AudioProvider;
 import discord4j.voice.VoiceConnection;
 import reactor.core.publisher.Mono;
@@ -79,9 +83,28 @@ public class DiscordMessageEventHandler
 				.flatMap(struct -> addAuthorAndVoiceStateToStructure(struct, receivedMessage))
 				.filter(struct -> !struct.author.isBot())
 				.flatMap(struct -> addChannelOfMessageToStructure(struct, receivedMessage))
+				.filterWhen(struct -> botHasPermissionsForThisChannel(struct, PermissionSet.of(Permission.SEND_MESSAGES)))
 				.filter(struct -> !rateLimiter.channelIsRateLimited(struct.channel.getId()))
-				.flatMap(struct -> addPrivateChannelToStructure(struct, struct.author))
+				.flatMap(struct -> addPrivateChannelToStructure(struct, struct.author)) 
 				.flatMap(struct -> parseAndAddInputToStructure(struct, messageContent));
+	}
+	
+	private Mono<Boolean> botHasPermissionsForThisChannel(ReplyStructure struct, PermissionSet neededPermissions)
+	{
+		Optional<Snowflake> botId = struct.channel.getClient().getSelfId();
+		
+		if(!botId.isPresent())
+			return Mono.just(false);
+		
+		if(struct.channel instanceof GuildChannel)
+		{
+			GuildChannel channel = (GuildChannel)struct.channel;
+			
+			return channel.getEffectivePermissions(botId.get())
+					.map(permissions -> permissions.containsAll(neededPermissions));
+		}
+		
+		return Mono.just(true);
 	}
 	
 	private Mono<ReplyStructure> sendAckMessageIfNeeded(ReplyStructure struct)

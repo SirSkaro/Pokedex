@@ -3,6 +3,7 @@ package skaro.pokedex.communicator;
 import java.util.Optional;
 
 import discord4j.core.DiscordClient;
+import discord4j.core.object.util.Snowflake;
 import skaro.pokedex.services.ConfigurationService;
 
 public abstract class AbstractPublicationRecipient 
@@ -58,6 +59,10 @@ public abstract class AbstractPublicationRecipient
 	
 	protected long getBotId()
 	{
-		return discordClient.getSelf().block().getId().asLong();
+		Optional<Snowflake> botId = discordClient.getSelfId();
+		
+		if(!botId.isPresent())
+			return 0;
+		return botId.get().asLong();
 	}
 }
