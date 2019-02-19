@@ -1,13 +1,11 @@
 package skaro.pokedex.communicator;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import java.util.stream.Collectors;
 
 import discord4j.core.object.util.Snowflake;
 import skaro.pokedex.services.ConfigurationService;
@@ -21,7 +19,7 @@ import skaro.pokedex.services.ServiceType;
 public class Publisher implements IServiceConsumer
 {
 	private ServiceManager services;
-	private Cache<String, PublicationRecipient> publicationRecipientCache;
+	private List<PublicationRecipient> applicableRecipients;
 	private int shardId, totalShards;
 	private ScheduledExecutorService executor;
 	
@@ -35,17 +33,12 @@ public class Publisher implements IServiceConsumer
 		this.totalShards = builder.totalShards;
 		this.executor = builder.executor;
 		
-		publicationRecipientCache = Caffeine.newBuilder()
-				.maximumSize(builder.recipients.size())
-				.executor(executor)
-				.build();
-		
 		ConfigurationService configService = (ConfigurationService)services.getService(ServiceType.CONFIG);
 		
-		builder.recipients.stream()
+		this.applicableRecipients = builder.recipients.stream()
 			.filter(recipient -> recipient.configure(configService))
 			.filter(recipient -> recipient.isDesignatedShard(shardId))
-			.forEach(recipient -> publicationRecipientCache.put(recipient.getConfigID(), recipient));
+			.collect(Collectors.toList());
 	}
 	
 	@Override
@@ -70,7 +63,7 @@ public class Publisher implements IServiceConsumer
 				if(!botId.isPresent())
 					return;
 				
-				for(PublicationRecipient recipient : publicationRecipientCache.asMap().values())
+				for(PublicationRecipient recipient : applicableRecipients)
 				{
 					try {recipient.sendPublication(shardId, totalShards, getNumberOfConnectedGuilds(), botId.get().asLong());}
 					catch(Exception e) { System.out.println("[Publisher] failed to send publication for "+recipient.getConfigID());};
@@ -105,7 +98,7 @@ public class Publisher implements IServiceConsumer
 		{
 			shardId = -1;
 			totalShards = -1;
-			recipients = new ArrayList<>();
+			recipients = new LinkedList<>();
 		}
 		
 		public PublisherBuilder setShard(int id)
