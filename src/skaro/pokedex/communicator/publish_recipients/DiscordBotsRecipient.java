@@ -2,37 +2,30 @@ package skaro.pokedex.communicator.publish_recipients;
 
 import org.discordbots.api.client.DiscordBotListAPI;
 
-import discord4j.core.DiscordClient;
-import skaro.pokedex.communicator.AbstractPublicationRecipient;
+import skaro.pokedex.communicator.PublicationRecipient;
 
-public class DiscordBotsRecipient extends AbstractPublicationRecipient 
+public class DiscordBotsRecipient extends PublicationRecipient 
 {
-	DiscordBotListAPI dblClient;
-	
-	public DiscordBotsRecipient(DiscordClient client, int shardCount) 
+	public DiscordBotsRecipient() 
 	{
-		super(client, shardCount);
+		super();
 		configID = "discord_bots";
 	}
 	
 	@Override
-	public boolean configure() 
+	public boolean sendPublication(int shardID, int totalShards, int connectedGuilds, long botId) 
 	{
-		if(!super.configure())
-			return false;
+		DiscordBotListAPI dblClient = createDiscordBotListClient(botId);
 		
-		dblClient = new DiscordBotListAPI.Builder()
-                .token(authToken)
-                .botId(Long.toString(this.getBotId()))
-                .build();
-		
+		dblClient.setStats(shardID, totalShards, connectedGuilds);
 		return true;
 	}
-
-	@Override
-	public boolean sendPublication(int shardID) 
+	
+	private DiscordBotListAPI createDiscordBotListClient(long botId)
 	{
-		dblClient.setStats(shardID, totalShards, this.getNumberOfConnectedGuilds());
-		return true;
+		return new DiscordBotListAPI.Builder()
+                .token(authToken)
+                .botId(Long.toString(botId))
+                .build();
 	}
 }

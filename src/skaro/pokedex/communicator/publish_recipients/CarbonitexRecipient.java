@@ -9,19 +9,18 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 
-import discord4j.core.DiscordClient;
-import skaro.pokedex.communicator.AbstractPublicationRecipient;
+import skaro.pokedex.communicator.PublicationRecipient;
 
-public class CarbonitexRecipient extends AbstractPublicationRecipient 
+public class CarbonitexRecipient extends PublicationRecipient 
 {
-	public CarbonitexRecipient(DiscordClient client, int shardCount)
+	public CarbonitexRecipient()
 	{
-		super(client, shardCount);
+		super();
 		configID = "carbonitex";
 	}
 	
 	@Override
-	public boolean sendPublication(int shardID) 
+	public boolean sendPublication(int shardID, int totalShards, int connectedGuilds, long botId) 
 	{
 		//Utility variables
     	HttpClient httpclient = HttpClients.createDefault();
@@ -32,7 +31,7 @@ public class CarbonitexRecipient extends AbstractPublicationRecipient
     	{
     		// Request parameters and other properties.
     		params.add(new BasicNameValuePair("key", authToken));
-    		params.add(new BasicNameValuePair("servercount", Integer.toString(totalShards * this.getNumberOfConnectedGuilds())));
+    		params.add(new BasicNameValuePair("servercount", Integer.toString(totalShards * connectedGuilds)));
     		httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
     		httpclient.execute(httppost);
 					    

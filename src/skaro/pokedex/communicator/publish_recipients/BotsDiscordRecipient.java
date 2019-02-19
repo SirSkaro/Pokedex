@@ -6,41 +6,29 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.json.JSONObject;
 
-import discord4j.core.DiscordClient;
-import skaro.pokedex.communicator.AbstractPublicationRecipient;
+import skaro.pokedex.communicator.PublicationRecipient;
 
-public class BotsDiscordRecipient extends AbstractPublicationRecipient 
+public class BotsDiscordRecipient extends PublicationRecipient 
 {
-	String endpoint;
-			
-	public BotsDiscordRecipient(DiscordClient client, int shardCount) 
+	public BotsDiscordRecipient() 
 	{
-		super(client, shardCount);
+		super();
 		configID = "bots_discord";
 	}
 	
 	@Override
-	public boolean configure() 
+	public boolean sendPublication(int shardID, int totalShards, int connectedGuilds, long botId) 
 	{
-		if(!super.configure())
-			return false;
-		
-		endpoint = "https://bots.discord.pw/api/"+this.getBotId()+"/stats";
-		return true;
-	}
-
-	@Override
-	public boolean sendPublication(int shardID) 
-	{
+		String endpoint = "https://bots.discord.pw/api/"+botId+"/stats";
 		HttpClient hClient = HttpClients.createDefault();
 		HttpPost post = new HttpPost(endpoint);
 		JSONObject object = new JSONObject();
-
+		
 		try 
 		{
 			object.put("shard_id", shardID);
 			object.put("shard_count", totalShards);
-			object.put("server_count", this.getNumberOfConnectedGuilds());
+			object.put("server_count", connectedGuilds);
 			
 			post.setEntity(new StringEntity(object.toString(), "UTF-8"));
 			post.addHeader("Content-type", "application/json");
