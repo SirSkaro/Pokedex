@@ -1,16 +1,6 @@
 package skaro.pokedex.core;
 
-import java.nio.ByteBuffer;
 import java.util.Optional;
-
-import javax.sound.sampled.AudioInputStream;
-
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
-import com.sedmelluq.discord.lavaplayer.track.playback.MutableAudioFrame;
-import com.sedmelluq.discord.lavaplayer.track.playback.NonAllocatingAudioFrameBuffer;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.event.domain.message.MessageUpdateEvent;
@@ -24,8 +14,6 @@ import discord4j.core.object.entity.User;
 import discord4j.core.object.util.Permission;
 import discord4j.core.object.util.PermissionSet;
 import discord4j.core.object.util.Snowflake;
-import discord4j.voice.AudioProvider;
-import discord4j.voice.VoiceConnection;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.ChannelRateLimiter;
 import skaro.pokedex.data_processor.PokedexCommand;
@@ -74,7 +62,7 @@ public class DiscordMessageEventHandler
 				.flatMap(reply -> executeCommandAndAddResponseToStructure(reply))
 				.flatMap(reply -> deleteAckMessageIfNeeded(reply))
 				.flatMap(reply -> sendReply(reply))
-				.onErrorContinue((t,o) -> System.out.println("What? Impossible!"));
+				.onErrorContinue((t,o) -> t.printStackTrace());
 	}
 	
 	private Mono<ReplyStructure> prepareReply(Message receivedMessage, String messageContent)
@@ -147,47 +135,11 @@ public class DiscordMessageEventHandler
 		
 		return response.getAsSpec()
 				.flatMap(spec -> struct.channel.createMessage(spec));
-				//.doOnNext(message -> playAudioIfApplicable(struct));
-	}
-	
-	private Mono<ReplyStructure> playAudioIfApplicable(ReplyStructure struct)
-	{
-		if(!shouldSendAudioToVoiceChannel(struct))
-			return Mono.just(struct);
-		
-		Optional<AudioProvider> provider = createAudioProvider(struct.response.getPlayback());
-		
-		if(!provider.isPresent())
-			return Mono.just(struct);
-		
-		return struct.authorVoiceState.getChannel()
-				.flatMap(channel -> channel.join(spec -> spec.setProvider(provider.get())))
-				.doOnNext(VoiceConnection::disconnect)
-				.map(obj -> struct);
 	}
 	
 	private boolean shouldSendAudioToVoiceChannel(ReplyStructure struct)
 	{
 		return struct.response.hasPlayback() && struct.authorVoiceState.getChannelId().isPresent();
-	}
-	
-	private Optional<AudioProvider> createAudioProvider(AudioInputStream audioStream)
-	{
-		try
-		{
-			AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-	        playerManager.getConfiguration().setFrameBufferFactory(NonAllocatingAudioFrameBuffer::new);
-	        AudioSourceManagers.registerRemoteSources(playerManager);
-	        AudioPlayer player = playerManager.createPlayer();
-	        byte[] buffer = new byte[audioStream.available()];
-	        audioStream.read(buffer);
-	        ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
-	        return Optional.of(new MyAudioProvider(player, byteBuffer));
-		}
-		catch(Exception e)
-		{
-			return Optional.empty();
-		}
 	}
 	
 	private Mono<ReplyStructure> addAuthorAndVoiceStateToStructure(ReplyStructure struct, Message message)
@@ -256,25 +208,4 @@ public class DiscordMessageEventHandler
 		Input input;
 		Response response;
 	}
-	
-	private class MyAudioProvider extends AudioProvider
-    {
-    	private AudioPlayer player;
-        private MutableAudioFrame frame;
-        
-        public MyAudioProvider(AudioPlayer player, ByteBuffer buffer)
-        {
-        	super(buffer);
-        	this.player = player;
-        	frame = new MutableAudioFrame();
-        }
-        
-        @Override
-        public boolean provide() 
-        {
-            boolean didProvide = player.provide(frame);
-            if (didProvide) getBuffer().flip();
-            return didProvide;
-        }
-    }
 }

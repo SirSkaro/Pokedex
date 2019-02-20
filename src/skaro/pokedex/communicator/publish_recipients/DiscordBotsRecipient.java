@@ -3,12 +3,14 @@ package skaro.pokedex.communicator.publish_recipients;
 import org.discordbots.api.client.DiscordBotListAPI;
 
 import skaro.pokedex.communicator.PublicationRecipient;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceManager;
 
 public class DiscordBotsRecipient extends PublicationRecipient 
 {
-	public DiscordBotsRecipient() 
+	public DiscordBotsRecipient(ServiceManager services) throws ServiceConsumerException
 	{
-		super();
+		super(services);
 		configID = "discord_bots";
 	}
 	

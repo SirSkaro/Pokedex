@@ -7,12 +7,14 @@ import org.apache.http.impl.client.HttpClients;
 import org.json.JSONObject;
 
 import skaro.pokedex.communicator.PublicationRecipient;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceManager;
 
 public class BotsDiscordRecipient extends PublicationRecipient 
 {
-	public BotsDiscordRecipient() 
+	public BotsDiscordRecipient(ServiceManager services) throws ServiceConsumerException	
 	{
-		super();
+		super(services);
 		configID = "bots_discord";
 	}
 	

@@ -17,6 +17,7 @@ import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.TypeArgument;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
@@ -125,7 +126,8 @@ public class WeakCommand extends PokedexCommand
 	{
 		TypeService typeService = (TypeService)services.getService(ServiceType.TYPE);
 		List<String> typeNames = types.stream()
-				.map(arg -> arg.getFlexForm())
+				.filter(argument -> argument instanceof TypeArgument)
+				.map(argument -> argument.getFlexForm())
 				.collect(Collectors.toList());
 		
 		return typeService.getEfficacyOnDefense(typeNames);

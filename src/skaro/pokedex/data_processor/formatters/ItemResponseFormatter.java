@@ -74,7 +74,9 @@ public class ItemResponseFormatter implements IDiscordFormatter, IServiceConsume
 		response.addToReply("**__"+TextUtility.flexFormToProper(item.getNameInLanguage(lang.getFlexKey()))+"__**");
 		
 		builder.addField(ItemField.CATEGORY.getFieldTitle(lang), formatCategory((ItemCategory)data.getValue(ItemCategory.class.getName(), 0), lang), true);
-		builder.addField(ItemField.DEBUT.getFieldTitle(lang), TextUtility.formatGeneration(item.getDebut(), lang), true);
+		
+		if(item.getDebut() > 0)
+			builder.addField(ItemField.DEBUT.getFieldTitle(lang), TextUtility.formatGeneration(item.getDebut(), lang), true);
 		
 		if(item.getFlingPower() > 0)
 			builder.addField(ItemField.FLING_POWER.getFieldTitle(lang), Integer.toString(item.getFlingPower()), true);

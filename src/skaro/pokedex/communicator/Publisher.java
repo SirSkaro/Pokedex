@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import discord4j.core.object.util.Snowflake;
-import skaro.pokedex.services.ConfigurationService;
 import skaro.pokedex.services.DiscordService;
 import skaro.pokedex.services.IServiceConsumer;
 import skaro.pokedex.services.IServiceManager;
@@ -25,7 +24,7 @@ public class Publisher implements IServiceConsumer
 	
 	public Publisher(PublisherBuilder builder) throws ServiceConsumerException
 	{
-		if(!hasExpectedServices(this.services))
+		if(!hasExpectedServices(builder.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		this.services = builder.services;
@@ -33,10 +32,8 @@ public class Publisher implements IServiceConsumer
 		this.totalShards = builder.totalShards;
 		this.executor = builder.executor;
 		
-		ConfigurationService configService = (ConfigurationService)services.getService(ServiceType.CONFIG);
-		
 		this.applicableRecipients = builder.recipients.stream()
-			.filter(recipient -> recipient.configure(configService))
+			.filter(recipient -> recipient.configureIfSupported())
 			.filter(recipient -> recipient.isDesignatedShard(shardId))
 			.collect(Collectors.toList());
 	}
@@ -44,7 +41,7 @@ public class Publisher implements IServiceConsumer
 	@Override
 	public boolean hasExpectedServices(IServiceManager services)
 	{
-		return services.hasServices(ServiceType.DISCORD, ServiceType.CONFIG);
+		return services.hasServices(ServiceType.DISCORD);
 	}
 
 	public static PublisherBuilder newBuilder()
@@ -52,7 +49,7 @@ public class Publisher implements IServiceConsumer
 		return new PublisherBuilder();
 	}
 	
-	public void scheduleHoursPerPublishment(int frequency)
+	public void schedulePublicationFrequency(int period, TimeUnit timeUnit)
 	{
 		executor.scheduleAtFixedRate(new Runnable() 
 		{
@@ -69,7 +66,7 @@ public class Publisher implements IServiceConsumer
 					catch(Exception e) { System.out.println("[Publisher] failed to send publication for "+recipient.getConfigID());};
 				}
 		}}
-		, frequency, frequency, TimeUnit.HOURS);
+		, period, period, timeUnit);
 	}
 	
 	private int getNumberOfConnectedGuilds()

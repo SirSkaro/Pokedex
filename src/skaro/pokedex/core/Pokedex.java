@@ -2,6 +2,8 @@ package skaro.pokedex.core;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import com.patreon.PatreonAPI;
 
@@ -12,11 +14,41 @@ import discord4j.core.event.domain.message.MessageUpdateEvent;
 import discord4j.core.object.presence.Presence;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+import skaro.pokedex.communicator.Publisher;
+import skaro.pokedex.communicator.publish_recipients.BotsDiscordRecipient;
+import skaro.pokedex.communicator.publish_recipients.CarbonitexRecipient;
+import skaro.pokedex.communicator.publish_recipients.DiscordBotsRecipient;
 import skaro.pokedex.data_processor.ChannelRateLimiter;
 import skaro.pokedex.data_processor.LearnMethodData;
 import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.commands.*;
-import skaro.pokedex.data_processor.formatters.*;
+import skaro.pokedex.data_processor.commands.AbilityCommand;
+import skaro.pokedex.data_processor.commands.AboutCommand;
+import skaro.pokedex.data_processor.commands.CommandsCommand;
+import skaro.pokedex.data_processor.commands.CoverageCommand;
+import skaro.pokedex.data_processor.commands.DataCommand;
+import skaro.pokedex.data_processor.commands.DexCommand;
+import skaro.pokedex.data_processor.commands.HelpCommand;
+import skaro.pokedex.data_processor.commands.InviteCommand;
+import skaro.pokedex.data_processor.commands.ItemCommand;
+import skaro.pokedex.data_processor.commands.LearnCommand;
+import skaro.pokedex.data_processor.commands.MoveCommand;
+import skaro.pokedex.data_processor.commands.PatreonCommand;
+import skaro.pokedex.data_processor.commands.RandpokeCommand;
+import skaro.pokedex.data_processor.commands.SetCommand;
+import skaro.pokedex.data_processor.commands.ShinyCommand;
+import skaro.pokedex.data_processor.commands.StatsCommand;
+import skaro.pokedex.data_processor.commands.WeakCommand;
+import skaro.pokedex.data_processor.formatters.AbilityResponseFormatter;
+import skaro.pokedex.data_processor.formatters.CoverageResponseFormatter;
+import skaro.pokedex.data_processor.formatters.DataResponseFormatter;
+import skaro.pokedex.data_processor.formatters.DexResponseFormatter;
+import skaro.pokedex.data_processor.formatters.ItemResponseFormatter;
+import skaro.pokedex.data_processor.formatters.LearnResponseFormatter;
+import skaro.pokedex.data_processor.formatters.MoveResponseFormatter;
+import skaro.pokedex.data_processor.formatters.RandpokeResponseFormatter;
+import skaro.pokedex.data_processor.formatters.ShinyResponseFormatter;
+import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
+import skaro.pokedex.data_processor.formatters.WeakResponseFormatter;
 import skaro.pokedex.input_processor.InputProcessor;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.CommandService;
@@ -36,7 +68,7 @@ import skaro.pokedex.services.ServiceType;
 import skaro.pokedex.services.TextToSpeechService;
 import skaro.pokedex.services.TypeService;
 
-public class PokedexV3 
+public class Pokedex 
 {
 	public static void main(String[] args) throws Exception
 	{
@@ -48,11 +80,11 @@ public class PokedexV3
 		}
 		
 		//Record on command line arguments
-		int shardIDToManage = -1;
+		int shardToManage = -1;
 		int totalShards = -1;
 		try
 		{ 
-			shardIDToManage = Integer.parseInt(args[0]);
+			shardToManage = Integer.parseInt(args[0]);
 			totalShards = Integer.parseInt(args[1]);
 		}
 		catch(NumberFormatException e)
@@ -61,10 +93,7 @@ public class PokedexV3
 			System.exit(1);
 		}
 		
-		
-		//Load configurations
 		System.out.println("[Pokedex main] Loading configurations...");
-		
 		ConfigurationService configurationService = ConfigurationService.initialize(ConfigurationType.DEVELOP);
 		Scheduler scheduler = Schedulers.newParallel("pokedex_pool", Runtime.getRuntime().availableProcessors() * 6);
 		CommandService commandMap = new CommandService();
@@ -76,7 +105,7 @@ public class PokedexV3
 		PokedexApplicationManager manager = PokedexApplicationManager.PokedexConfigurator.newInstance()
 								.withService(configurationService)
 								.withService(commandMap)
-								.withService(createDiscordService(configurationService, scheduler, shardIDToManage, totalShards))
+								.withService(createDiscordService(configurationService, scheduler, shardToManage, totalShards))
 								.withService(perkService)
 								.withService(new ColorService())
 								.withService(new EmojiService())
@@ -91,6 +120,12 @@ public class PokedexV3
 		typeService.setServiceManager(ServiceManager.ServiceManagerBuilder.newInstance(manager).addService(ServiceType.CACHE).build());
 		
 		System.out.println("[Pokedex main] Done");
+		System.out.println("[Pokedex main] Setting up publisher...");
+		Publisher publisher = setUpPublisher(manager, shardToManage, totalShards);
+		publisher.schedulePublicationFrequency(1, TimeUnit.HOURS);
+		System.out.println("[Pokedex main] Done");
+		
+		System.out.println("[Pokedex main] Logging into Discord...");
 		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
 		DiscordClient client = service.getV3Client();
 		InputProcessor inputProcessor = new InputProcessor(commandMap, 190670386239635456L);
@@ -193,6 +228,25 @@ public class PokedexV3
 		//ColorService, PokeFlexService, PerkService, TTSService
 		serviceBuilderColor.addService(ServiceType.TTS);
 		commandService.addCommand(new DexCommand(commandServiceBuilder.build(), new DexResponseFormatter(serviceBuilderColor.build())));
+	}
+	
+	private static Publisher setUpPublisher(PokedexApplicationManager manager, int shardToManage, int totalShards) throws ServiceException, ServiceConsumerException
+	{
+		ServiceManager discordServiceManager = ServiceManager.ServiceManagerBuilder.newInstance(manager).addService(ServiceType.DISCORD).build();
+		ServiceManager configServiceManager = ServiceManager.ServiceManagerBuilder.newInstance(manager).addService(ServiceType.CONFIG).build();
+		
+		Publisher publisher = Publisher.newBuilder()
+				.addServices(discordServiceManager)
+				.setShard(0)
+				.setTotalShards(shardToManage)
+				.setTotalShards(totalShards)
+				.setExecutor(Executors.newSingleThreadScheduledExecutor())
+				.addRecipient(new CarbonitexRecipient(configServiceManager))
+				.addRecipient(new DiscordBotsRecipient(configServiceManager))
+				.addRecipient(new BotsDiscordRecipient(configServiceManager))
+				.build();
+		
+		return publisher;
 	}
 	
 }

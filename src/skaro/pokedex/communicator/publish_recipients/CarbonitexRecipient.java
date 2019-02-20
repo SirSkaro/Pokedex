@@ -10,12 +10,14 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 
 import skaro.pokedex.communicator.PublicationRecipient;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceManager;
 
 public class CarbonitexRecipient extends PublicationRecipient 
 {
-	public CarbonitexRecipient()
+	public CarbonitexRecipient(ServiceManager services) throws ServiceConsumerException
 	{
-		super();
+		super(services);
 		configID = "carbonitex";
 	}
 	
