@@ -40,7 +40,8 @@ public class DiscordMessageEventHandler
 		if(!possibleContent.isPresent())
 			return Mono.empty();
 
-		return processMessageEvent(newlyReceivedMessage, possibleContent.get());
+		return processMessageEvent(newlyReceivedMessage, possibleContent.get())
+				.onErrorResume(error -> Mono.empty());
 	}
 
 	public Mono<Message> onMessageEditEvent(MessageUpdateEvent event)
@@ -52,7 +53,8 @@ public class DiscordMessageEventHandler
 			return Mono.empty();
 
 		return newlyReceivedMessage
-				.flatMap(message -> processMessageEvent(message, possibleContent.get()));
+				.flatMap(message -> processMessageEvent(message, possibleContent.get()))
+				.onErrorResume(error -> Mono.empty());
 	}
 	
 	private Mono<Message> processMessageEvent(Message messageReceived, String messageContent)
@@ -61,8 +63,7 @@ public class DiscordMessageEventHandler
 				.flatMap(reply -> sendAckMessageIfNeeded(reply))
 				.flatMap(reply -> executeCommandAndAddResponseToStructure(reply))
 				.flatMap(reply -> deleteAckMessageIfNeeded(reply))
-				.flatMap(reply -> sendReply(reply))
-				.onErrorContinue((t,o) -> t.printStackTrace());
+				.flatMap(reply -> sendReply(reply));
 	}
 	
 	private Mono<ReplyStructure> prepareReply(Message receivedMessage, String messageContent)
@@ -125,7 +126,7 @@ public class DiscordMessageEventHandler
 	private Mono<Message> sendReply(ReplyStructure struct)
 	{
 		Response response = struct.response;
-		
+
 		if(response.isPrivateMessage())
 		{
 			return response.getAsSpec()

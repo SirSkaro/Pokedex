@@ -134,12 +134,10 @@ public class Pokedex
 		
 		client.getEventDispatcher().on(MessageCreateEvent.class)
 			.flatMap(event -> messageHandler.onMessageCreateEvent(event))
-			.onErrorContinue((t,o) -> System.out.println("saved the message create event"))
 	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
 		
 		client.getEventDispatcher().on(MessageUpdateEvent.class)
 			.flatMap(event -> messageHandler.onMessageEditEvent(event))
-			.onErrorContinue((t,o) -> System.out.println("saved the message update event"))
 	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
 
 		client.login().block(); 
