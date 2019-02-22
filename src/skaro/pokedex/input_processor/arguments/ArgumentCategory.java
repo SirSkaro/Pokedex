@@ -173,10 +173,19 @@ public enum ArgumentCategory
 	{
 		Optional<CommandArgument> possibleBestArgument = arguments.stream()
 				.filter(CommandArgument::isValid)
+				.filter(argument -> !argument.isSpellChecked())
 				.findFirst();
 		
 		if(possibleBestArgument.isPresent())
 			return possibleBestArgument.get();
+		
+		possibleBestArgument = arguments.stream()
+				.filter(CommandArgument::isValid)
+				.findFirst();
+		
+		if(possibleBestArgument.isPresent())
+			return possibleBestArgument.get();
+				
 		return arguments.get(0);
 	}
 	

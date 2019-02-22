@@ -57,6 +57,16 @@ public class Input
 		return builder.substring(0, builder.length() - 2);
 	}
 	
+	@Override
+	public String toString()
+	{
+		StringBuilder builder = new StringBuilder();
+		builder.append("[").append(language.getName()).append("] ");
+		builder.append(function).append(" ").append(argsToString());
+		
+		return builder.toString();
+	}
+	
 	private boolean hasExpectedNumberOfArguments()
 	{
 		ArgumentRange argumentRange = command.getExpectedArgumentRange();

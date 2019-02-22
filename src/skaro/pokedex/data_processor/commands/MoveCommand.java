@@ -1,24 +1,27 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.services.FlexCacheService;
+import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
-import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.Request;
@@ -94,9 +97,7 @@ public class MoveCommand extends PokedexCommand
 						dataMap.put(Move.class.getName(), move);
 						dataMap.put(Type.class.getName(), cachedTypeData.getByName(move.getType().getName()));
 					})
-					.flatMap(move -> Flux.just(new RequestURL(move.getDamageClass().getUrl(), Endpoint.MOVE_DAMAGE_CLASS))
-							.concatWithValues(new RequestURL(move.getTarget().getUrl(), Endpoint.MOVE_TARGET))
-							.concatWithValues(new RequestURL(move.getContestType().getUrl(), Endpoint.CONTEST_TYPE))
+					.flatMap(move -> Flux.just(createPeripheralRequests(move))
 							.parallel()
 							.runOn(factory.getScheduler())
 							.flatMap(request -> request.makeRequest(factory))
@@ -108,6 +109,19 @@ public class MoveCommand extends PokedexCommand
 		return result
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	private RequestURL[] createPeripheralRequests(Move move)
+	{
+		List<RequestURL> result = new ArrayList<>();
+		result.add(new RequestURL(move.getDamageClass().getUrl(), Endpoint.MOVE_DAMAGE_CLASS));
+		result.add(new RequestURL(move.getTarget().getUrl(), Endpoint.MOVE_TARGET));
+		
+		if(move.getContestType() != null)
+			result.add(new RequestURL(move.getContestType().getUrl(), Endpoint.CONTEST_TYPE));
+		
+		
+		return result.toArray(new RequestURL[result.size()]);
 	}
 	
 }

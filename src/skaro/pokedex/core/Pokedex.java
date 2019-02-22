@@ -128,17 +128,17 @@ public class Pokedex
 		System.out.println("[Pokedex main] Logging into Discord...");
 		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
 		DiscordClient client = service.getV3Client();
-		InputProcessor inputProcessor = new InputProcessor(commandMap, 190670386239635456L);
+		InputProcessor inputProcessor = new InputProcessor(commandMap, 206147275775279104L);
 		ChannelRateLimiter rateLimiter = new ChannelRateLimiter(2, Duration.ofSeconds(10));
 		DiscordMessageEventHandler messageHandler = new DiscordMessageEventHandler(inputProcessor, rateLimiter);
 		
 		client.getEventDispatcher().on(MessageCreateEvent.class)
 			.flatMap(event -> messageHandler.onMessageCreateEvent(event))
-	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
+	        .subscribe(inputOfServedRequest -> System.out.println(inputOfServedRequest), error -> error.printStackTrace());
 		
 		client.getEventDispatcher().on(MessageUpdateEvent.class)
 			.flatMap(event -> messageHandler.onMessageEditEvent(event))
-	        .subscribe(value -> System.out.println("success"), error -> error.printStackTrace());
+			.subscribe(inputOfServedRequest -> System.out.println(inputOfServedRequest), error -> error.printStackTrace());
 
 		client.login().block(); 
 	}
@@ -235,8 +235,7 @@ public class Pokedex
 		
 		Publisher publisher = Publisher.newBuilder()
 				.addServices(discordServiceManager)
-				.setShard(0)
-				.setTotalShards(shardToManage)
+				.setShard(shardToManage)
 				.setTotalShards(totalShards)
 				.setExecutor(Executors.newSingleThreadScheduledExecutor())
 				.addRecipient(new CarbonitexRecipient(configServiceManager))

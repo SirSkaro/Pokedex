@@ -93,7 +93,8 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 		builder.addField(MoveField.PP.getFieldTitle(lang), formatPP(move), true);
 		builder.addField(MoveField.PRIORITY.getFieldTitle(lang), Integer.toString(move.getPriority()), true);
 		builder.addField(MoveField.TARGET.getFieldTitle(lang), formatTarget((MoveTarget)data.getValue(MoveTarget.class.getName(), 0), lang), true);
-		builder.addField(MoveField.CONTEST.getFieldTitle(lang), formatContest((ContestType)data.getValue(ContestType.class.getName(), 0), lang), true);
+		if(data.containsKey(ContestType.class.getName()))
+			builder.addField(MoveField.CONTEST.getFieldTitle(lang), formatContest((ContestType)data.getValue(ContestType.class.getName(), 0), lang), true);
 		builder.addField(MoveField.DESC.getFieldTitle(lang), formatDescription(move, lang), false);
 		
 		//English-only data

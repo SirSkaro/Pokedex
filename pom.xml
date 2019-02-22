@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>Pokedex</groupId>
 	<artifactId>Pokedex</artifactId>
-	<version>5.6.0</version>
+	<version>6.0.0</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>
@@ -172,7 +172,6 @@
 			<artifactId>httpclient</artifactId>
 			<version>4.5.7</version>
 		</dependency>
-
 	</dependencies>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

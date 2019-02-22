@@ -75,7 +75,6 @@ public class Response
         Consumer<MessageCreateSpec> resultSpec = spec -> spec.setContent(text.toString());
         
         if(embed.isPresent())
-            //resultSpec = resultSpec.andThen(spec -> spec.setEmbed(unwrapEmbed()));
         	resultSpec = resultSpec.andThen(spec -> setEmbedViaReflection(spec));
         
         Mono<Consumer<MessageCreateSpec>> result = Mono.just(resultSpec);
@@ -83,7 +82,7 @@ public class Response
         if(!image.isPresent())
             return result;
         
-        return result.doOnNext(spec -> spec.andThen(s -> {
+        return result.map(spec -> spec.andThen(s -> {
 					try { s.addFile(image.get().getName(), new FileInputStream(image.get())); } 
 					catch (Exception e) { throw Exceptions.propagate(e); }
 				}));
@@ -103,7 +102,6 @@ public class Response
 			e.printStackTrace();
 			System.out.println("no reflection for you");
 		}
-		
 	}
 	
 }

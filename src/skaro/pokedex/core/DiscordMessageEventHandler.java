@@ -32,7 +32,7 @@ public class DiscordMessageEventHandler
 		this.rateLimiter = rateLimiter;
 	}
 
-	public Mono<Message> onMessageCreateEvent(MessageCreateEvent event)
+	public Mono<Input> onMessageCreateEvent(MessageCreateEvent event)
 	{
 		Message newlyReceivedMessage = event.getMessage();
 		Optional<String> possibleContent = newlyReceivedMessage.getContent();
@@ -41,10 +41,11 @@ public class DiscordMessageEventHandler
 			return Mono.empty();
 
 		return processMessageEvent(newlyReceivedMessage, possibleContent.get())
+				.map(reply -> reply.input)
 				.onErrorResume(error -> Mono.empty());
 	}
 
-	public Mono<Message> onMessageEditEvent(MessageUpdateEvent event)
+	public Mono<Input> onMessageEditEvent(MessageUpdateEvent event)
 	{
 		Mono<Message> newlyReceivedMessage = event.getMessage();
 		Optional<String> possibleContent = event.getCurrentContent();
@@ -54,10 +55,11 @@ public class DiscordMessageEventHandler
 
 		return newlyReceivedMessage
 				.flatMap(message -> processMessageEvent(message, possibleContent.get()))
+				.map(reply -> reply.input)
 				.onErrorResume(error -> Mono.empty());
 	}
 	
-	private Mono<Message> processMessageEvent(Message messageReceived, String messageContent)
+	private Mono<ReplyStructure> processMessageEvent(Message messageReceived, String messageContent)
 	{
 		return prepareReply(messageReceived, messageContent)
 				.flatMap(reply -> sendAckMessageIfNeeded(reply))
@@ -123,7 +125,7 @@ public class DiscordMessageEventHandler
 				.thenReturn(struct);
 	}
 	
-	private Mono<Message> sendReply(ReplyStructure struct)
+	private Mono<ReplyStructure> sendReply(ReplyStructure struct)
 	{
 		Response response = struct.response;
 
@@ -131,11 +133,13 @@ public class DiscordMessageEventHandler
 		{
 			return response.getAsSpec()
 					.flatMap(spec -> struct.privateChannel.createMessage(spec))
-					.flatMap(directMessage -> struct.channel.createMessage("Sent to your inbox!"));
+					.flatMap(directMessage -> struct.channel.createMessage("Sent to your inbox!"))
+					.map(sentMessage -> struct);
 		}
 		
 		return response.getAsSpec()
-				.flatMap(spec -> struct.channel.createMessage(spec));
+				.flatMap(spec -> struct.channel.createMessage(spec))
+				.map(sentMessage -> struct);
 	}
 	
 	private boolean shouldSendAudioToVoiceChannel(ReplyStructure struct)
