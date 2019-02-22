@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Optional;
 
-import skaro.pokedex.core.Configurator;
+import skaro.pokedex.services.ConfigurationService;
 
 public class MySQLManager 
 {
@@ -18,7 +18,7 @@ public class MySQLManager
 	{
 		try
 		{  
-			Optional<Configurator> configurator = Configurator.getInstance();
+			Optional<ConfigurationService> configurator = ConfigurationService.getInstance();
 			String dbPassword = null, dbName = null, dbUser = null, dbURI = null;
 			if(configurator.isPresent())
 			{

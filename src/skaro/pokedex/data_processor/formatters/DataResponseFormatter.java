@@ -8,14 +8,20 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorTracker;
-import skaro.pokedex.data_processor.EmojiTracker;
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Statistic;
-import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.EmojiService;
+import skaro.pokedex.services.IServiceConsumer;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.ability.Ability;
 import skaro.pokeflex.objects.egg_group.EggGroup;
 import skaro.pokeflex.objects.evolution_chain.Chain;
@@ -27,10 +33,25 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_form.PokemonForm;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.type.Type;
-import sx.blah.discord.util.EmbedBuilder;
 
-public class DataResponseFormatter implements IDiscordFormatter 
+public class DataResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
+	private IServiceManager services;
+	
+	public DataResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR, ServiceType.EMOJI);
+	}
+	
 	@Override
 	public Response invalidInputResponse(Input input)
 	{
@@ -42,7 +63,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 				response.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
 			break;
 			case INVALID_ARGUMENT:
-				response.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Pokemon in " + input.getLanguage().getName());
+				response.addToReply("\""+input.getArgument(0).getRawInput() +"\" is not a recognized Pokemon in " + input.getLanguage().getName());
 			break;
 			default:
 				response.addToReply("A technical error occured (code 102)");
@@ -52,52 +73,50 @@ public class DataResponseFormatter implements IDiscordFormatter
 	}
 
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		EvolutionChain evoChain = (EvolutionChain)data.getValue(EvolutionChain.class.getName(), 0);
-		builder.setLenient(true);
 		
-		//Header
 		response.addToReply("**__"+
-				TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+
+				TextUtility.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+
 				" | #" + species.getId() +
-				" | " + TextFormatter.formatGeneration(species.getGeneration().getName(), lang) + "__**");
+				" | " + TextUtility.formatGeneration(species.getGeneration().getName(), lang) + "__**");
 		
-		//Body
-		builder.appendField(DataField.BASE_STATS.getFieldTitle(lang), formatBaseStats(pokemon, lang), true);
-		builder.appendField(DataField.TYPING.getFieldTitle(lang), formatTypes(data.get(Type.class.getName()), lang), true);
-		builder.appendField(DataField.ABILITIES.getFieldTitle(lang), formatAbilities(data.get(Ability.class.getName()), lang), true);
-		builder.appendField(DataField.HIGHT_WEIGHT.getFieldTitle(lang), formatHeightWeight(pokemon), true);
-		builder.appendField(DataField.EV_YIELD.getFieldTitle(lang), formatEvYield(pokemon, lang), true);
-		builder.appendField(DataField.GROWTH_CATCH.getFieldTitle(lang), formatGrowthAndCatchRates((GrowthRate)data.getValue(GrowthRate.class.getName(), 0), species.getCaptureRate(), lang), true);
-		builder.appendField(DataField.GENDER.getFieldTitle(lang), formatGenderRatio(species), true);
-		builder.appendField(DataField.EGG_GROUP.getFieldTitle(lang), formatEggGroups(data.get(EggGroup.class.getName()),lang), true);
-		builder.appendField(DataField.HATCH_TIME.getFieldTitle(lang), calcHatchTime(species, lang), true);
+		builder.addField(DataField.BASE_STATS.getFieldTitle(lang), formatBaseStats(pokemon, lang), true);
+		builder.addField(DataField.TYPING.getFieldTitle(lang), formatTypes(data.get(Type.class.getName()), lang), true);
+		builder.addField(DataField.ABILITIES.getFieldTitle(lang), formatAbilities(data.get(Ability.class.getName()), lang), true);
+		builder.addField(DataField.HIGHT_WEIGHT.getFieldTitle(lang), formatHeightWeight(pokemon), true);
+		builder.addField(DataField.EV_YIELD.getFieldTitle(lang), formatEvYield(pokemon, lang), true);
+		builder.addField(DataField.GROWTH_CATCH.getFieldTitle(lang), formatGrowthAndCatchRates((GrowthRate)data.getValue(GrowthRate.class.getName(), 0), species.getCaptureRate(), lang), true);
+		builder.addField(DataField.GENDER.getFieldTitle(lang), formatGenderRatio(species), true);
+		builder.addField(DataField.EGG_GROUP.getFieldTitle(lang), formatEggGroups(data.get(EggGroup.class.getName()),lang), true);
+		builder.addField(DataField.HATCH_TIME.getFieldTitle(lang), calcHatchTime(species, lang), true);
 		
-		//Optional data
 		if(hasMultipleForms(data.get(PokemonForm.class.getName())))
-			builder.appendField(DataField.FORMS.getFieldTitle(lang), formatForms(data.get(PokemonForm.class.getName()), species, lang), true);
+			builder.addField(DataField.FORMS.getFieldTitle(lang), formatForms(data.get(PokemonForm.class.getName()), species, lang), true);
 		if(!isOnlyEvolution(evoChain))
 		{
-			builder.appendField(DataField.EVO_CHAIN.getFieldTitle(lang), formatEvolutionChain(species, data.get(PokemonSpecies.class.getName()), evoChain, lang), true);
-			builder.appendField(DataField.EVO_REQ.getFieldTitle(lang), formatEvolutionDetails(evoChain, pokemon.getName()), true);
+			builder.addField(DataField.EVO_CHAIN.getFieldTitle(lang), formatEvolutionChain(species, data.get(PokemonSpecies.class.getName()), evoChain, lang), true);
+			
+			String evolutionRequirements = formatEvolutionDetails(evoChain, pokemon.getName());
+			if(!evolutionRequirements.isEmpty())
+				builder.addField(DataField.EVO_REQ.getFieldTitle(lang), evolutionRequirements, true);
 		}
 		
-		//Extra
-		builder.withImage(pokemon.getModel().getUrl());
+		builder.setImage(pokemon.getModel().getUrl());
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(ColorTracker.getColorForType(type));
+		builder.setColor(colorService.getColorForType(type));
 		
-		
-		response.setEmbededReply(builder.build());
+		response.setEmbed(builder);
 		return response;
 	}
 	
-	private String formatEggGroups(List<Object> groups, Language lang)
+	private String formatEggGroups(List<IFlexObject> groups, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
 		EggGroup tempGroup;
@@ -105,31 +124,29 @@ public class DataResponseFormatter implements IDiscordFormatter
 		for(Object group : groups)
 		{
 			tempGroup = (EggGroup)group;
-			builder.append(TextFormatter.flexFormToProper(tempGroup.getNameInLanguage(lang.getFlexKey()) + "*/* "));
+			builder.append(TextUtility.flexFormToProper(tempGroup.getNameInLanguage(lang.getFlexKey()) + "*/* "));
 		}
 		
 		return builder.substring(0, builder.length() - 3);
 	}
 	
-	private boolean hasMultipleForms(List<Object> forms)
+	private boolean hasMultipleForms(List<IFlexObject> forms)
 	{
 		return forms.size() > 1;
 	}
 	
-	private String formatForms(List<Object> forms, PokemonSpecies species, Language lang)
+	private String formatForms(List<IFlexObject> forms, PokemonSpecies species, Language lang)
 	{
 		List<String> resultList = new ArrayList<String>();
-		PokemonForm tempForm;
-		String formName;
 		
 		for(Object form : forms)
 		{
-			tempForm = (PokemonForm)form;
-			formName = TextFormatter.flexFormToProper(tempForm.getFormInLanguage(lang.getFlexKey()));
+			PokemonForm tempForm = (PokemonForm)form;
+			String formName = TextUtility.flexFormToProper(tempForm.getFormInLanguage(lang.getFlexKey()));
 			if(!resultList.contains(formName))
 			{
 				if(formName.isEmpty())
-					resultList.add(TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey())));
+					resultList.add(TextUtility.flexFormToProper(species.getNameInLanguage(lang.getFlexKey())));
 				else
 					resultList.add(formName);
 			}
@@ -159,7 +176,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 	
 	private String formatGrowthAndCatchRates(GrowthRate growthRate, int catchRate, Language lang)
 	{
-		return TextFormatter.flexFormToProper(growthRate.getNameInLanguage(lang.getFlexKey())) + "*/* " + catchRate;
+		return TextUtility.flexFormToProper(growthRate.getNameInLanguage(lang.getFlexKey())) + "*/* " + catchRate;
 	}
 	
 	private boolean isOnlyEvolution(EvolutionChain evolutionData)
@@ -181,8 +198,8 @@ public class DataResponseFormatter implements IDiscordFormatter
 			tempSpecies = (PokemonSpecies)species;
 			if(chain.getSpecies().getName().equals(tempSpecies.getName()))
 			{
-				builder.append(TextFormatter.flexFormToProper(tempSpecies.getNameInLanguage(lang.getFlexKey())));
-				builder.append(" -> ");
+				builder.append(TextUtility.flexFormToProper(tempSpecies.getNameInLanguage(lang.getFlexKey())));
+				builder.append(" ➔ ");
 				break;
 			}
 		}
@@ -191,7 +208,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 		formatEvolutionChainResursive(chain.getEvolvesTo(), (List<PokemonSpecies>)speciesInLine, builder, lang);
 		
 		//decorate the text of this Pokemon
-		String thisPokemonName = TextFormatter.flexFormToProper(thisPokemon.getNameInLanguage(lang.getFlexKey()));
+		String thisPokemonName = TextUtility.flexFormToProper(thisPokemon.getNameInLanguage(lang.getFlexKey()));
 		nameIndexStart = builder.indexOf(thisPokemonName);
 		builder.insert(nameIndexStart + thisPokemonName.length(), "__");
 		builder.insert(nameIndexStart, "__");
@@ -210,14 +227,14 @@ public class DataResponseFormatter implements IDiscordFormatter
 				if(evo.getSpecies().getName().equals(species.getName()))
 				{
 					pokemonName = species.getNameInLanguage(lang.getFlexKey());
-					builder.append(TextFormatter.flexFormToProper(pokemonName));
+					builder.append(TextUtility.flexFormToProper(pokemonName));
 					break;
 				}
 			}
 			
 			if(!evo.getEvolvesTo().isEmpty())
 			{
-				builder.append(" -> ");
+				builder.append(" ➔ ");
 				formatEvolutionChainResursive(evo.getEvolvesTo(), speciesInLine, builder, lang);
 			}
 			
@@ -266,7 +283,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 		return pokemon.getHeight()/10.0 + " m*/* " + pokemon.getWeight()/10.0 + " kg";
 	}
 	
-	private String formatAbilities(List<Object> abilities, Language lang)
+	private String formatAbilities(List<IFlexObject> abilities, Language lang)
 	{
 		List<String> resultList = new ArrayList<String>();
 		Ability tempAbility;
@@ -274,23 +291,24 @@ public class DataResponseFormatter implements IDiscordFormatter
 		for(Object abil : abilities)
 		{
 			tempAbility = (Ability)abil;
-			resultList.add(TextFormatter.flexFormToProper(tempAbility.getNameInLanguage(lang.getFlexKey())));
+			resultList.add(TextUtility.flexFormToProper(tempAbility.getNameInLanguage(lang.getFlexKey())));
 		}
 		
 		return listToItemizedString(resultList);
 	}
 	
-	private String formatTypes(List<Object> types, Language lang)
+	private String formatTypes(List<IFlexObject> types, Language lang)
 	{
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		StringBuilder builder = new StringBuilder();
 		Type tempType;
 		
 		for(Object type : types)
 		{
 			tempType = (Type)type;
-			builder.append(EmojiTracker.getTypeEmoji(TypeData.getByName(tempType.getName())));
+			builder.append(emojiService.getTypeEmoji(tempType.getName()));
 			builder.append(" ");
-			builder.append(TextFormatter.flexFormToProper(tempType.getNameInLanguage(lang.getFlexKey())) + "\n");
+			builder.append(TextUtility.flexFormToProper(tempType.getNameInLanguage(lang.getFlexKey())) + "\n");
 		}
 		
 		return builder.substring(0, builder.length());
@@ -309,7 +327,7 @@ public class DataResponseFormatter implements IDiscordFormatter
 		
 		for(EvolutionDetail detail : eDetails)
 		{
-			builder.append(TextFormatter.flexFormToProper(detail.getTrigger().getName())+": ");
+			builder.append(TextUtility.flexFormToProper(detail.getTrigger().getName())+": ");
 			
 			if(detail.getMinLevel() != 0)
 				builder.append("Min level: "+detail.getMinLevel() + " & ");
@@ -339,25 +357,25 @@ public class DataResponseFormatter implements IDiscordFormatter
 			if(detail.isTurnUpsideDown())
 				builder.append("Turn 3DS upside down & ");
 			if(detail.getItem() != null)
-				builder.append(TextFormatter.flexFormToProper(detail.getItem().getName()) +" & ");
+				builder.append(TextUtility.flexFormToProper(detail.getItem().getName()) +" & ");
 			if(detail.getKnownMoveType() != null)
-				builder.append("Know "+ TextFormatter.flexFormToProper(detail.getKnownMoveType().getName()) +"-type move & ");
+				builder.append("Know "+ TextUtility.flexFormToProper(detail.getKnownMoveType().getName()) +"-type move & ");
 			if(detail.getMinAffection() != 0)
 				builder.append("Min affection: "+detail.getMinAffection() + " & ");
 			if(detail.getPartyType() != null)
-				builder.append("With "+ TextFormatter.flexFormToProper(detail.getPartyType().getName()) +"-type in party & ");
+				builder.append("With "+ TextUtility.flexFormToProper(detail.getPartyType().getName()) +"-type in party & ");
 			if(detail.getTradeSpecies() != null)
-				builder.append("Trade for "+ TextFormatter.flexFormToProper(detail.getTradeSpecies().getName()) +" & ");
+				builder.append("Trade for "+ TextUtility.flexFormToProper(detail.getTradeSpecies().getName()) +" & ");
 			if(detail.getPartySpecies() != null)
-				builder.append("With "+ TextFormatter.flexFormToProper(detail.getPartySpecies().getName()) +" as party member & ");
+				builder.append("With "+ TextUtility.flexFormToProper(detail.getPartySpecies().getName()) +" as party member & ");
 			if(detail.getMinHappiness() != 0)
 				builder.append("Min happiness: "+detail.getMinHappiness() + " & ");
 			if(detail.getHeldItem() != null)
-				builder.append("Holding item "+ TextFormatter.flexFormToProper(detail.getHeldItem().getName()) +" & ");
+				builder.append("Holding item "+ TextUtility.flexFormToProper(detail.getHeldItem().getName()) +" & ");
 			if(detail.getKnownMove() != null)
-				builder.append("Knows move "+ TextFormatter.flexFormToProper(detail.getKnownMove().getName()) +" & ");
+				builder.append("Knows move "+ TextUtility.flexFormToProper(detail.getKnownMove().getName()) +" & ");
 			if(detail.getLocation() != null)
-				builder.append("At location "+ TextFormatter.flexFormToProper(detail.getLocation().getName()) +" & ");
+				builder.append("At location "+ TextUtility.flexFormToProper(detail.getLocation().getName()) +" & ");
 			
 			if(builder.lastIndexOf("&") != -1)
 				builder.deleteCharAt(builder.lastIndexOf("&"));

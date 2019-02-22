@@ -1,24 +1,45 @@
 package skaro.pokedex.data_processor.formatters;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorTracker;
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.TypeInteractionWrapper;
-import skaro.pokedex.data_processor.TypeTracker;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.data_processor.TextUtility;
+import skaro.pokedex.data_processor.TypeEfficacyWrapper;
+import skaro.pokedex.data_processor.TypeEfficacyWrapper.Efficacy;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import sx.blah.discord.util.EmbedBuilder;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.EmojiService;
+import skaro.pokedex.services.IServiceConsumer;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokeflex.api.IFlexObject;
+import skaro.pokeflex.objects.type.Type;
 
-public class CoverageResponseFormatter implements IDiscordFormatter 
+public class CoverageResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
-
+	private IServiceManager services;
+	
+	public CoverageResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR, ServiceType.EMOJI);
+	}
+	
 	@Override
 	public Response invalidInputResponse(Input input) 
 	{
@@ -32,7 +53,7 @@ public class CoverageResponseFormatter implements IDiscordFormatter
 			break;
 			case INVALID_ARGUMENT:
 				response.addToReply("Could not process your request due to the following problem(s):".intern());
-				for(AbstractArgument arg : input.getArgs())
+				for(CommandArgument arg : input.getArguments())
 					if(!arg.isValid())
 						response.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized Type or Move in "+ input.getLanguage().getName());
 				response.addToReply("\n*top suggestion*: did you include commas between inputs?");
@@ -44,33 +65,64 @@ public class CoverageResponseFormatter implements IDiscordFormatter
 		return response;
 	}
 
-	
-	@SuppressWarnings("unchecked")
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder) 
 	{
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
-		List<TypeData> typeList = (List<TypeData>)(List<?>)data.get(TypeData.class.getName());
-		TypeInteractionWrapper wrapper = TypeTracker.onOffense(typeList);
+		TypeEfficacyWrapper wrapper = (TypeEfficacyWrapper)data.getValue(TypeEfficacyWrapper.class.getName(), 0);
 		Response response = new Response();
-		builder.setLenient(true);
 		
-		//Header
-		response.addToReply("**__"+wrapper.typesToString(lang)+"__**");
+		response.addToReply(createHeader(wrapper.getTypes(), lang));
 		
-		builder.appendField(CommonData.SUPER_EFFECTIVE.getInLanguage(lang), getList(wrapper, 2.0, lang), false);
-		builder.appendField(CommonData.NEUTRAL.getInLanguage(lang), getList(wrapper, 1.0, lang), false);
-		builder.appendField(CommonData.RESIST.getInLanguage(lang), getList(wrapper, 0.5, lang), false);
-		builder.appendField(CommonData.IMMUNE.getInLanguage(lang), getList(wrapper, 0.0, lang), false);
-		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
+		String effectiveList = efficacyListToString(wrapper.getInteraction(Efficacy.EFFECTIVE), lang);
+		String neutralList = efficacyListToString(wrapper.getInteraction(Efficacy.NEUTRAL), lang);
+		String resistList = efficacyListToString(wrapper.getInteraction(Efficacy.RESIST), lang);
+		String immuneList = efficacyListToString(wrapper.getInteraction(Efficacy.IMMUNE), lang);
 		
-		response.setEmbededReply(builder.build());
+		if(!effectiveList.isEmpty())
+			builder.addField(CommonData.SUPER_EFFECTIVE.getInLanguage(lang), effectiveList, false);
+		if(!neutralList.isEmpty())
+			builder.addField(CommonData.NEUTRAL.getInLanguage(lang), neutralList, false);
+		if(!resistList.isEmpty())
+			builder.addField(CommonData.RESIST.getInLanguage(lang), resistList, false);
+		if(!immuneList.isEmpty())
+			builder.addField(CommonData.IMMUNE.getInLanguage(lang), immuneList, false);
+		
+		builder.setColor(colorService.getColorForWrapper(wrapper));
+		response.setEmbed(builder);
 		return response;
 	}
 	
-	private String getList(TypeInteractionWrapper wrapper, double mult, Language lang)
+	private String createHeader(List<Type> types, Language lang)
 	{
-		Optional<String> strCheck = wrapper.interactionToString(mult, lang);
-		return (strCheck.isPresent() ? strCheck.get() : null);
+		StringBuilder builder = new StringBuilder();
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
+		
+		builder.append("**__");
+		
+		for(Type type : types)
+		{
+			builder.append(emojiService.getTypeEmoji(type.getName()));
+			builder.append(type.getNameInLanguage(lang.getFlexKey()));
+			builder.append("/");
+		}
+		
+		return builder.substring(0, builder.length() - 1) + "__**";
 	}
+	
+	private String efficacyListToString(List<Type> types, Language lang)
+	{
+		if(types.isEmpty())
+			return "";
+		
+		StringBuilder builder = new StringBuilder();
+		types.forEach(type -> {
+			builder.append(TextUtility.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
+			builder.append(", ");
+			});
+		
+		return builder.substring(0, builder.length() - 2);
+	}
+	
 }

@@ -1,25 +1,45 @@
 package skaro.pokedex.data_processor.formatters;
 
-import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.EmojiTracker;
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.EmojiService;
+import skaro.pokedex.services.IServiceConsumer;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.item.Item;
 import skaro.pokeflex.objects.item_category.ItemCategory;
 import skaro.pokeflex.objects.type.Type;
-import sx.blah.discord.util.EmbedBuilder;
 
-public class ItemResponseFormatter implements IDiscordFormatter 
+public class ItemResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
+	private IServiceManager services;
+	
+	public ItemResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR, ServiceType.EMOJI);
+	}
 
 	@Override
 	public Response invalidInputResponse(Input input)
@@ -32,7 +52,7 @@ public class ItemResponseFormatter implements IDiscordFormatter
 				response.addToReply("You must specify exactly one Item as input for this command.".intern());
 			break;
 			case INVALID_ARGUMENT:
-				response.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Item in "+input.getLanguage().getName());
+				response.addToReply("\""+input.getArgument(0).getRawInput() +"\" is not a recognized Item in "+input.getLanguage().getName());
 			break;
 			default:
 				response.addToReply("A technical error occured (code 104)");
@@ -42,37 +62,39 @@ public class ItemResponseFormatter implements IDiscordFormatter
 	}
 	
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
-		builder.setLenient(true);
 		Item item = (Item)data.get(Item.class.getName()).get(0);
 		Type type = (Type)data.getValue(Type.class.getName(), 0);
 		
 		//Header
-		response.addToReply("**__"+TextFormatter.flexFormToProper(item.getNameInLanguage(lang.getFlexKey()))+"__**");
+		response.addToReply("**__"+TextUtility.flexFormToProper(item.getNameInLanguage(lang.getFlexKey()))+"__**");
 		
-		builder.appendField(ItemField.CATEGORY.getFieldTitle(lang), formatCategory((ItemCategory)data.getValue(ItemCategory.class.getName(), 0), lang), true);
-		builder.appendField(ItemField.DEBUT.getFieldTitle(lang), TextFormatter.formatGeneration(item.getDebut(), lang), true);
+		builder.addField(ItemField.CATEGORY.getFieldTitle(lang), formatCategory((ItemCategory)data.getValue(ItemCategory.class.getName(), 0), lang), true);
+		
+		if(item.getDebut() > 0)
+			builder.addField(ItemField.DEBUT.getFieldTitle(lang), TextUtility.formatGeneration(item.getDebut(), lang), true);
 		
 		if(item.getFlingPower() > 0)
-			builder.appendField(ItemField.FLING_POWER.getFieldTitle(lang), Integer.toString(item.getFlingPower()), true);
+			builder.addField(ItemField.FLING_POWER.getFieldTitle(lang), Integer.toString(item.getFlingPower()), true);
 		if(type != null)
 		{
-			builder.appendField(ItemField.NG_TYPE.getFieldTitle(lang), formatType(type, lang), true);
-			builder.appendField(ItemField.NG_POWER.getFieldTitle(lang), Integer.toString(item.getNgPower()), true);
+			builder.addField(ItemField.NG_TYPE.getFieldTitle(lang), formatType(type, lang), true);
+			builder.addField(ItemField.NG_POWER.getFieldTitle(lang), Integer.toString(item.getNgPower()), true);
 		}
 		
-		builder.appendField(ItemField.DESC.getFieldTitle(lang), formatDescription(item, lang), false);
+		builder.addField(ItemField.DESC.getFieldTitle(lang), formatDescription(item, lang), false);
 		
 		//English-only data
 		if(lang == Language.ENGLISH)
-			builder.appendField("Technical Description", item.getLdesc(), false);
+			builder.addField("Technical Description", item.getLdesc(), false);
 		
-		builder.withColor(new Color(0xE89800));
-		builder.withThumbnail(item.getSprites().getDefault());
-		response.setEmbededReply(builder.build());
+		builder.setColor(colorService.getColorForItem());
+		builder.setThumbnail(item.getSprites().getDefault());
+		response.setEmbed(builder);
 		return response;
 	}
 	
@@ -89,17 +111,18 @@ public class ItemResponseFormatter implements IDiscordFormatter
 	private String formatType(Type type, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		
-		builder.append(EmojiTracker.getTypeEmoji(TypeData.getByName(type.getName())));
+		builder.append(emojiService.getTypeEmoji(type.getName()));
 		builder.append(" ");
-		builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
+		builder.append(TextUtility.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
 		
 		return builder.toString();
 	}
 	
 	private String formatCategory(ItemCategory category, Language lang)
 	{
-		return TextFormatter.flexFormToProper(category.getNameInLanguage(lang.getFlexKey()));
+		return TextUtility.flexFormToProper(category.getNameInLanguage(lang.getFlexKey()));
 	}
 
 	private enum ItemField

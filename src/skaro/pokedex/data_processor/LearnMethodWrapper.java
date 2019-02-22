@@ -2,30 +2,29 @@ package skaro.pokedex.data_processor;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.move.Move;
 import skaro.pokeflex.objects.move_learn_method.MoveLearnMethod;
 import skaro.pokeflex.objects.pokemon.VersionGroupDetail;
 
-public class LearnMethodWrapper 
+public class LearnMethodWrapper implements IFlexObject
 {
 	private Move move;
 	private String specifiedMove;
 	private boolean recognized;
 	private List<MoveLearnMethod> methods;
 	
-	public LearnMethodWrapper(Map<String, skaro.pokeflex.objects.pokemon.Move> learnableMoves, Move move)
+	public LearnMethodWrapper(skaro.pokeflex.objects.pokemon.Move learnableMove, Move moveData, LearnMethodData methodData)
 	{
 		this.recognized = true;
-		this.move = move;
+		this.move = moveData;
 		this.methods = new ArrayList<>(4);
 		
-		skaro.pokeflex.objects.pokemon.Move learnableMove = learnableMoves.get(move.getName());
 		if(learnableMove != null)
 			for(VersionGroupDetail details : learnableMove.getVersionGroupDetails())
 			{
-				MoveLearnMethod method = LearnMethodData.getByName(details.getMoveLearnMethod().getName());
+				MoveLearnMethod method = methodData.getByName(details.getMoveLearnMethod().getName());
 				methods.add(method);
 			}
 	}
@@ -50,14 +49,14 @@ public class LearnMethodWrapper
 	public List<MoveLearnMethod> getMethods() { return this.methods; }
 	public boolean moveIsLearnable() { return !this.methods.isEmpty(); }
 	
-	public void populateMethods(Map<String, skaro.pokeflex.objects.pokemon.Move> learnableMoves)
-	{
-		skaro.pokeflex.objects.pokemon.Move learnableMove = learnableMoves.get(move.getName());
-		if(learnableMove != null)
-			for(VersionGroupDetail details : learnableMove.getVersionGroupDetails())
-			{
-				MoveLearnMethod method = LearnMethodData.getByName(details.getMoveLearnMethod().getName());
-				methods.add(method);
-			}
-	}
+//	public void populateMethods(Map<String, skaro.pokeflex.objects.pokemon.Move> learnableMoves)
+//	{
+//		skaro.pokeflex.objects.pokemon.Move learnableMove = learnableMoves.get(move.getName());
+//		if(learnableMove != null)
+//			for(VersionGroupDetail details : learnableMove.getVersionGroupDetails())
+//			{
+//				MoveLearnMethod method = LearnMethodData.getByName(details.getMoveLearnMethod().getName());
+//				methods.add(method);
+//			}
+//	}
 }

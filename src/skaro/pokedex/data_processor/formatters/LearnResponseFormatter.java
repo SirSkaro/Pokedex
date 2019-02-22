@@ -7,19 +7,41 @@ import java.util.Map;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorTracker;
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.LearnMethodWrapper;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.IServiceConsumer;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.move_learn_method.MoveLearnMethod;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.util.EmbedBuilder;
 
-public class LearnResponseFormatter implements IDiscordFormatter 
+public class LearnResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
+	private IServiceManager services;
+	
+	public LearnResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR);
+	}
+	
 	@Override
 	public Response invalidInputResponse(Input input) 
 	{
@@ -37,9 +59,9 @@ public class LearnResponseFormatter implements IDiscordFormatter
 		
 		//Because inputs that are not valid (case 2) are allowed this far, it is necessary to check if
 		//the Pokemon is valid but allow other arguments to go unchecked
-		if(!input.getArg(0).isValid())
+		if(!input.getArgument(0).isValid())
 		{
-			response.addToReply("\""+input.getArg(0).getRawInput()+"\" is not a recognized Pokemon in "+input.getLanguage().getName());
+			response.addToReply("\""+input.getArgument(0).getRawInput()+"\" is not a recognized Pokemon in "+input.getLanguage().getName());
 			return response;
 		}
 		
@@ -49,26 +71,26 @@ public class LearnResponseFormatter implements IDiscordFormatter
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		List<LearnMethodWrapper> wrappers = (List<LearnMethodWrapper>)(List<?>)data.get(LearnMethodWrapper.class.getName());
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
-		builder.setLenient(true);
 		
 		//Header
 		response.addToReply("**__"+
-				TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+
+				TextUtility.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+
 				" | #" + species.getId() +
-				" | " + TextFormatter.formatGeneration(species.getGeneration().getName(), lang) + "__**");
+				" | " + TextUtility.formatGeneration(species.getGeneration().getName(), lang) + "__**");
 		
 		for(LearnMethodWrapper wrapper : wrappers)
 		{
 			if(!wrapper.isRecognized())
 			{
-				builder.appendField(TextFormatter.flexFormToProper(wrapper.getSpecifiedMove()), 
+				builder.addField(TextUtility.flexFormToProper(wrapper.getSpecifiedMove()), 
 						LearnField.NOT_RECOGNIZED.getFieldTitle(lang), true);
 				continue;
 			}
@@ -80,17 +102,17 @@ public class LearnResponseFormatter implements IDiscordFormatter
 			else
 				methodText = "*"+ LearnField.ABLE.getFieldTitle(lang) +"*:\n"+ formatLearnMethod(wrapper.getMethods(), lang);
 				
-			builder.appendField(TextFormatter.flexFormToProper(wrapper.getMove().getNameInLanguage(lang.getFlexKey())), methodText,true);
+			builder.addField(TextUtility.flexFormToProper(wrapper.getMove().getNameInLanguage(lang.getFlexKey())), methodText,true);
 		}
 		
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(ColorTracker.getColorForType(type));
+		builder.setColor(colorService.getColorForType(type));
 		
 		//Add thumbnail
-		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		builder.setThumbnail(pokemon.getSprites().getFrontDefault());
 		
-		response.setEmbededReply(builder.build());
+		response.setEmbed(builder);
 		return response;
 	}
 	
@@ -102,7 +124,7 @@ public class LearnResponseFormatter implements IDiscordFormatter
 		
 		for(MoveLearnMethod method : methods)
 		{
-			methodName = TextFormatter.flexFormToProper(method.getNameInLanguage(lang.getFlexKey()));
+			methodName = TextUtility.flexFormToProper(method.getNameInLanguage(lang.getFlexKey()));
 			
 			//Add the method if there no duplicates
 			if(!(methodTexts.contains(methodName)))

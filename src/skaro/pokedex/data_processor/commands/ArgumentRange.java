@@ -13,4 +13,9 @@ public class ArgumentRange
 	
 	public int getMin() { return miniumum; }
 	public int getMax() { return maximum; }
+	
+	public boolean numberInRange(int number)
+	{
+		return number >= miniumum && number <= maximum;
+	}
 }

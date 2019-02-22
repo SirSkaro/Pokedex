@@ -1,4 +1,4 @@
-package skaro.pokedex.data_processor;
+package skaro.pokedex.services;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,17 +12,17 @@ import marytts.exceptions.MaryConfigurationException;
 import marytts.exceptions.SynthesisException;
 import skaro.pokedex.input_processor.Language;
 
-public class TTSConverter 
+public class TextToSpeechService implements IService
 {
-	private MaryInterface maryTTS;
+	private MaryInterface textToSpeechEngine;
 	private Map<Language, String> voiceMap;
     
-    public TTSConverter()
+    public TextToSpeechService()
     {	
-    	System.out.println("[TTSConverter] Initializing English MaryTTS server...");
+    	System.out.println("[TTSService] Initializing English MaryTTS server...");
         try
         {
-    		maryTTS = new LocalMaryInterface();
+    		textToSpeechEngine = new LocalMaryInterface();
     		voiceMap = new HashMap<Language,String>();
     		
     		voiceMap.put(Language.ENGLISH, "dfki-spike-hsmm");
@@ -30,14 +30,20 @@ public class TTSConverter
     		voiceMap.put(Language.GERMAN, "dfki-pavoque-neutral-hsmm");
     		voiceMap.put(Language.ITALIAN, "istc-lucia-hsmm");
         	
-        	System.out.println("[TTSConverter] MaryTTS server successfully initialized");
+        	System.out.println("[TTSService] MaryTTS server successfully initialized");
         }
         catch (MaryConfigurationException ex)
         {
-        	System.out.println("[TTSConverter] Could not initialize MaryTTS servers. Exiting...");
+        	System.out.println("[TTSService] Could not initialize MaryTTS servers. Exiting...");
             System.exit(1);
         }
     }
+    
+	@Override
+	public ServiceType getServiceType() 
+	{
+		return ServiceType.TTS;
+	}
     
     public Optional<AudioInputStream> convertToAudio(Language lang, String input)
     {
@@ -47,16 +53,17 @@ public class TTSConverter
         try
         {
         	//Make sure only one thread can use the MaryInterface at one time
-        	synchronized(maryTTS)
+        	synchronized(textToSpeechEngine)
         	{
-        		maryTTS.setVoice(voiceMap.get(lang));
-            	return Optional.of(maryTTS.generateAudio(input));
+        		textToSpeechEngine.setVoice(voiceMap.get(lang));
+            	return Optional.of(textToSpeechEngine.generateAudio(input));
         	}
         }
         catch (SynthesisException ex)
         {
-            System.out.println("[TTSConverter] Error saying phrase.");
+            System.out.println("[TTSService] Error saying phrase.");
             return Optional.empty();
         }
     }
+
 }

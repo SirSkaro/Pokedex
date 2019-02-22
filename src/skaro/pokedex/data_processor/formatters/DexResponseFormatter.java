@@ -8,98 +8,113 @@ import javax.sound.sampled.AudioInputStream;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorTracker;
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TTSConverter;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.data_processor.TextUtility;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.IServiceConsumer;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokedex.services.TextToSpeechService;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.version.Version;
-import sx.blah.discord.util.EmbedBuilder;
 
-public class DexResponseFormatter implements IDiscordFormatter 
+public class DexResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
-	private TTSConverter tts;
-	
-	public DexResponseFormatter() 
+	private IServiceManager services;
+
+	public DexResponseFormatter(IServiceManager services) throws ServiceConsumerException
 	{
-		tts = new TTSConverter();
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+
+		this.services = services;
+	}
+
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR, ServiceType.TTS);
 	}
 
 	@Override
 	public Response invalidInputResponse(Input input) 
 	{
 		Response response = new Response();
-		
+
 		switch(input.getError())
 		{
 			case ARGUMENT_NUMBER:
 				response.addToReply("You must specify a Pokemon and a Version as input for this command "
 						+ "(seperated by commas).");
-			break;
+				break;
 			case INVALID_ARGUMENT:
 				response.addToReply("Could not process your request due to the following problem(s):".intern());
-				for(AbstractArgument arg : input.getArgs())
+				for(CommandArgument arg : input.getArguments())
 					if(!arg.isValid())
 						response.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
-			break;
+				break;
 			default:
 				response.addToReply("A technical error occured (code 110)");
 		}
-		
+
 		return response;
 	}
-	
+
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		Version version = (Version)data.getValue(Version.class.getName(), 0);
 		Language lang = input.getLanguage();
-		Optional<AudioInputStream> audioCheck;
-		
+
 		//Format names of entities
-		String pokemonName = TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()));
-		String versionName = TextFormatter.flexFormToProper(version.getNameInLanguage(lang.getFlexKey()));
-		
+		String pokemonName = TextUtility.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()));
+		String versionName = TextUtility.flexFormToProper(version.getNameInLanguage(lang.getFlexKey()));
+
 		//Check if the Pokemon has a Pokedex entry that meets the user criteria
 		Optional<String> entry = species.getFlavorTextEntry(lang.getFlexKey(), version.getName());
-		
+
 		if(!entry.isPresent())
 		{
 			String msg = DexField.getNoEntryMessage("**__"+pokemonName+"__**","**__"+versionName+"__**", lang);
 			response.addToReply(msg);
 			return response;
 		}
-		
+
 		//Format reply
-		builder.setLenient(true);
 		String replyContent = DexField.getEntryTitle(pokemonName,
-				TextFormatter.flexFormToProper(species.getGeneraInLanguage(lang.getFlexKey())), lang ) +": " + TextFormatter.formatDexEntry(entry.get());
-		
-		response.addToReply("**__"+TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+" | " 
-				+TextFormatter.flexFormToProper(version.getNameInLanguage(lang.getFlexKey()))+"__**");
-		
-		builder.withDescription(replyContent);
-		builder.withColor(ColorTracker.getColorForVersion(input.getArg(1).getFlexForm().replace("-", "")));
-		
+				TextUtility.flexFormToProper(species.getGeneraInLanguage(lang.getFlexKey())), lang ) +": " + TextUtility.formatDexEntry(entry.get());
+
+		response.addToReply("**__"+TextUtility.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+" | " 
+				+TextUtility.flexFormToProper(version.getNameInLanguage(lang.getFlexKey()))+"__**");
+
+		builder.setDescription(replyContent);
+		builder.setColor(colorService.getColorForVersion(input.getArgument(1).getFlexForm().replace("-", "")));
+
 		//Add thumbnail
-		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
-		
+		builder.setThumbnail(pokemon.getSprites().getFrontDefault());
+
 		//Add audio reply
-		audioCheck = tts.convertToAudio(lang, replyContent);
+		TextToSpeechService tts = (TextToSpeechService)services.getService(ServiceType.TTS);
+		Optional<AudioInputStream> audioCheck = tts.convertToAudio(lang, replyContent);
 		if(audioCheck.isPresent())
 			response.setPlayBack(audioCheck.get());
-		
-		response.setEmbededReply(builder.build());
+
+		response.setEmbed(builder);
 		return response;
 	}
-	
+
 	private enum DexField
 	{
 		NO_ENTRY("No entry found for <pokemon> in <version>",
@@ -110,7 +125,7 @@ public class DexResponseFormatter implements IDiscordFormatter
 				"<version>の<pokemon>のエントリが見つかりません",
 				"在<version>中找不到<pokemon>的条目",
 				"<version>에 <pokemon> 항목이 없습니다"),
-		
+
 		ENTRY_TITLE("<pokemon>, the <genera>",
 				"<pokemon>, el <genera>",
 				"<pokemon>, le <genera>",
@@ -120,9 +135,9 @@ public class DexResponseFormatter implements IDiscordFormatter
 				"<pokemon>，<genera>",
 				"<pokemon>, <genera>"),
 		;
-		
+
 		private Map<Language, String> titleMap;
-		
+
 		DexField() {}
 		DexField(String english, String spanish, String french, String italian, String german, String japanese, String chinese, String korean)
 		{
@@ -136,12 +151,12 @@ public class DexResponseFormatter implements IDiscordFormatter
 			titleMap.put(Language.CHINESE_SIMPMLIFIED, chinese);
 			titleMap.put(Language.KOREAN, korean);
 		}
-		
+
 		public static String getNoEntryMessage(String pokemon, String version, Language lang)
 		{
 			return NO_ENTRY.titleMap.get(lang).replace("<pokemon>", pokemon).replace("<version>", version);
 		}
-		
+
 		public static String getEntryTitle(String pokemon, String genera, Language lang)
 		{
 			return ENTRY_TITLE.titleMap.get(lang).replace("<pokemon>", pokemon).replace("<genera>", "\"" + genera + "\"");

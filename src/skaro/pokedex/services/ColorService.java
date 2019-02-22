@@ -1,49 +1,73 @@
-package skaro.pokedex.data_processor;
+package skaro.pokedex.services;
 
 import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum ColorTracker 
+import skaro.pokedex.data_processor.TypeEfficacyWrapper;
+import skaro.pokeflex.objects.type.Type;
+
+public class ColorService implements IService
 {
-	;
+	private final Map<String, Color> typeColorMap;
+	private final Map<String, Color> versionColorMap;
 	
-	private static Map<String, Color> typeColorMap = new HashMap<>();
-	private static Map<String, Color> versionColorMap = new HashMap<>();
+	public ColorService()
+	{
+		typeColorMap = new HashMap<>();
+		versionColorMap = new HashMap<>();
+		initialize();
+	}
 	
-	public static Color getColorForType(String type)
+	@Override
+	public ServiceType getServiceType() 
+	{
+		return ServiceType.COLOR;
+	}
+	
+	public Color getColorForType(String type)
 	{
 		type = type.toLowerCase();
 		return typeColorMap.get(type);
 	}
 	
-	public static Color getColorForWrapper(TypeInteractionWrapper wrapper)
+	public Color getPokedexColor()
+	{
+		return new Color(0xD60B01);
+	}
+	
+	public Color getColorForWrapper(TypeEfficacyWrapper wrapper)
 	{
 		Color result = null;
 		
-		for(TypeData type : wrapper.getTypes())
-			result = blend(type.toColor(), result);
+		for(Type type : wrapper.getTypes())
+			result = blend(typeColorMap.get(type.getName()), result);
 		
 		return result;
 	}
 	
-	public static Color getColorForVersion(String ver)
+	public Color getColorForVersion(String ver)
 	{
 		ver = ver.toLowerCase();
 		return versionColorMap.get(ver);
 	}
 	
-	public static Color getColorForAbility()
+	public Color getColorForAbility()
 	{
 		return new Color(0x66E1FB);
 	}
 	
-	public static Color getColorForPatreon()
+	public Color getColorForPatreon()
 	{
 		return new Color(0xF96854);
 	}
 	
-	private static Color blend(Color c0, Color c1) 
+	public Color getColorForItem()
+	{
+		return new Color(0xE89800);
+	}
+	
+	private Color blend(Color c0, Color c1) 
 	{
 		if(c1 == null)
 			return c0;
@@ -60,7 +84,7 @@ public enum ColorTracker
 		return new Color((int) r, (int) g, (int) b, (int) a);
 	}
 	
-	public static void initialize()
+	private void initialize()
 	{
 		typeColorMap.put("normal".intern(), new Color(0xA8A77A));
 		typeColorMap.put("fighting".intern(), new Color(0xC22E28));

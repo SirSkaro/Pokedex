@@ -2,37 +2,32 @@ package skaro.pokedex.communicator.publish_recipients;
 
 import org.discordbots.api.client.DiscordBotListAPI;
 
-import skaro.pokedex.communicator.AbstractPublicationRecipient;
-import sx.blah.discord.api.IDiscordClient;
+import skaro.pokedex.communicator.PublicationRecipient;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceManager;
 
-public class DiscordBotsRecipient extends AbstractPublicationRecipient 
+public class DiscordBotsRecipient extends PublicationRecipient 
 {
-	DiscordBotListAPI dblClient;
-	
-	public DiscordBotsRecipient(IDiscordClient client, int shardCount) 
+	public DiscordBotsRecipient(ServiceManager services) throws ServiceConsumerException
 	{
-		super(client, shardCount);
+		super(services);
 		configID = "discord_bots";
 	}
 	
 	@Override
-	public boolean configure() 
+	public boolean sendPublication(int shardID, int totalShards, int connectedGuilds, long botId) 
 	{
-		if(!super.configure())
-			return false;
+		DiscordBotListAPI dblClient = createDiscordBotListClient(botId);
 		
-		dblClient = new DiscordBotListAPI.Builder()
-                .token(authToken)
-                .botId(Long.toString(discordClient.getOurUser().getLongID()))
-                .build();
-		
+		dblClient.setStats(shardID, totalShards, connectedGuilds);
 		return true;
 	}
-
-	@Override
-	public boolean sendPublication(int shardID) 
+	
+	private DiscordBotListAPI createDiscordBotListClient(long botId)
 	{
-		dblClient.setStats(shardID, totalShards, discordClient.getGuilds().size());
-		return true;
+		return new DiscordBotListAPI.Builder()
+                .token(authToken)
+                .botId(Long.toString(botId))
+                .build();
 	}
 }

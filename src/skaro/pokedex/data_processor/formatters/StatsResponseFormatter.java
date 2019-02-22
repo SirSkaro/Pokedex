@@ -6,20 +6,41 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorTracker;
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Statistic;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.IServiceConsumer;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon.Stat;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.util.EmbedBuilder;
 
-public class StatsResponseFormatter implements IDiscordFormatter
+public class StatsResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
-
+	private IServiceManager services;
+	
+	public StatsResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR);
+	}
+	
 	@Override
 	public Response invalidInputResponse(Input input) 
 	{
@@ -31,7 +52,7 @@ public class StatsResponseFormatter implements IDiscordFormatter
 				response.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
 			break;
 			case INVALID_ARGUMENT:
-				response.addToReply("\""+ input.getArg(0).getRawInput() +"\" is not a recognized Pokemon");
+				response.addToReply("\""+ input.getArgument(0).getRawInput() +"\" is not a recognized Pokemon");
 			break;
 			default:
 				response.addToReply("A technical error occured (code 101)");
@@ -41,20 +62,20 @@ public class StatsResponseFormatter implements IDiscordFormatter
 	}
 	
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();
 		String type;
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		Language lang = input.getLanguage();
-		builder.setLenient(true);
 		
 		//header
-		response.addToReply(("**__"+TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+"__**").intern());
+		response.addToReply(("**__"+TextUtility.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+"__**").intern());
 		
 		//main content
-		builder.withTitle(StatField.BASE_STAT_TOTAL.getFieldTitle(lang) +": "+ getBaseStatTotal(pokemon));
+		builder.setTitle(StatField.BASE_STAT_TOTAL.getFieldTitle(lang) +": "+ getBaseStatTotal(pokemon));
 		
 		String stats1 = String.format("%s%d\n",
 				StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.HP.getAPIKey())), 13, " "),
@@ -66,18 +87,18 @@ public class StatsResponseFormatter implements IDiscordFormatter
 						StringUtils.rightPad(Integer.toString(pokemon.getStat(Statistic.SP_DEF.getAPIKey())), 13, " "),
 						pokemon.getStat(Statistic.SPE.getAPIKey()));
 		
-		builder.withDescription("__`"+StatField.STAT_HEADER1.getFieldTitle(lang)+"`__\n`"+stats1+"`"
+		builder.setDescription("__`"+StatField.STAT_HEADER1.getFieldTitle(lang)+"`__\n`"+stats1+"`"
 					+ "\n\n__`"+ StatField.STAT_HEADER2.getFieldTitle(lang)+"`__\n`"+stats2+"`"
 					+ "\n\n__`"+ StatField.STAT_HEADER3.getFieldTitle(lang)+"`__\n`"+stats3 +"`");
 		
 		//Set color
 		type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(ColorTracker.getColorForType(type));
+		builder.setColor(colorService.getColorForType(type));
 		
 		//Add thumbnail
-		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		builder.setThumbnail(pokemon.getSprites().getFrontDefault());
 		
-		response.setEmbededReply(builder.build());
+		response.setEmbed(builder);
 		return response;
 	}
 	

@@ -1,36 +1,42 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PerkChecker;
-import skaro.pokedex.data_processor.AbstractCommand;
+import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
+import skaro.pokedex.data_processor.PokedexCommand;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.formatters.ItemResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.services.FlexCacheService;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexFactory;
-import skaro.pokeflex.api.PokeFlexRequest;
+import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.item.Item;
+import skaro.pokeflex.objects.item_category.ItemCategory;
 import skaro.pokeflex.objects.type.Type;
-import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
-public class ItemCommand extends AbstractCommand
+public class ItemCommand extends PokedexCommand
 {
-	public ItemCommand(PokeFlexFactory pff, PerkChecker pc)
+	public ItemCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super(pff, pc);
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "item".intern();
-		argCats.add(ArgumentCategory.ITEM);
+		orderedArgumentCategories.add(ArgumentCategory.ITEM);
 		expectedArgRange = new ArgumentRange(1,1);
-		formatter = new ItemResponseFormatter();
 		
 		aliases.put("itm", Language.ENGLISH);
 		aliases.put("getragenes", Language.GERMAN);
@@ -51,49 +57,50 @@ public class ItemCommand extends AbstractCommand
 				"https://i.imgur.com/B1NlcYh.gif");
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return true; }
+	@Override
 	public String getArguments() { return "<item>"; }
 	
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.CACHE);
+	}
+	
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{
 		if(!input.isValid())
-			return formatter.invalidInputResponse(input);
+			return Mono.just(formatter.invalidInputResponse(input));
 		
-		try
-		{
-			List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
-			List<Object> flexData = new ArrayList<Object>();
-			MultiMap<Object> dataMap = new MultiMap<Object>();
-			EmbedBuilder builder = new EmbedBuilder();
-			
-			//Initial data - Item object
-			Item item = (Item)factory.createFlexObject(Endpoint.ITEM, input.argsAsList());
-			dataMap.put(Item.class.getName(), item);
-			
-			//item category
-			concurrentRequestList.add(new RequestURL(item.getCategory().getUrl(), Endpoint.ITEM_CATEGORY));
-			
-			//type
-			if(item.getNgType() != null)
-			{
-				dataMap.add(Type.class.getName(), TypeData.getByName(item.getNgType().toLowerCase()).getType());
-			}
-			
-			//Make PokeFlex request
-			flexData = factory.createFlexObjects(concurrentRequestList);
-			
-			//Add all data to the map
-			for(Object obj : flexData)
-				dataMap.add(obj.getClass().getName(), obj);
-			
-			this.addRandomExtraMessage(builder);
-			return formatter.format(input, dataMap, builder);
-		}
-		catch(Exception e)
-		{
-			Response response = new Response();
-			this.addErrorMessage(response, input, "1004", e); 
-			return response;
-		}
+		Mono<MultiMap<IFlexObject>> result;
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		String itemName = input.getArgument(0).getFlexForm();
+		
+		PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+		FlexCacheService flexCache = (FlexCacheService)services.getService(ServiceType.CACHE);
+		TypeData cachedTypeData = (TypeData)flexCache.getCachedData(CachedResource.TYPE);
+
+		Request request = new Request(Endpoint.ITEM, itemName);
+		result = Mono.just(new MultiMap<IFlexObject>())
+				.flatMap(dataMap -> request.makeRequest(factory)
+					.ofType(Item.class)
+					.doOnNext(item -> {
+						dataMap.put(Item.class.getName(), item);
+						if(item.getNgType() != null)
+							dataMap.put(Type.class.getName(), cachedTypeData.getByName(item.getNgType().toLowerCase()));
+					})
+					.map(item -> new RequestURL(item.getCategory().getUrl(), Endpoint.ITEM_CATEGORY))
+					.flatMap(itemCategoryRequest -> itemCategoryRequest.makeRequest(factory))
+					.ofType(ItemCategory.class)
+					.doOnNext(itemCategory -> dataMap.put(ItemCategory.class.getName(), itemCategory))
+					.then(Mono.just(dataMap)));
+		
+		this.addRandomExtraMessage(builder);
+		return result
+				.map(dataMap -> formatter.format(input, dataMap, builder))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 }

@@ -1,4 +1,4 @@
-package skaro.pokedex.core;
+package skaro.pokedex.services;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,22 +10,17 @@ import java.util.Optional;
 import com.fasterxml.jackson.databind.JsonNode;				//in Discord4J's dependencies
 import com.fasterxml.jackson.databind.ObjectMapper;			//in Discord4J's dependencies
 
-/**
- * A singleton class for parsing the configuration file "config.json".
- * The data member "isDebugSession" should be set to TRUE if Pokedex
- * is being tested; FALSE otherwise.
- *
- */
-public class Configurator 
+import skaro.pokedex.core.ResourceManager;
+
+public class ConfigurationService implements IService
 {
 	private static String dataKey = "production".intern();
-	private static Configurator instance;
+	private static ConfigurationService instance;
 	private static JsonNode rootNode;
 	
-	private Configurator(boolean debug)
+	private ConfigurationService(ConfigurationType type)
 	{
-		if(debug)
-			dataKey = "debug".intern();
+		dataKey = type.getKey();
 		
 		try 
         {
@@ -40,16 +35,22 @@ public class Configurator
 		}
 	}
 	
-	public static Configurator initializeConfigurator(boolean debug)
+	@Override
+	public ServiceType getServiceType() 
+	{
+		return ServiceType.CONFIG;
+	}
+	
+	public static ConfigurationService initialize(ConfigurationType type)
 	{
 		if(instance != null)
 			return instance;
 			
-		instance = new Configurator(debug);
+		instance = new ConfigurationService(type);
 		return instance;
 	}
 	
-	public static Optional<Configurator> getInstance()
+	public static Optional<ConfigurationService> getInstance()
 	{
 		return Optional.ofNullable(instance);
 	}
@@ -162,4 +163,5 @@ public class Configurator
 		
 		return dataNode.get(dataKey).asText();
 	}
+	
 }

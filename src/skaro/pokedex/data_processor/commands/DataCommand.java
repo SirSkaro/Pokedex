@@ -2,43 +2,48 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.core.PerkChecker;
-import skaro.pokedex.data_processor.AbstractCommand;
+import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import skaro.pokedex.data_processor.PokedexCommand;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.formatters.DataResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.services.FlexCacheService;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokeFlexService;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.evolution_chain.EvolutionChain;
 import skaro.pokeflex.objects.evolution_chain.EvolvesTo;
-import skaro.pokeflex.objects.pokemon.Ability;
 import skaro.pokeflex.objects.pokemon.Form;
 import skaro.pokeflex.objects.pokemon.Pokemon;
-import skaro.pokeflex.objects.pokemon.Type;
-import skaro.pokeflex.objects.pokemon_species.EggGroup;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import skaro.pokeflex.objects.pokemon_species.Variety;
-import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
-public class DataCommand extends AbstractCommand 
+public class DataCommand extends PokedexCommand 
 {
-	public DataCommand(PokeFlexFactory pff, PerkChecker pc)
+	public DataCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super(pff, pc);
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "data".intern();
-		argCats.add(ArgumentCategory.POKEMON);
+		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
 		expectedArgRange = new ArgumentRange(1,1);
-		formatter = new DataResponseFormatter();
 		
 		aliases.put("pokemon", Language.ENGLISH);
 		aliases.put("dt", Language.ENGLISH);
@@ -62,104 +67,112 @@ public class DataCommand extends AbstractCommand
 				"https://i.imgur.com/DZsD3Je.gif");
 	}
 
+	@Override
 	public boolean makesWebRequest() { return true; }
+	@Override
 	public String getArguments(){ return "<pokemon>"; }
 	
-	@SuppressWarnings("unchecked")
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.CACHE);
+	}
+	
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{
 		if(!input.isValid())
-			return formatter.invalidInputResponse(input);
+			return Mono.just(formatter.invalidInputResponse(input));
+
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		String pokemonArgument = input.getArgument(0).getFlexForm();
+		Request pokemonRequest = new Request(Endpoint.POKEMON, pokemonArgument);
 		
-		Request request;
-		List<PokeFlexRequest> concurrentRequestList = new ArrayList<PokeFlexRequest>();
-		List<Object> flexData = new ArrayList<Object>();
-		MultiMap<Object> dataMap = new MultiMap<Object>();
-		EmbedBuilder builder = new EmbedBuilder();
+		Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>())
+				.flatMap(dataMap -> pokemonRequest.makeRequest(factory)
+						.ofType(Pokemon.class)
+						.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+						.doOnNext(pokemon -> {
+							dataMap.put(Pokemon.class.getName(), pokemon);
+							addTypesToMap(pokemon, dataMap);
+						})
+						.flatMap(pokemon -> Mono.just(new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
+								.flatMap(request -> request.makeRequest(factory))
+								.ofType(PokemonSpecies.class)
+								.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
+								.flatMap(species -> Flux.just(new RequestURL(species.getEvolutionChain().getUrl(), Endpoint.EVOLUTION_CHAIN))
+										.concatWithValues(new RequestURL(species.getGrowthRate().getUrl(), Endpoint.GROWTH_RATE))
+										.concatWithValues(pokemon.getAbilities()
+												.stream()
+												.map(ability -> new RequestURL(ability.getAbility().getUrl(), Endpoint.ABILITY))
+												.toArray(RequestURL[]::new))
+										.concatWithValues(species.getEggGroups()
+												.stream()
+												.map(eggGroup -> new RequestURL(eggGroup.getUrl(), Endpoint.EGG_GROUP))
+												.toArray(RequestURL[]::new))
+										.concatWithValues(species.getVarieties()
+												.stream()
+												.filter(variety -> !pokemon.getName().equals(variety.getPokemon().getName()))
+												.map(variety -> new RequestURL(variety.getPokemon().getUrl(), Endpoint.POKEMON))
+												.toArray(RequestURL[]::new))
+										.parallel()
+										.runOn(factory.getScheduler())
+										.flatMap(request -> request.makeRequest(factory))
+										.doOnNext(flexObj -> dataMap.add(flexObj.getClass().getName(), flexObj))
+										.sequential()
+										.then(Mono.fromCallable(() -> getEvolutionChain(dataMap))))
+								.map(evoChain -> getPokemonInChain(evoChain, pokemon))
+								.flatMap(pokemonRequests -> Flux.fromIterable(pokemonRequests)
+										.concatWithValues(getPokemonForms(dataMap)
+												.stream()
+												.toArray(RequestURL[]::new))
+										.parallel()
+										.runOn(factory.getScheduler())
+										.flatMap(request -> request.makeRequest(factory))
+										.doOnNext(flexObj -> dataMap.add(flexObj.getClass().getName(), flexObj))
+										.sequential()
+										.then(Mono.just(dataMap)))));
 		
-		if(!input.isValid())
-			return formatter.invalidInputResponse(input);
+		this.addRandomExtraMessage(builder);
+		return result
+				.map(dataMap -> formatter.format(input, dataMap, builder))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	private void addTypesToMap(Pokemon pokemon, MultiMap<IFlexObject> map)
+	{
+		FlexCacheService cache = (FlexCacheService)services.getService(ServiceType.CACHE);
 		
-		//Obtain data
-		try
+		pokemon.getTypes()
+			.stream()
+			.map(type -> type.getType())
+			.map(type -> type.getName())
+			.map(type -> cache.getCachedData(CachedResource.TYPE, type))
+			.forEach(type -> map.add(type.getClass().getName(), type));
+	}
+	
+	private List<PokeFlexRequest> getPokemonForms(MultiMap<IFlexObject> map)
+	{
+		List<Pokemon> pokemon = map.get(Pokemon.class.getName())
+				.stream()
+				.map(pokemonFromMap -> (Pokemon)pokemonFromMap)
+				.collect(Collectors.toList());
+		
+		List<PokeFlexRequest> result = new ArrayList<>();
+		for(Pokemon pokemonForm : pokemon)
 		{
-			//Pokemon
-			Pokemon pokemon = (Pokemon)factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
-			dataMap.put(Pokemon.class.getName(), pokemon);
-			
-			//PokemonSpecies
-			request = new Request(Endpoint.POKEMON_SPECIES);
-			request.addParam(pokemon.getSpecies().getName());
-			PokemonSpecies species = (PokemonSpecies)factory.createFlexObject(request);
-			dataMap.put(PokemonSpecies.class.getName(), species);
-			
-			/* Round 1 of concurrent requests */
-			//Evolution chain
-			concurrentRequestList.add(new RequestURL(species.getEvolutionChain().getUrl(), Endpoint.EVOLUTION_CHAIN));
-			
-			//Abilities
-			for(Ability ability : pokemon.getAbilities())
-				concurrentRequestList.add(new RequestURL(ability.getAbility().getUrl(), Endpoint.ABILITY));
-			
-			//Egg Groups
-			for(EggGroup group : species.getEggGroups())
-				concurrentRequestList.add(new RequestURL(group.getUrl(), Endpoint.EGG_GROUP));
-			
-			//Growth Rate
-			concurrentRequestList.add(new RequestURL(species.getGrowthRate().getUrl(), Endpoint.GROWTH_RATE));
-			
-			//Varieties - the Pokemon resource of all forms of this Pokemon
-			for(Variety variety : species.getVarieties())
-			{
-				if(!pokemon.getName().equals(variety.getPokemon().getName()))
-					concurrentRequestList.add(new RequestURL(variety.getPokemon().getUrl(), Endpoint.POKEMON));
-			}
-			
-			//Make PokeFlex request
-			flexData = factory.createFlexObjects(concurrentRequestList);
-			
-			//Add all data to the map
-			for(Object obj : flexData)
-				dataMap.add(obj.getClass().getName(), obj);
-			
-			/* Round 2 of concurrent requests */
-			concurrentRequestList.clear();
-			
-			//Pokemon in evolution chain
-			concurrentRequestList.addAll(getPokemonInChain((EvolutionChain) dataMap.get(EvolutionChain.class.getName()).get(0), pokemon));
-			
-			//Forms of other varieties of this Pokemon
-			List<Pokemon> formsList = (List<Pokemon>)(List<?>)dataMap.get(Pokemon.class.getName());
-			for(Pokemon pokemonForm : formsList)
-			{
-				//if(pokemon.getId() != pokemonForm.getId())
-					for(Form form : pokemonForm.getForms())
-						concurrentRequestList.add(new RequestURL(form.getUrl(), Endpoint.POKEMON_FORM));
-			}
-			
-			//Make PokeFlex request
-			flexData = factory.createFlexObjects(concurrentRequestList);
-			
-			//Add all data to the map again
-			for(Object obj : flexData)
-				dataMap.add(obj.getClass().getName(), obj);
-			
-			//Types
-			for(Type type : pokemon.getTypes())
-				dataMap.add(skaro.pokeflex.objects.type.Type.class.getName(), TypeData.getByName(type.getType().getName()).getType());
-			
-			//Format all data
-			addAdopter(pokemon, builder);
-			this.addRandomExtraMessage(builder);
-			
-			return formatter.format(input, dataMap, builder);
+			for(Form form : pokemonForm.getForms())
+				result.add(new RequestURL(form.getUrl(), Endpoint.POKEMON_FORM));
 		}
-		catch(Exception e)
-		{
-			Response response = new Response();
-			this.addErrorMessage(response, input, "1002", e);
-			return response;
-		}
+		
+		return result;
+	}
+	
+	private EvolutionChain getEvolutionChain(MultiMap<IFlexObject> map)
+	{
+		return (EvolutionChain)map.getValue(EvolutionChain.class.getName(), 0);
 	}
 	
 	private List<PokeFlexRequest> getPokemonInChain(EvolutionChain chain, Pokemon toIgnore)
