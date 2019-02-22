@@ -47,19 +47,20 @@ Postfix: command()
 ## Dependencies
 
 ### Maven
-* Discord4J
+* [Discord4J](https://github.com/Discord4J/Discord4J)
 * SLF4J
-* MaryTTS
-* Caffeine
+* [MaryTTS](https://github.com/marytts/marytts)
+* [Caffeine](https://github.com/ben-manes/caffeine)
 * MySQL Connector
-* Jazzy
-* PokeFlex Java API
-* Patreon-Java
-* Bucket4J
+* [Jazzy](https://mvnrepository.com/artifact/net.sf.jazzy/jazzy)
+* [PokeFlex Java API](https://github.com/SirSkaro/Java-PokeFlex-API)
+* [Patreon-Java](https://github.com/Patreon/patreon-java)
+* [Bucket4J](https://github.com/vladimir-bukhtoyarov/bucket4j)
+* [Reactor 3](https://projectreactor.io/)
 
 ### External
-* PokeAPI
-* PokeFlex
+* [PokeAPI](https://github.com/PokeAPI/pokeapi)
+* [PokeFlex](https://github.com/mpcarolin/PokeFlex)
 * MySQL
 
 ## Built With
@@ -72,7 +73,7 @@ Postfix: command()
 Builds are described by the three sections in the version number X.Y.Z. Upon incrementing Y, the build is named after a Pokemon move.
 * X - Major version numer. Increments when core functionality is changed.
 * Y - Semi-major version number. Increments when a module's functionality is altered.
-* Z - Minor version number. Changes upon any change.
+* Z - Minor version number. Any changes.
 
 ### Build History
 * 5.0.0 - Aeroblast
@@ -81,6 +82,7 @@ Builds are described by the three sections in the version number X.Y.Z. Upon inc
 * 5.3.0 - Dragon Ascent
 * 5.4.0 - Extreme Evoboost
 * 5.5.0 - Fire Blast
+* 6.0.0 - Giga Impact
 
 ## Authors
 
@@ -90,8 +92,9 @@ Builds are described by the three sections in the version number X.Y.Z. Upon inc
 ## Acknowledgments
 
 * [PokeaimMD](https://www.youtube.com/channel/UCbXuFrNGSKcmZY_5DwYz4Ew)
-* [Honko](https://github.com/SirSkaro)
+* [Honko](https://github.com/Honko)
 * [Pokemon Showdown developer team](https://github.com/Zarel/Pokemon-Showdown)
 * My [Patreon](https://www.patreon.com/sirskaro) supporters
+* The [Discord4J](https://github.com/Discord4J/Discord4J) team
 
-Pokémon © 2002-2018 Pokémon. © 1995-2018 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. No copyright or trademark infringement is intended.
+Pokémon © 2002-2019 Pokémon. © 1995-2019 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. No copyright or trademark infringement is intended.
