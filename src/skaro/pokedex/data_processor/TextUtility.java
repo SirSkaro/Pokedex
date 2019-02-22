@@ -1,14 +1,14 @@
-package skaro.pokedex.data_processor.formatters;
+package skaro.pokedex.data_processor;
 
 import java.util.TreeMap;
 
-//import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import skaro.pokedex.data_processor.formatters.CommonData;
 import skaro.pokedex.input_processor.Language;
 
-public class TextFormatter 
+public class TextUtility 
 {
 	public static String flexFormToProper(String string)
 	{
@@ -50,6 +50,11 @@ public class TextFormatter
 	public static String formatGeneration(int gen)
 	{
 		return ("Generation " + toRoman(gen)).intern();
+	}
+	
+	public static String formatGeneration(int gen, Language lang)
+	{
+		return (CommonData.GENERATION.getInLanguage(lang) + " " + toRoman(gen)).intern();
 	}
 	
 	public static String[] getURLComponents(String url)
@@ -159,7 +164,7 @@ public class TextFormatter
 			s = s.replace("'", "");
 		
 		//Remove accents
-		if(lang != Language.KOREAN)
+		if(lang != Language.KOREAN && lang != Language.JAPANESE_HIR_KAT)
 			s = StringUtils.stripAccents(s);
 		
 		return s.intern();

@@ -1,4 +1,4 @@
-package skaro.pokedex.data_processor.formatters;
+package skaro.pokedex.data_processor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,11 +7,11 @@ import skaro.pokedex.input_processor.Language;
 
 public enum Statistic 
 {
-	HIT_POINTS("Health Points", "Puntos de Salud", "Points de Vie", "Punti Salute", "Statuswerte", "エイチピー", "体力", "HP", "hp"),
+	HIT_POINTS("HP", "PS", "PV", "Punti Salute", "Kraftpunkte", "エイチピー", "体力", "HP", "hp"),
 	ATTACK("Attack", "Ataque", "Attaque", "Attacco", "Angriff", "こうげき", "攻击", "공격", "attack"),
 	DEFENSE("Defense","Defensa","Défense", "Difesa", "Verteidigung", "ぼうぎょ", "防御", "방어", "defense"),
-	SPECIAL_ATTACK("Special Attack","Ataque Especial","Attaque Spéciale", "Attacco Speciale", "Spezial-Angriff", "とくこう", "特攻", "특수공격", "special-attack"),
-	SPECIAL_DEFENSE("Special Defense","Defensa especial","Défense Spéciale", "Difesa Speciale", "Spezial-Verteidigung", "とくぼう", "特防", "특수방어", "special-defense"),
+	SPECIAL_ATTACK("Sp.Attack","Ataque Esp.","Attaque Spé.", "Attacco Spec.", "Spezial-Ang.", "とくこう", "特攻", "특수공격", "special-attack"),
+	SPECIAL_DEFENSE("Sp.Defense","Defensa Esp.","Défense Spé.", "Difesa Spec.", "Spezial-Ver.", "とくぼう", "特防", "특수방어", "special-defense"),
 	SPEED("Speed","Velocidad","Vitesse", "Velocità", "Initiative", "すばやさ", "速度", "스피드", "speed"),
 	
 	HP("HP", "PS", "PV", "PS", "KP", "HP", "ＨＰ", "HP","hp"),

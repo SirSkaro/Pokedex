@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Optional;
 
-import skaro.pokedex.core.Configurator;
+import skaro.pokedex.services.ConfigurationService;
 
 public class MySQLManager 
 {
@@ -18,7 +18,7 @@ public class MySQLManager
 	{
 		try
 		{  
-			Optional<Configurator> configurator = Configurator.getInstance();
+			Optional<ConfigurationService> configurator = ConfigurationService.getInstance();
 			String dbPassword = null, dbName = null, dbUser = null, dbURI = null;
 			if(configurator.isPresent())
 			{
@@ -82,6 +82,15 @@ public class MySQLManager
 		return getFlexForm(dataCheck.get());
 	}
 	
+	public Optional<String> getTypeFlexForm(String dbForm, Language lang)
+	{
+		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Type WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
+		
+		if(!dataCheck.isPresent())
+			return Optional.empty();
+		return getFlexForm(dataCheck.get());
+	}
+	
 	public Optional<String> getAbilityFlexForm(String dbForm, Language lang)
 	{
 		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Ability WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
@@ -103,6 +112,15 @@ public class MySQLManager
 	public Optional<String> getItemFlexForm(String dbForm, Language lang)
 	{
 		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Item WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
+		
+		if(!dataCheck.isPresent())
+			return Optional.empty();
+		return getFlexForm(dataCheck.get());
+	}
+	
+	public Optional<String> getVersionFlexForm(String dbForm, Language lang) 
+	{
+		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Version WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
 		
 		if(!dataCheck.isPresent())
 			return Optional.empty();

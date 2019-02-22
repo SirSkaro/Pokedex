@@ -4,16 +4,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import skaro.pokedex.core.PerkChecker;
-import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorTracker;
+import org.eclipse.jetty.util.MultiMap;
+
+import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.data_processor.TextUtility;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokeFlexService;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
@@ -21,19 +30,19 @@ import skaro.pokeflex.objects.set.Ev;
 import skaro.pokeflex.objects.set.Iv;
 import skaro.pokeflex.objects.set.Set;
 import skaro.pokeflex.objects.set.Set_;
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
-import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
-public class SetCommand extends AbstractCommand 
+public class SetCommand extends PokedexCommand 
 {
-	public SetCommand(PokeFlexFactory pff, PerkChecker pc)
+	public SetCommand(IServiceManager services) throws ServiceConsumerException
 	{
-		super(pff, pc);
+		super(services);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "set".intern();
-		argCats.add(ArgumentCategory.POKEMON);
-		argCats.add(ArgumentCategory.META);
-		argCats.add(ArgumentCategory.GEN);
+		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
+		orderedArgumentCategories.add(ArgumentCategory.META);
+		orderedArgumentCategories.add(ArgumentCategory.GEN);
 		expectedArgRange = new ArgumentRange(3,3);
 		
 		createHelpMessage("Gengar, OU, 4", "Pikachu, NU, 5", "Groudon, Uber, 6", "tapu lele, ou, 7",
@@ -42,6 +51,13 @@ public class SetCommand extends AbstractCommand
 	
 	public boolean makesWebRequest() { return true; }
 	public String getArguments() { return "<pokemon>, <meta>, <generation>"; }
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.COLOR);
+	}
 	
 	public boolean inputIsValid(Response reply, Input input)
 	{
@@ -55,7 +71,7 @@ public class SetCommand extends AbstractCommand
 				break;
 				case INVALID_ARGUMENT:
 					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(AbstractArgument arg : input.getArgs())
+					for(CommandArgument arg : input.getArguments())
 						if(!arg.isValid())
 							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
 					reply.addToReply("\n*top suggestion*: Only Smogon metas are supported."
@@ -71,42 +87,50 @@ public class SetCommand extends AbstractCommand
 		return true;
 	}
 	
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{ 
-		Response reply = new Response();
-		String tier, pokemon;
-		int gen;
+		Response response = new Response();
+
+		if(!inputIsValid(response, input))
+			return Mono.just(response);
 		
-		//Check if input is valid
-		if(!inputIsValid(reply, input))
-			return reply;
+		String tier = input.getArgument(1).getDbForm().toUpperCase();
+		String pokemonName = input.getArgument(0).getFlexForm();
+		int generation = Integer.parseInt(input.getArgument(2).getDbForm());
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		
-		tier = input.getArg(1).getDbForm().toUpperCase();
-		pokemon = input.getArg(0).getFlexForm();
+		Mono<Response> result = Mono.just(new MultiMap<IFlexObject>())
+			.flatMap(dataMap -> Flux.fromIterable(createRequests(pokemonName, generation))
+					.parallel()
+					.runOn(factory.getScheduler())
+					.flatMap(request -> request.makeRequest(factory)
+					.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject)))
+					.sequential()
+					.then(Mono.just(dataMap)))
+			.flatMap(dataMap -> Mono.just(dataMap.getValue(Pokemon.class.getName(), 0))
+					.ofType(Pokemon.class)
+					.flatMap(pokemon -> Mono.just(dataMap.getValue(Set.class.getName(), 0))
+							.ofType(Set.class)
+							.doOnNext(sets -> formatHeader(response, pokemon, sets, tier, generation))
+							.flatMap(sets -> formatEmbed(pokemon, sets, tier))
+							.doOnNext(embedBuilder -> response.setEmbed(embedBuilder))))
+			.then(Mono.just(response));
 		
-		//Obtain data
-		try 
+		return result
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	private void formatHeader(Response response, Pokemon pokemon, Set sets, String tier, int generation)
+	{
+		if(!sets.getSets().isEmpty())
 		{
-			gen = Integer.parseInt(input.getArg(2).getDbForm());
-			
-			List<Object> flexObj = factory.createFlexObjects(createRequests(pokemon, gen));
-			Set sets = Set.class.cast(flexObj.get(0) instanceof Set ? flexObj.get(0) : flexObj.get(1));
-			Pokemon pokemonData = Pokemon.class.cast(flexObj.get(0) instanceof Pokemon ? flexObj.get(0) : flexObj.get(1));
-			
-			//Format reply
-			if(!sets.getSets().isEmpty())
-			{
-				reply.addToReply(("__**"+tier+
-						"** sets for **"+TextFormatter.flexFormToProper(pokemon)+
-						"** from Generation **"+gen+"**__").intern());
-				reply.setEmbededReply(formatEmbed(pokemonData, sets, tier));
-			}
-			else
-				reply.addToReply("Smogon doesn't have any sets for " +TextFormatter.flexFormToProper(pokemon)+ " in generation " + gen);
-		} 
-		catch (Exception e) { this.addErrorMessage(reply, input, "1007", e); e.printStackTrace();}
-		
-		return reply;
+			response.addToReply(("__**"+tier+
+					"** sets for **"+TextUtility.flexFormToProper(pokemon.getName())+
+					"** from Generation **"+generation+"**__").intern());
+		}
+		else
+			response.addToReply("Smogon doesn't have any sets for " +TextUtility.flexFormToProper(pokemon.getName())+ " in generation " + generation);
 	}
 	
 	private List<PokeFlexRequest> createRequests(String pokemon, int gen)
@@ -124,38 +148,39 @@ public class SetCommand extends AbstractCommand
 		return result;
 	}
 	
-	private EmbedObject formatEmbed(Pokemon pokemon, Set sets, String tier)
+	private Mono<EmbedCreateSpec> formatEmbed(Pokemon pokemon, Set sets, String tier)
 	{
-		EmbedBuilder builder = new EmbedBuilder();
-		builder.setLenient(true);
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		boolean hasAtLeastOneSet = false;
 		
 		for(Set_ set : sets.getSets())
 		{
 			if(set.getFormat().equalsIgnoreCase(tier))
-				builder.appendField(set.getName(), setToString(pokemon.getName(), set), true);
+			{
+				builder.addField(set.getName(), setToString(pokemon.getName(), set), true);
+				hasAtLeastOneSet = true;
+			}
 		}
 		
-		if(builder.getFieldCount() == 0)
+		if(!hasAtLeastOneSet)
 		{
-			builder.withTitle(TextFormatter.flexFormToProper(pokemon.getName()) + " doesn't have any sets in " + tier +" for this generation");
-			builder.withDescription("Try another tier. The link below has an exhaustive list");
+			builder.setTitle(TextUtility.flexFormToProper(pokemon.getName()) + " doesn't have any sets in " + tier +" for this generation");
+			builder.setDescription("Try another tier. The link below has an exhaustive list");
 		}
 		
-		builder.appendField("Learn more", "[Smogon Analysis]("+sets.getUrl()+")", false);
+		builder.addField("Learn more", "[Smogon Analysis]("+sets.getUrl()+")", false);
 		
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(ColorTracker.getColorForType(type));
+		builder.setColor(colorService.getColorForType(type));
 		
 		//Set thumbnail
-		builder.withThumbnail(pokemon.getSprites().getBackDefault());
+		builder.setThumbnail(pokemon.getSprites().getBackDefault());
 		
-		//Add adopter
-		this.addAdopter(pokemon, builder);
-		
-		this.addRandomExtraMessage(builder);
-		
-		return builder.build();
+		this.addRandomExtraMessage(builder);		
+		return this.addAdopter(pokemon, builder)
+				.then(Mono.just(builder));
 	}
 	
 	private String setToString(String name, Set_ set)
@@ -164,7 +189,7 @@ public class SetCommand extends AbstractCommand
 		Optional<String> evs = evsToString(set.getEvs());
 		Optional<String> ivs = ivsToString(set.getIvs());
 		
-		builder.append(TextFormatter.flexFormToProper(name));
+		builder.append(TextUtility.flexFormToProper(name));
 		if(set.getItems() != null && !set.getItems().isEmpty())
 			builder.append(" @ "+set.getItems().get(0));
 		

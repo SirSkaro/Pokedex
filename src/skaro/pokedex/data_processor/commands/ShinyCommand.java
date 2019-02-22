@@ -1,38 +1,63 @@
 package skaro.pokedex.data_processor.commands;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
-import skaro.pokedex.core.Configurator;
-import skaro.pokedex.core.PerkChecker;
-import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorTracker;
+import org.eclipse.jetty.util.MultiMap;
+
+import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
+import skaro.pokedex.data_processor.PokedexCommand;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.ConfigurationService;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PerkService;
+import skaro.pokedex.services.PokeFlexService;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.IFlexObject;
+import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
-import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
-public class ShinyCommand extends AbstractCommand 
+public class ShinyCommand extends PokedexCommand 
 {
-	private String baseModelPath;
+	private final String baseModelPath;
+	private final String defaultPokemon;
 	
-	public ShinyCommand(PokeFlexFactory pff, PerkChecker pc)
+	public ShinyCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super(pff, pc);
-		commandName = "shiny".intern();
-		argCats.add(ArgumentCategory.POKEMON);
-		expectedArgRange = new ArgumentRange(1,1);
-		baseModelPath = Configurator.getInstance().get().getModelBasePath();
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
 		
+		commandName = "shiny".intern();
+		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
+		expectedArgRange = new ArgumentRange(1,1);
+		baseModelPath = ConfigurationService.getInstance().get().getModelBasePath();
+		defaultPokemon = "jirachi";
+		
+		aliases.put("schillerndes", Language.GERMAN);
+		aliases.put("fāguāng", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("faguang", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("chromatique", Language.FRENCH);
+		aliases.put("cromatico", Language.ITALIAN);
+		aliases.put("irochi", Language.JAPANESE_HIR_KAT);
+		aliases.put("irochigai", Language.JAPANESE_HIR_KAT);
+		aliases.put("bichnaneun", Language.KOREAN);
+		aliases.put("variocolor", Language.SPANISH);
+		aliases.put("vario", Language.SPANISH);
+		
+		aliases.put("빛나는", Language.KOREAN);
+		aliases.put("色違い", Language.JAPANESE_HIR_KAT);
+		aliases.put("发光", Language.CHINESE_SIMPMLIFIED);
+
 		createHelpMessage("Ponyta", "Solgaleo", "Keldeo resolute", "eevee",
 				"https://i.imgur.com/FLBOsD5.gif");
 	}
@@ -40,114 +65,77 @@ public class ShinyCommand extends AbstractCommand
 	public boolean makesWebRequest() { return true; }
 	public String getArguments() { return "<pokemon>"; }
 	
-	public boolean inputIsValid(Response reply, Input input) 
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
 	{
-		if(!input.isValid())
-		{
-			switch(input.getError())
-			{
-				case ARGUMENT_NUMBER:
-					reply.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
-				break;
-				case INVALID_ARGUMENT:
-					reply.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Pokemon.");
-				break;
-				default:
-					reply.addToReply("A technical error occured (code 112)");
-			}
-			return false;
-		}
-		return true;
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.COLOR);
 	}
 
 	@Override
-	public Response discordReply(Input input, IUser requester) 
+	public Mono<Response> discordReply(Input input, User requester)
 	{
-		//Set up utility variables
-		Response reply = new Response();
+		if(!input.isValid())
+			return Mono.just(formatter.invalidInputResponse(input));
+
+		PerkService perkService = (PerkService)services.getService(ServiceType.PERK);
 		
-		//Check if input is valid
-		if(!inputIsValid(reply, input))
-			return reply;
-				
-		if(checker.userHasCommandPrivileges(requester))
-			formatPrivilegedReply(reply, input);
-		else
-			formatNonPrivilegedReply(reply, input);
-				
-		return reply;
-	}
-	
-	private void formatNonPrivilegedReply(Response reply, Input input)
-	{
-		String path;
-		EmbedBuilder builder = new EmbedBuilder();
-		builder.setLenient(true);
-		
-		try
+		if(!perkService.userHasCommandPrivileges(requester))
 		{
-			//format embed
-			builder.withImage("attachment://jirachi.gif");
-			builder.withColor(ColorTracker.getColorForType("psychic"));
-			builder.withThumbnail("https://c5.patreon.com/external/logo/become_a_patron_button.png");
-			
-			//specify file path
-			path = baseModelPath + "/jirachi.gif";
-			
-			//format reply
-			reply.addToReply("Pledge $1/month on Patreon to gain access to all HD shiny Pokemon!");
-			builder.appendField("Patreon link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);
-			reply.addImage(new File(path));
-			reply.setEmbededReply(builder.build());
+			return Mono.just(createNonPrivilegedReply(input))
+					.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 		}
-		catch (Exception e) { this.addErrorMessage(reply, input, "1012a", e); }
-	}
-	
-	private void formatPrivilegedReply(Response reply, Input input)
-	{
-		List<String> urlParameters = new ArrayList<String>();
-		String path;
-		File image;
 		
-		//Obtain data
-		try 
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		String pokemonName = input.getArgument(0).getFlexForm();
+		Mono<MultiMap<IFlexObject>> result;
+		
+		Request request = new Request(Endpoint.POKEMON, pokemonName);
+		result = Mono.just(new MultiMap<IFlexObject>())
+				.flatMap(dataMap -> request.makeRequest(factory)
+					.ofType(Pokemon.class)
+					.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+					.doOnNext(pokemon -> dataMap.put(Pokemon.class.getName(), pokemon))
+					.map(pokemon -> new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
+					.flatMap(speciesRequest -> speciesRequest.makeRequest(factory))
+					.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
+					.then(Mono.just(dataMap)));
+		
+		this.addRandomExtraMessage(builder);
+		return result
+				.map(dataMap -> formatter.format(input, dataMap, builder))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+
+	private Response createNonPrivilegedReply(Input input)
+	{
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
+		Response response = new Response();
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+
+		//Easter egg: if the user specifies the default non-privilaged Pokemon, use the Patreon logo instead
+		if(!input.getArgument(0).getDbForm().equals(defaultPokemon))
 		{
-			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
-			Pokemon pokemon = Pokemon.class.cast(flexObj);
-			
-			urlParameters.add(pokemon.getSpecies().getName());
-			flexObj = factory.createFlexObject(Endpoint.POKEMON_SPECIES, urlParameters);
-			PokemonSpecies speciesData = PokemonSpecies.class.cast(flexObj);
-			
-			//Format reply
-			reply.addToReply("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+" | #" + Integer.toString(speciesData.getId()) 
-				+ " | " + TextFormatter.formatGeneration(speciesData.getGeneration().getName()) + "__**");
-			
-			//Upload local file
-			path = baseModelPath + "/" + pokemon.getName() + ".gif";
-			image = new File(path);
-			reply.addImage(image);
-			
-			reply.setEmbededReply(formatEmbed(pokemon, image));
-		} 
-		catch (Exception e) { this.addErrorMessage(reply, input, "1012b", e); }
+			builder.setImage("attachment://jirachi.gif");
+			builder.setColor(colorService.getColorForType("psychic"));
+			String path = baseModelPath + "/"+ defaultPokemon +".gif";
+			response.addImage(new File(path));
+			builder.setFooter("Pledge $1 to receive this perk!", this.getPatreonLogo());
+		}
+		else
+		{
+			builder.setColor(colorService.getColorForPatreon());
+			builder.setImage(this.getPatreonLogo());
+		}
+		
+		//format reply
+		response.addToReply("Pledge $1/month on Patreon to gain access to all HD shiny Pokemon!");
+		builder.addField("Patreon link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);
+		builder.setThumbnail(this.getPatreonBanner());
+		
+		response.setEmbed(builder);
+		return response;
 	}
-	
-	private EmbedObject formatEmbed(Pokemon pokemon, File image) throws IOException
-	{
-		EmbedBuilder builder = new EmbedBuilder();
-		builder.setLenient(true);
-		
-		//Add images
-		builder.withImage("attachment://"+image.getName());
-		
-		//Set embed color
-		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(ColorTracker.getColorForType(type));
-		
-		//Add adopter
-		addAdopter(pokemon, builder);
-		
-		return builder.build();
-	}
+
 }

@@ -1,72 +1,137 @@
 package skaro.pokedex.communicator;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import discord4j.core.object.util.Snowflake;
+import skaro.pokedex.services.DiscordService;
+import skaro.pokedex.services.IServiceConsumer;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceManager;
+import skaro.pokedex.services.ServiceType;
 
-import skaro.pokedex.communicator.publish_recipients.BotsDiscordRecipient;
-import skaro.pokedex.communicator.publish_recipients.CarbonitexRecipient;
-import skaro.pokedex.communicator.publish_recipients.DiscordBotsRecipient;
-import sx.blah.discord.api.IDiscordClient;
-
-public class Publisher 
+public class Publisher implements IServiceConsumer
 {
-	private Cache<String, AbstractPublicationRecipient> publicationRecipientCache;
-	private int shardID, totalShards;
+	private ServiceManager services;
+	private List<PublicationRecipient> applicableRecipients;
+	private int shardId, totalShards;
 	private ScheduledExecutorService executor;
 	
-	public Publisher(int shard, int shardCount, ScheduledExecutorService ses)
+	public Publisher(PublisherBuilder builder) throws ServiceConsumerException
 	{
-		shardID = shard;
-		totalShards = shardCount;
-		executor = ses;
+		if(!hasExpectedServices(builder.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
 		
-		publicationRecipientCache = Caffeine.newBuilder()
-				.maximumSize(3)
-				.executor(ses)
-				.build();
+		this.services = builder.services;
+		this.shardId = builder.shardId;
+		this.totalShards = builder.totalShards;
+		this.executor = builder.executor;
+		
+		this.applicableRecipients = builder.recipients.stream()
+			.filter(recipient -> recipient.configureIfSupported())
+			.filter(recipient -> recipient.isDesignatedShard(shardId))
+			.collect(Collectors.toList());
 	}
 	
-	public void populatePublicationRecipients(IDiscordClient discordClient)
+	@Override
+	public boolean hasExpectedServices(IServiceManager services)
 	{
-		List<AbstractPublicationRecipient> recipients = getRecipientList(discordClient);
+		return services.hasServices(ServiceType.DISCORD);
+	}
 
-		for(AbstractPublicationRecipient recipient : recipients)
-		{
-			if(recipient.configure() && recipient.isDesignatedShard(shardID))
-			{
-				System.out.println("[Publisher] added recipient "+recipient.getConfigID());
-				publicationRecipientCache.put(recipient.getConfigID(), recipient);
-			}
-		}
+	public static PublisherBuilder newBuilder()
+	{
+		return new PublisherBuilder();
 	}
 	
-	public void scheduleHoursPerPublishment(int frequency)
+	public void schedulePublicationFrequency(int period, TimeUnit timeUnit)
 	{
 		executor.scheduleAtFixedRate(new Runnable() 
 		{
 			@Override
 			public void run() { 
-				for(AbstractPublicationRecipient recipient : publicationRecipientCache.asMap().values())
+				Optional<Snowflake> botId = getBotId();
+				
+				if(!botId.isPresent())
+					return;
+				
+				for(PublicationRecipient recipient : applicableRecipients)
 				{
-					try {recipient.sendPublication(shardID);}
+					try {recipient.sendPublication(shardId, totalShards, getNumberOfConnectedGuilds(), botId.get().asLong());}
 					catch(Exception e) { System.out.println("[Publisher] failed to send publication for "+recipient.getConfigID());};
 				}
 		}}
-		, 1, 1, TimeUnit.HOURS);
+		, period, period, timeUnit);
 	}
 	
-	private List<AbstractPublicationRecipient> getRecipientList(IDiscordClient discordClient)
+	private int getNumberOfConnectedGuilds()
 	{
-		List<AbstractPublicationRecipient> result = new ArrayList<AbstractPublicationRecipient>();
-
-		result.add(new CarbonitexRecipient(discordClient, totalShards));
-		result.add(new DiscordBotsRecipient(discordClient, totalShards));
-		result.add(new BotsDiscordRecipient(discordClient, totalShards));
-		return result;
+		DiscordService discordService = (DiscordService)services.getService(ServiceType.DISCORD);
+		return discordService.getV3Client().getGuilds()
+				.collectList()
+				.block()
+				.size();
 	}
+	
+	private Optional<Snowflake> getBotId()
+	{
+		DiscordService discordService = (DiscordService)services.getService(ServiceType.DISCORD);
+		return discordService.getV3Client().getSelfId();
+	}
+	
+	public static class PublisherBuilder
+	{
+		private int shardId, totalShards;
+		private ScheduledExecutorService executor;
+		private List<PublicationRecipient> recipients;
+		private ServiceManager services;
+		
+		public PublisherBuilder()
+		{
+			shardId = -1;
+			totalShards = -1;
+			recipients = new LinkedList<>();
+		}
+		
+		public PublisherBuilder setShard(int id)
+		{
+			this.shardId = id;
+			return this;
+		}
+		
+		public PublisherBuilder setTotalShards(int total)
+		{
+			this.totalShards = total;
+			return this;
+		}
+		
+		public PublisherBuilder setExecutor(ScheduledExecutorService executor)
+		{
+			this.executor = executor;
+			return this;
+		}
+		
+		public PublisherBuilder addRecipient(PublicationRecipient recipient)
+		{
+			recipients.add(recipient);
+			return this;
+		}
+		
+		public PublisherBuilder addServices(ServiceManager services)
+		{
+			this.services = services;
+			return this;
+		}
+		
+		public Publisher build() throws ServiceConsumerException 
+		{
+			return new Publisher(this);
+		}
+	}
+	
 }

@@ -2,36 +2,60 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
-import skaro.pokedex.core.PerkChecker;
-import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorTracker;
+import org.eclipse.jetty.util.MultiMap;
+
+import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
+import skaro.pokedex.data_processor.PokedexCommand;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.TypeInteractionWrapper;
-import skaro.pokedex.data_processor.TypeTracker;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.data_processor.TypeEfficacyWrapper;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.TypeArgument;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokeFlexService;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokedex.services.TypeService;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexFactory;
+import skaro.pokeflex.api.IFlexObject;
+import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.pokemon.Pokemon;
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
-import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
+import skaro.pokeflex.objects.pokemon.Type;
+import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
-public class WeakCommand extends AbstractCommand 
+public class WeakCommand extends PokedexCommand 
 {
-	public WeakCommand(PokeFlexFactory pff, PerkChecker pc)
+	public WeakCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super(pff, pc);
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "weak".intern();
-		argCats = new ArrayList<ArgumentCategory>();
-		argCats.add(ArgumentCategory.POKE_TYPE_LIST);
+		orderedArgumentCategories = new ArrayList<ArgumentCategory>();
+		orderedArgumentCategories.add(ArgumentCategory.POKE_TYPE_LIST);
 		expectedArgRange = new ArgumentRange(1,2);
-		factory = pff;
+		
+		aliases.put("weakness", Language.ENGLISH);
+		aliases.put("debilidad", Language.SPANISH);
+		aliases.put("faiblesses", Language.FRENCH);
+		aliases.put("debole", Language.ITALIAN);
+		aliases.put("schwach", Language.GERMAN);
+		aliases.put("yowai", Language.JAPANESE_HIR_KAT);
+		aliases.put("ruò", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("ruo", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("yagjeom", Language.KOREAN);
+		
+		aliases.put("弱い", Language.JAPANESE_HIR_KAT);
+		aliases.put("弱", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("약점", Language.KOREAN);
 		
 		extraMessages.add("You may also like the %coverage command");
 		
@@ -39,151 +63,73 @@ public class WeakCommand extends AbstractCommand
 				"https://i.imgur.com/E79RCZO.gif");
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return true; }
+	@Override
 	public String getArguments() { return "<pokemon> or <type> or <type>, <type>"; }
 	
-	public boolean inputIsValid(Response reply, Input input)
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
 	{
-		if(!input.isValid())
-		{
-			switch(input.getError())
-			{
-				case ARGUMENT_NUMBER:
-					reply.addToReply("You must specify 1 Pokemon or between 1 and 2 Types (seperated by commas) "
-							+ "as input for this command.");
-				break;
-				case INVALID_ARGUMENT:
-					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(AbstractArgument arg : input.getArgs())
-						if(!arg.isValid())
-							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
-					reply.addToReply("\n*top suggestion*: did you include commas between inputs?");
-				break;
-				default:
-					reply.addToReply("A technical error occured (code 106)");
-			}
-			return false;
-		}
-		
-		return true;
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.TYPE);
 	}
 	
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{ 
-		Response reply = new Response();
+		if(!input.isValid())
+			return Mono.just(formatter.invalidInputResponse(input));
 		
-		//Check if input is valid
-		if(!inputIsValid(reply, input))
-			return reply;
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>());
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		
-		//Declare utility variables
-		TypeData type1 = null, type2 = null;
-		Pokemon pokemon = null;
-		StringBuilder header = new StringBuilder();
-		Optional<String> model = Optional.empty();
-		
-		//Build reply according to the argument case
-		if(input.getArg(0).getCategory() == ArgumentCategory.POKEMON) //argument is a Pokemon
+		if(input.getArgument(0).getCategory() == ArgumentCategory.POKEMON)
 		{	
-			//Obtain data
-			Object flexObj;
-			try 
-			{
-				flexObj = factory.createFlexObject(Endpoint.POKEMON, input.argsAsList());
-				pokemon = Pokemon.class.cast(flexObj);
-				model = Optional.ofNullable(pokemon.getSprites().getFrontDefault());
-				List<skaro.pokeflex.objects.pokemon.Type> types = pokemon.getTypes();
-				type1 = TypeData.getByName(types.get(0).getType().getName());
-				if(types.size() > 1)
-					type2 = TypeData.getByName(types.get(1).getType().getName());
-			} 
-			catch(Exception e)
-			{ 
-				this.addErrorMessage(reply, input, "1006", e); 
-				return reply;
-			}
-			
-		}
-		else //argument is a list of Types
-		{
-			type1 = TypeData.getByName(input.getArg(0).getDbForm());
-			if(input.getArgs().size() > 1)
-				type2 = TypeData.getByName(input.getArg(1).getDbForm());
-		}
-		
-		if(pokemon != null)
-		{
-			header.append("**__"+TextFormatter.pokemonFlexFormToProper(pokemon.getName())+" ");
-			header.append("("+type1.toProperName());
-			header.append(type2 != null ? "/"+type2.toProperName() +")__**": ")__**");
+			String pokemonName = input.getArgument(0).getFlexForm();
+			Request pokemonRequest = new Request(Endpoint.POKEMON, pokemonName);
+			result = result.flatMap(dataMap -> pokemonRequest.makeRequest(factory)
+						.ofType(Pokemon.class)
+						.flatMap(pokemon -> this.addAdopter(pokemon, builder))
+						.doOnNext(pokemon -> {
+							dataMap.put(Pokemon.class.getName(), pokemon);
+							dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapper(pokemon.getTypes()));
+						})
+						.map(pokemon -> new Request(Endpoint.POKEMON_SPECIES, pokemon.getSpecies().getName()))
+						.flatMap(speciesRequest -> speciesRequest.makeRequest(factory))
+						.doOnNext(species -> dataMap.put(PokemonSpecies.class.getName(), species))
+						.then(Mono.just(dataMap)));
 		}
 		else
 		{
-			header.append("**__"+type1.toProperName());
-			header.append(type2 != null ? "/"+type2.toProperName() +"__**": "__**");
+			result = result.doOnNext(dataMap -> dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapperFromArguments(input.getArguments())));
 		}
 		
-		reply.addToReply(header.toString());
-		reply.setEmbededReply(formatEmbed(type1, type2, Optional.ofNullable(pokemon), model));
-		
-		return reply;
-	}
-	
-	private EmbedObject formatEmbed(TypeData type1, TypeData type2, Optional<Pokemon> pokemon, Optional<String> model)
-	{
-		EmbedBuilder builder = new EmbedBuilder();
-		TypeInteractionWrapper wrapper = TypeTracker.onDefense(type1, type2);
-		builder.setLenient(true);
-		
-		builder.appendField("Weak:", combineLists(wrapper, 2.0, 4.0), false);
-		builder.appendField("Neutral", getList(wrapper, 1.0), false);
-		builder.appendField("Resist", combineLists(wrapper, 0.5, 0.25), false);
-		builder.appendField("Immune", getList(wrapper, 0.0), false);
-		
-		//Add model if present
-		if(model.isPresent())
-			builder.withThumbnail(model.get());
-		
-		//Set color
-		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
-		
-		//Add adopter
-		if(pokemon.isPresent())
-			addAdopter(pokemon.get(), builder);
-		
 		this.addRandomExtraMessage(builder);
-		return builder.build();
+		return result
+				.map(dataMap -> formatter.format(input, dataMap, builder))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
-	private String combineLists(TypeInteractionWrapper wrapper, double mult1, double mult2)
+	private TypeEfficacyWrapper createWrapper(List<Type> types)
 	{
-		Optional<String> strCheck;
-		String inter1, intern2;
-		StringBuilder builder = new StringBuilder();
+		TypeService typeService = (TypeService)services.getService(ServiceType.TYPE);
+		List<String> typeNames = types.stream()
+				.map(type -> type.getType().getName())
+				.collect(Collectors.toList());
 		
-		strCheck = wrapper.interactionToString(mult1);
-		inter1 = strCheck.isPresent() ? strCheck.get() : null;
-		
-		strCheck = wrapper.interactionToString(mult2);
-		intern2 = strCheck.isPresent() ? strCheck.get() : null;
-		
-		if(inter1 == null && intern2 == null)
-			return null;
-		
-		if(inter1 != null)
-			builder.append(inter1);
-		
-		if(inter1 != null && intern2 != null)
-			builder.append(", **"+intern2+"**");
-		else if(intern2 != null)
-			builder.append("**"+intern2+"**");
-		
-		return builder.toString();
+		return typeService.getEfficacyOnDefense(typeNames);
 	}
 	
-	private String getList(TypeInteractionWrapper wrapper, double mult)
+	private TypeEfficacyWrapper createWrapperFromArguments(List<CommandArgument> types)
 	{
-		Optional<String> strCheck = wrapper.interactionToString(mult);
-		return (strCheck.isPresent() ? strCheck.get() : null);
+		TypeService typeService = (TypeService)services.getService(ServiceType.TYPE);
+		List<String> typeNames = types.stream()
+				.filter(argument -> argument instanceof TypeArgument)
+				.map(argument -> argument.getFlexForm())
+				.collect(Collectors.toList());
+		
+		return typeService.getEfficacyOnDefense(typeNames);
 	}
 }

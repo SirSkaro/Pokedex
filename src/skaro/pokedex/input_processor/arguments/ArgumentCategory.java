@@ -1,192 +1,99 @@
 package skaro.pokedex.input_processor.arguments;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Language;
 
 public enum ArgumentCategory 
 {
-	NONE{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	NONE{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		NoneArgument argument = new NoneArgument();
-		
-		argument.setUp(null, null);
-		resultList.add(argument);
-		
-		return resultList;
+		NoneArgument result = new NoneArgument();
+		result.setUp(null, null);
+		return Arrays.asList(result);
 	}},
 	
-	ANY{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	ANY{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		AnyArgument argument = new AnyArgument();
-		
-		argument.setUp(itr.next(), lang);
-		resultList.add(argument);
-		
-		return resultList;
+		return Arrays.asList(createArgument(AnyArgument.class, itr, lang));
 	}},
 	
-	POKEMON{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	POKEMON{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		PokemonArgument argument = new PokemonArgument();
-		
-		argument.setUp(itr.next(), lang);
-		resultList.add(argument);
-		
-		return resultList;
+		return Arrays.asList(createArgument(PokemonArgument.class, itr, lang));
 	}},	
 	
-	ITEM{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	ITEM{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		ItemArgument argument = new ItemArgument();
-		
-		argument.setUp(itr.next(), lang);
-		resultList.add(argument);
-		
-		return resultList;
+		return Arrays.asList(createArgument(ItemArgument.class, itr, lang));
 	}},	
 	
-	TYPE{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	TYPE{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		TypeArgument argument = new TypeArgument();
-		
-		argument.setUp(itr.next(), lang);
-		resultList.add(argument);
-		
-		return resultList;
+		return Arrays.asList(createArgument(TypeArgument.class, itr, lang));
 	}},	
 	
-	MOVE{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	MOVE{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		MoveArgument argument = new MoveArgument();
-		
-		argument.setUp(itr.next(),lang);
-		resultList.add(argument);
-		
-		return resultList;
+		return Arrays.asList(createArgument(MoveArgument.class, itr, lang));
 	}},	
 	
-	META{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	META{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		MetaArgument argument = new MetaArgument();
-		
-		argument.setUp(itr.next(), lang);
-		resultList.add(argument);
-		
-		return resultList;
+		return Arrays.asList(createArgument(MetaArgument.class, itr, lang));
 	}},	
 	
-	ABILITY{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	ABILITY{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		AbilityArgument argument = new AbilityArgument();
-		
-		argument.setUp(itr.next(), lang);
-		resultList.add(argument);
-		
-		return resultList;
+		return Arrays.asList(createArgument(AbilityArgument.class, itr, lang));
 	}},
 	
-	VERSION{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	VERSION{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		VersionArgument argument = new VersionArgument();
-		
-		argument.setUp(itr.next(), lang);
-		resultList.add(argument);
-		
-		return resultList;
+		return Arrays.asList(createArgument(VersionArgument.class, itr, lang));
 	}},
 	
-	GEN{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	GEN{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		GenArgument argument = new GenArgument();
-		
-		argument.setUp(itr.next(), lang);
-		resultList.add(argument);
-		
-		return resultList;
+		return Arrays.asList(createArgument(GenArgument.class, itr, lang));
 	}},
 	
-	ANY_NONE{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	ANY_NONE{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		AbstractArgument argument;
-		
 		if(!itr.hasNext())
-		{
-			argument = new NoneArgument();
-			argument.setUp(null, null);
-		}
-		else
-		{
-			argument = new AnyArgument();
-			argument.setUp(itr.next(), lang);
-		}
-		
-		resultList.add(argument);
-		return resultList;
+			return NONE.parse(null, null);
+		return ANY.parse(itr, lang);
 	}},	
 	
-	POKE_ABIL{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	POKE_ABIL{@SuppressWarnings("unchecked")
+	public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		String argToParse = itr.next();
-		AbstractArgument pokemonArgument, abilityArgument;
-		
-		pokemonArgument = new PokemonArgument();
-		abilityArgument = new AbilityArgument();
-		pokemonArgument.setUp(argToParse, lang);
-		abilityArgument.setUp(argToParse, lang);
-		
-		resultList.add(chooseBestArgument(pokemonArgument, abilityArgument));
-		return resultList;
+		List<CommandArgument> possibleArguments = createArguments(itr, lang, PokemonArgument.class, AbilityArgument.class);
+		return Arrays.asList(chooseBestArgument(possibleArguments));
 	}},	
 	
-	POKE_TYPE{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	POKE_TYPE{@SuppressWarnings("unchecked")
+	public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		String argToParse = itr.next();
-		AbstractArgument pokemonArgument, typeArgument;
-		
-		pokemonArgument = new PokemonArgument();
-		typeArgument = new TypeArgument();
-		pokemonArgument.setUp(argToParse, lang);
-		typeArgument.setUp(argToParse, lang);
-		
-		resultList.add(chooseBestArgument(pokemonArgument, typeArgument));
-		return resultList;
+		List<CommandArgument> possibleArguments = createArguments(itr, lang, PokemonArgument.class, TypeArgument.class);
+		return Arrays.asList(chooseBestArgument(possibleArguments));
 	}},	
 	
-	MOVE_TYPE{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	MOVE_TYPE{@SuppressWarnings("unchecked")
+	public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
-		String argToParse = itr.next();
-		AbstractArgument moveArgument, typeArgument;
-		
-		moveArgument = new MoveArgument();
-		typeArgument = new TypeArgument();
-		moveArgument.setUp(argToParse, lang);
-		typeArgument.setUp(argToParse, lang);
-		
-		resultList.add(chooseBestArgument(moveArgument, typeArgument));
-		return resultList;
+		List<CommandArgument> possibleArguments = createArguments(itr, lang, MoveArgument.class, TypeArgument.class);
+		return Arrays.asList(chooseBestArgument(possibleArguments));
 	}},	
 	
-	TYPE_LIST{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	TYPE_LIST{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
+		List<CommandArgument> resultList = new ArrayList<CommandArgument>();
 		
 		while(itr.hasNext())
 			resultList.addAll(TYPE.parse(itr, lang));
@@ -194,9 +101,9 @@ public enum ArgumentCategory
 		return resultList;
 	}},	
 	
-	MOVE_LIST{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	MOVE_LIST{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
+		List<CommandArgument> resultList = new ArrayList<CommandArgument>();
 		
 		while(itr.hasNext())
 			resultList.addAll(MOVE.parse(itr, lang));
@@ -204,9 +111,9 @@ public enum ArgumentCategory
 		return resultList;
 	}},	
 	
-	POKE_TYPE_LIST{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	POKE_TYPE_LIST{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
+		List<CommandArgument> resultList = new ArrayList<CommandArgument>();
 		
 		while(itr.hasNext())
 			resultList.addAll(POKE_TYPE.parse(itr, lang));
@@ -214,9 +121,9 @@ public enum ArgumentCategory
 		return resultList;
 	}},	
 	
-	MOVE_TYPE_LIST{public List<AbstractArgument> parse(Iterator<String> itr, Language lang)
+	MOVE_TYPE_LIST{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
-		List<AbstractArgument> resultList = new ArrayList<AbstractArgument>();
+		List<CommandArgument> resultList = new ArrayList<CommandArgument>();
 		
 		while(itr.hasNext())
 			resultList.addAll(MOVE_TYPE.parse(itr, lang));
@@ -224,27 +131,62 @@ public enum ArgumentCategory
 		return resultList;
 	}};
 	
-	public abstract List<AbstractArgument> parse(Iterator<String> itr, Language lang);
+	public abstract List<CommandArgument> parse(Iterator<String> itr, Language lang);
 	
-	private static AbstractArgument chooseBestArgument(AbstractArgument arg1, AbstractArgument arg2)
+	protected <T extends CommandArgument> CommandArgument createArgument(Class<T> clazz, Iterator<String> itr, Language lang)
 	{
-		// Check if both arguments are not valid and return either one
-		if(!arg1.isValid() && !arg2.isValid())
-			return arg1;
-		
-		// Check if only one argument is valid 
-		else if(arg1.isValid() && !arg2.isValid())
-			return arg1;
-		else if(!arg1.isValid() && arg2.isValid())
-			return arg2;
-		
-		// if both arguments are valid, choose one that was not spell checked 
-		else if(arg1.isSpellChecked() && !arg2.isSpellChecked())
-			return arg2;
-		else if(!arg1.isSpellChecked() && arg2.isSpellChecked())
-			return arg1;
-		
-		// if both arguments are valid and both spell checked, return the first argument
-		return arg1;
+		try
+		{
+			CommandArgument result = clazz.newInstance();
+			result.setUp(itr.next(), lang);
+			return result;
+		} 
+		catch (Exception e)
+		{
+			return new NoneArgument();
+		}
 	}
+	
+	@SuppressWarnings("unchecked")
+	protected <T extends CommandArgument> List<CommandArgument> createArguments(Iterator<String> itr, Language lang, Class<? extends T>... clazz)
+	{
+		List<CommandArgument> result = new ArrayList<>();
+		try
+		{
+			String rawArgument = itr.next();
+			
+			for(Class<? extends T> argumentClass : clazz)
+			{
+				CommandArgument commandArgument = argumentClass.newInstance();
+				commandArgument.setUp(rawArgument, lang);
+				result.add(commandArgument);
+			}
+			return result;
+		} 
+		catch (Exception e)
+		{
+			return Arrays.asList(new NoneArgument());
+		}
+	}
+	
+	private static CommandArgument chooseBestArgument(List<CommandArgument> arguments)
+	{
+		Optional<CommandArgument> possibleBestArgument = arguments.stream()
+				.filter(CommandArgument::isValid)
+				.filter(argument -> !argument.isSpellChecked())
+				.findFirst();
+		
+		if(possibleBestArgument.isPresent())
+			return possibleBestArgument.get();
+		
+		possibleBestArgument = arguments.stream()
+				.filter(CommandArgument::isValid)
+				.findFirst();
+		
+		if(possibleBestArgument.isPresent())
+			return possibleBestArgument.get();
+				
+		return arguments.get(0);
+	}
+	
 }

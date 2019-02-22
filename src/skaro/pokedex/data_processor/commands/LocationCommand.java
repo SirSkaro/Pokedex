@@ -6,15 +6,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import skaro.pokedex.core.PerkChecker;
-import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorTracker;
+import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
+import skaro.pokedex.data_processor.PokedexCommand;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.formatters.TextFormatter;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.data_processor.TextUtility;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceException;
+import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.PokeFlexFactory;
 import skaro.pokeflex.objects.encounter.ConditionValue;
@@ -23,18 +30,18 @@ import skaro.pokeflex.objects.encounter.EncounterDetail;
 import skaro.pokeflex.objects.encounter.EncounterPotential;
 import skaro.pokeflex.objects.encounter.VersionDetail;
 import skaro.pokeflex.objects.pokemon.Pokemon;
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
-import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
-public class LocationCommand extends AbstractCommand 
+public class LocationCommand extends PokedexCommand 
 {
-	public LocationCommand(PokeFlexFactory pff, PerkChecker pc)
+	public LocationCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super(pff, pc);
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "location".intern();
-		argCats.add(ArgumentCategory.POKEMON);
-		argCats.add(ArgumentCategory.VERSION);
+		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
+		orderedArgumentCategories.add(ArgumentCategory.VERSION);
 		expectedArgRange = new ArgumentRange(2,2);
 		aliases.put("loc", Language.ENGLISH);
 		
@@ -42,9 +49,19 @@ public class LocationCommand extends AbstractCommand
 				"https://i.imgur.com/CkPBiDT.gif");
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return true; }
+	@Override
 	public String getArguments() { return "<pokemon>, <version>"; }
 	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.COLOR);
+	}
+	
+	@Override
 	public boolean inputIsValid(Response reply, Input input)
 	{
 		if(!input.isValid())
@@ -57,7 +74,7 @@ public class LocationCommand extends AbstractCommand
 				break;
 				case INVALID_ARGUMENT:
 					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(AbstractArgument arg : input.getArgs())
+					for(CommandArgument arg : input.getArguments())
 						if(!arg.isValid())
 							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
 					reply.addToReply("\n*top suggestion*: Not updated for gen7. Try versions from gens 1-6?");
@@ -72,22 +89,26 @@ public class LocationCommand extends AbstractCommand
 		return true;
 	}
 	
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{ 
 		Response reply = new Response();
 		
 		//Check if input is valid
 		if(!inputIsValid(reply, input))
-			return reply;
+			return Mono.just(reply);
 		
 		Pokemon pokemon = null;
 		Encounter encounterData = null;
+		PokeFlexFactory factory;
+		List<String> urlParams = new ArrayList<String>();
 		
 		try 
 		{
+			factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			
 			//Obtain Pokemon data
-			List<String> urlParams = new ArrayList<String>();
-			urlParams.add(input.getArg(0).getFlexForm());
+			urlParams.add(input.getArgument(0).getFlexForm());
 			Object flexObj = factory.createFlexObject(Endpoint.POKEMON, urlParams);
 			pokemon = Pokemon.class.cast(flexObj);
 			
@@ -97,39 +118,37 @@ public class LocationCommand extends AbstractCommand
 			urlParams.add("encounters");
 			flexObj = factory.createFlexObject(Endpoint.ENCOUNTER, urlParams);
 			encounterData = Encounter.class.cast(flexObj);
+			
+			//Get encounter data from particular version
+			String versionDBForm = input.getArgument(1).getDbForm();
+			List<EncounterPotential> encounterDataFromVersion = getEncounterDataFromVersion(encounterData, versionDBForm);
+			
+			if(encounterDataFromVersion.isEmpty())
+			{
+				reply.addToReply(TextUtility.flexFormToProper(pokemon.getName())+" cannot be found by means of a normal encounter in "
+						+ TextUtility.flexFormToProper(input.getArgument(1).getRawInput())+" version");
+				return Mono.just(reply);
+			}
+			
+			reply.addToReply("**"+TextUtility.flexFormToProper(pokemon.getName())+"** can be found in **"+(encounterDataFromVersion.size())+
+					"** location(s) in **"+TextUtility.flexFormToProper(versionDBForm)+"** version");
+			reply.setEmbed(formatEmbed(encounterDataFromVersion, versionDBForm, pokemon));
+			
+			return Mono.just(reply);
 		} 
 		catch(Exception e)
 		{ 
-			this.addErrorMessage(reply, input, "1011", e); 
-			return reply;
+			return Mono.just(this.createErrorResponse(input, e));
 		}
-		
-		//Get encounter data from particular version
-		String versionDBForm = input.getArg(1).getDbForm();
-		List<EncounterPotential> encounterDataFromVersion = getEncounterDataFromVersion(encounterData, versionDBForm);
-		
-		if(encounterDataFromVersion.isEmpty())
-		{
-			reply.addToReply(TextFormatter.flexFormToProper(pokemon.getName())+" cannot be found by means of a normal encounter in "
-					+ TextFormatter.flexFormToProper(input.getArg(1).getRawInput())+" version");
-			return reply;
-		}
-		
-		//Format reply
-		reply.addToReply("**"+TextFormatter.flexFormToProper(pokemon.getName())+"** can be found in **"+(encounterDataFromVersion.size())+
-				"** location(s) in **"+TextFormatter.flexFormToProper(versionDBForm)+"** version");
-		reply.setEmbededReply(formatEmbed(encounterDataFromVersion, versionDBForm, pokemon));
-		
-		return reply;
 	}
 	
-	private EmbedObject formatEmbed(List<EncounterPotential> encounterDataFromVersion, String version, Pokemon pokemon) 
+	private EmbedCreateSpec formatEmbed(List<EncounterPotential> encounterDataFromVersion, String version, Pokemon pokemon) throws ServiceException 
 	{
-		EmbedBuilder eBuilder = new EmbedBuilder();	
+		EmbedCreateSpec eBuilder = new EmbedCreateSpec();	
 		StringBuilder sBuilder;
 		Set<String> detailsList; 
 		VersionDetail vDetails;
-		eBuilder.setLenient(true);
+		ColorService colorService;
 		
 		for(EncounterPotential potential : encounterDataFromVersion)
 		{
@@ -142,24 +161,25 @@ public class LocationCommand extends AbstractCommand
 			{
 				sBuilder.append("`|-------------------------|`\n");
 				sBuilder.append(formatLevel(eDetails));
-				sBuilder.append(String.format("`|Method: %-17s|`\n", TextFormatter.flexFormToProper(eDetails.getMethod().getName())));
+				sBuilder.append(String.format("`|Method: %-17s|`\n", TextUtility.flexFormToProper(eDetails.getMethod().getName())));
 				sBuilder.append(String.format("`|Conditions: %-13s|`\n", formatConditions(eDetails)));
 				sBuilder.append(String.format("`|Encounter Rate: %-9s|`\n",eDetails.getChance() + "%"));
 			}
 			
 			detailsList.add(sBuilder.toString());
 			
-			eBuilder.appendField(TextFormatter.flexFormToProper(potential.getLocationArea().getName()), sBuilder.toString(), true);
+			eBuilder.addField(TextUtility.flexFormToProper(potential.getLocationArea().getName()), sBuilder.toString(), true);
 		}
 		
 		//Add thumbnail
-		eBuilder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		eBuilder.setThumbnail(pokemon.getSprites().getFrontDefault());
 		
 		//Add adopter
 		this.addAdopter(pokemon, eBuilder);
 		
-		eBuilder.withColor(ColorTracker.getColorForVersion(version));
-		return eBuilder.build();
+		colorService = (ColorService)services.getService(ServiceType.COLOR);
+		eBuilder.setColor(colorService.getColorForVersion(version));
+		return eBuilder;
 	}
 	
 	private String formatLevel(EncounterDetail details)
@@ -178,7 +198,7 @@ public class LocationCommand extends AbstractCommand
 		StringBuilder builder = new StringBuilder();
 		
 		for(ConditionValue cond : details.getConditionValues())
-			builder.append(TextFormatter.flexFormToProper(cond.getName()) + " & ");
+			builder.append(TextUtility.flexFormToProper(cond.getName()) + " & ");
 		
 		return builder.substring(0, builder.length() - 3);
 	}
@@ -204,7 +224,7 @@ public class LocationCommand extends AbstractCommand
 	private Optional<VersionDetail> getVersionDetailFromVersion(EncounterPotential potential, String version) 
 	{
 		for(VersionDetail vDetail : potential.getVersionDetails())
-			if(TextFormatter.flexToDBForm(vDetail.getVersion().getName()).equals(version))
+			if(TextUtility.flexToDBForm(vDetail.getVersion().getName()).equals(version))
 				return Optional.of(vDetail);
 		
 		return Optional.empty();

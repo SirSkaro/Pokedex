@@ -1,41 +1,58 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-import skaro.pokedex.core.PerkChecker;
-import skaro.pokedex.data_processor.AbstractCommand;
-import skaro.pokedex.data_processor.ColorTracker;
+import org.eclipse.jetty.util.MultiMap;
+
+import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import skaro.pokedex.data_processor.PokedexCommand;
+import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
-import skaro.pokedex.data_processor.TypeInteractionWrapper;
-import skaro.pokedex.data_processor.TypeTracker;
-import skaro.pokedex.input_processor.AbstractArgument;
+import skaro.pokedex.data_processor.TypeEfficacyWrapper;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokeFlexService;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokedex.services.TypeService;
 import skaro.pokeflex.api.Endpoint;
-import skaro.pokeflex.api.PokeFlexException;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexFactory;
-import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.objects.move.Move;
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
-import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
-public class CoverageCommand extends AbstractCommand 
+public class CoverageCommand extends PokedexCommand 
 {
-	public CoverageCommand(PokeFlexFactory pff, PerkChecker pc)
+	public CoverageCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
 	{
-		super(pff, pc);
+		super(services, formatter);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
 		commandName = "coverage".intern();
-		argCats.add(ArgumentCategory.MOVE_TYPE_LIST);
+		orderedArgumentCategories.add(ArgumentCategory.MOVE_TYPE_LIST);
 		expectedArgRange = new ArgumentRange(1,4);
 		aliases.put("strong", Language.ENGLISH);
 		aliases.put("cov", Language.ENGLISH);
 		aliases.put("effective", Language.ENGLISH);
+		aliases.put("yuhyohan", Language.KOREAN);
+		aliases.put("eficaz", Language.SPANISH);
+		aliases.put("efficace", Language.FRENCH);
+		aliases.put("forte", Language.ITALIAN);
+		aliases.put("yǒuxiào", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("youxiao", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("efekuto", Language.JAPANESE_HIR_KAT);
+		aliases.put("wirksam", Language.GERMAN);
+		
+		aliases.put("有效", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("エフェクト", Language.JAPANESE_HIR_KAT);
+		aliases.put("유효한", Language.KOREAN);
 		
 		extraMessages.add("You may also like the %weak command!");
 		
@@ -43,130 +60,72 @@ public class CoverageCommand extends AbstractCommand
 				"https://i.imgur.com/MLIpXYN.gif");
 	}
 	
+	@Override
 	public boolean makesWebRequest() { return true; }
+	@Override
 	public String getArguments() { return "<type/move>,...,<type/move>"; }
 	
-	protected boolean inputIsValid(Response reply, Input input)
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
 	{
-		if(!input.isValid())
-		{
-			switch(input.getError())
-			{
-				case ARGUMENT_NUMBER:
-					reply.addToReply("You must specify between 1 to 4 Types or Moves as input for this command "
-							+ "(seperated by commas).");
-				break;
-				case INVALID_ARGUMENT:
-					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(AbstractArgument arg : input.getArgs())
-						if(!arg.isValid())
-							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized Type or Move.");
-					reply.addToReply("\n*top suggestion*: did you include commas between inputs?");
-				break;
-				default:
-					reply.addToReply("A technical error occured (code 107)");
-			}
-			return false;
-		}
-		
-		return true;
+		return super.hasExpectedServices(services) &&
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.TYPE);
 	}
 	
-	public Response discordReply(Input input, IUser requester)
+	@Override
+	public Mono<Response> discordReply(Input input, User requester)
 	{ 
-		Response reply = new Response();
+		if(!input.isValid())
+			return Mono.just(formatter.invalidInputResponse(input));
 		
-		//Check if input is valid
-		if(!inputIsValid(reply, input))
-			return reply;
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>());
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		
-		//If argument is a move, get the typing
-		TypeInteractionWrapper wrapper;
-		ArrayList<TypeData> typeList = new ArrayList<TypeData>();
-		ArrayList<String> moveNames = new ArrayList<String>();
-		
-		for(int i = 0; i < input.getArgs().size(); i++)
-		{
-			if(input.getArg(i).getCategory() == ArgumentCategory.TYPE)
-				typeList.add(TypeData.getByName(input.getArg(i).getDbForm()));
-			else	//Category is ArgumentCategory.MOVE
-				moveNames.add(input.getArg(i).getFlexForm());
-		}
-		
-		//If the user included Moves in their input, then request the Move's data from the FlexAPI
-		//and add it to the list of types
-		if(!moveNames.isEmpty())
-		{
-			try
-			{
-				List<TypeData> typesFromMoves = getMoveTypes(moveNames);
-				typeList.addAll(typesFromMoves);
-			}
-			catch(Exception e)
-			{
-				this.addErrorMessage(reply, input, "1009", e);
-				return reply;
-			}
-		}
-		wrapper = TypeTracker.onOffense(typeList);
-		
-		//Build reply
-		reply.addToReply("**__"+wrapper.typesToString()+"__**");
-		reply.setEmbededReply(formatEmbed(wrapper));
-		
-		return reply;
-	}
-	
-	private EmbedObject formatEmbed(TypeInteractionWrapper wrapper)
-	{
-		EmbedBuilder builder = new EmbedBuilder();	
-		builder.setLenient(true);
-		
-		builder.appendField("Super Effective", getList(wrapper, 2.0), false);
-		builder.appendField("Neutral", getList(wrapper, 1.0), false);
-		builder.appendField("Resistant", getList(wrapper, 0.5), false);
-		builder.appendField("Immune", getList(wrapper, 0.0), false);
-		builder.withColor(ColorTracker.getColorForWrapper(wrapper));
+		result = result
+				.flatMap(dataMap -> Flux.fromIterable(input.getArguments())
+				.parallel()
+				.runOn(factory.getScheduler())
+				.flatMap(userArgument -> getTypeFromArgument(userArgument))
+				.sequential()
+				.collectList()
+				.map(typeNames -> createWrapper(typeNames))
+				.doOnNext(typeWrapper -> dataMap.put(TypeEfficacyWrapper.class.getName(), typeWrapper))
+				.then(Mono.just(dataMap)));
 		
 		this.addRandomExtraMessage(builder);
-		return builder.build();
+		return result
+				.map(dataMap -> formatter.format(input, dataMap, builder))
+				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
-	private List<TypeData> getMoveTypes(List<String> moveNames) throws InterruptedException, PokeFlexException
+	private Mono<String> getTypeFromArgument(CommandArgument argument)
 	{
-		List<Object> flexObjs = getMoveFlexObjs(moveNames);
-		List<TypeData> result = new ArrayList<TypeData>();
-		Move move;
-		TypeData type;
+		Mono<String> result;
 		
-		for(Object obj : flexObjs)
-		{			
-			move = Move.class.cast(obj);
-			type = TypeData.getByName(move.getType().getName());
-			result.add(type);
+		if(argument.getCategory() == ArgumentCategory.MOVE)
+		{
+			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
+			
+			result = Mono.just(argument)
+					.map(moveArgument -> new Request(Endpoint.MOVE, moveArgument.getFlexForm()))
+					.flatMap(request -> request.makeRequest(factory))
+					.ofType(Move.class)
+					.map(move -> move.getType().getName());
+		}
+		else
+		{
+			result = Mono.just(argument)
+					.map(typeArgument -> typeArgument.getFlexForm());
 		}
 		
 		return result;
 	}
 	
-	private List<Object> getMoveFlexObjs(List<String> moveNames) throws InterruptedException, PokeFlexException
+	private TypeEfficacyWrapper createWrapper(List<String> types)
 	{
-		ArrayList<String> urlParams;
-		List<PokeFlexRequest> requests = new ArrayList<PokeFlexRequest>();
-		
-		for(String move :moveNames)
-		{
-			urlParams = new ArrayList<String>();
-			urlParams.add(move);
-			requests.add(new Request(Endpoint.MOVE, urlParams));
-		}
-		
-		return factory.createFlexObjects(requests);
+		TypeService typeService = (TypeService)services.getService(ServiceType.TYPE);
+		return typeService.getEfficacyOnOffense(types);
 	}
 	
-	private String getList(TypeInteractionWrapper wrapper, double mult)
-	{
-		Optional<String> strCheck = wrapper.interactionToString(mult);
-		return (strCheck.isPresent() ? strCheck.get() : null);
-	}
 }

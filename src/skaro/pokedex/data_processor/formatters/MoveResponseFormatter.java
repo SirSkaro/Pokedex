@@ -6,23 +6,44 @@ import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorTracker;
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.EmojiService;
+import skaro.pokedex.services.IServiceConsumer;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.contest_type.ContestType;
 import skaro.pokeflex.objects.move.Image;
 import skaro.pokeflex.objects.move.Move;
 import skaro.pokeflex.objects.move_damage_class.MoveDamageClass;
 import skaro.pokeflex.objects.move_target.MoveTarget;
 import skaro.pokeflex.objects.type.Type;
-import sx.blah.discord.util.EmbedBuilder;
 
-public class MoveResponseFormatter implements IDiscordFormatter 
+public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
-
+	private IServiceManager services;
+	
+	public MoveResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR, ServiceType.EMOJI);
+	}
+	
 	@Override
 	public Response invalidInputResponse(Input input)
 	{
@@ -34,7 +55,7 @@ public class MoveResponseFormatter implements IDiscordFormatter
 				response.addToReply("You must specify exactly one Move as input for this command.".intern());
 			break;
 			case INVALID_ARGUMENT:
-				response.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Move in "+input.getLanguage().getName());
+				response.addToReply("\""+input.getArgument(0).getRawInput() +"\" is not a recognized Move in "+input.getLanguage().getName());
 			break;
 			default:
 				response.addToReply("A technical error occured (code 106)");
@@ -44,63 +65,65 @@ public class MoveResponseFormatter implements IDiscordFormatter
 	}
 	
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder) 
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder)
 	{
 		Response response = new Response();
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
-		builder.setLenient(true);
 		Move move = (Move)data.get(Move.class.getName()).get(0);
 		Type type = (Type)data.getValue(Type.class.getName(), 0);
 		Optional<Image> image = move.getImage("en", 7);
 		
 		//Header
 		response.addToReply("**__"+
-				TextFormatter.flexFormToProper(move.getNameInLanguage(lang.getFlexKey()))+
-				" | " + TextFormatter.formatGeneration(move.getGeneration().getName(), lang) + "__**");
+				TextUtility.flexFormToProper(move.getNameInLanguage(lang.getFlexKey()))+
+				" | " + TextUtility.formatGeneration(move.getGeneration().getName(), lang) + "__**");
 		
 		//Data for attacking moves
 		if(!move.getDamageClass().getName().equals("status"))
 		{
-			builder.appendField(MoveField.BASE_POWER.getFieldTitle(lang), Integer.toString(move.getPower()), true);
-			builder.appendField(MoveField.Z_POWER.getFieldTitle(lang), formatZPower(type, move.getZPower()), true);
+			builder.addField(MoveField.BASE_POWER.getFieldTitle(lang), Integer.toString(move.getPower()), true);
+			builder.addField(MoveField.Z_POWER.getFieldTitle(lang), formatZPower(type, move.getZPower()), true);
 		}
 		
 		//Data for all Moves
-		builder.appendField(MoveField.ACCURACY.getFieldTitle(lang), (move.getAccuracy() != 0 ? Integer.toString(move.getAccuracy()) : "-"), true);
-		builder.appendField(MoveField.CATEGORY.getFieldTitle(lang), formatCategory((MoveDamageClass)data.getValue(MoveDamageClass.class.getName(), 0), lang), true);
-		builder.appendField(MoveField.TYPE.getFieldTitle(lang), formatType(type, lang), true);
-		builder.appendField(MoveField.PP.getFieldTitle(lang), formatPP(move), true);
-		builder.appendField(MoveField.PRIORITY.getFieldTitle(lang), Integer.toString(move.getPriority()), true);
-		builder.appendField(MoveField.TARGET.getFieldTitle(lang), formatTarget((MoveTarget)data.getValue(MoveTarget.class.getName(), 0), lang), true);
-		builder.appendField(MoveField.CONTEST.getFieldTitle(lang), formatContest((ContestType)data.getValue(ContestType.class.getName(), 0), lang), true);
-		builder.appendField(MoveField.DESC.getFieldTitle(lang), formatDescription(move, lang), false);
+		builder.addField(MoveField.ACCURACY.getFieldTitle(lang), (move.getAccuracy() != 0 ? Integer.toString(move.getAccuracy()) : "-"), true);
+		builder.addField(MoveField.CATEGORY.getFieldTitle(lang), formatCategory((MoveDamageClass)data.getValue(MoveDamageClass.class.getName(), 0), lang), true);
+		builder.addField(MoveField.TYPE.getFieldTitle(lang), formatType(type, lang), true);
+		builder.addField(MoveField.PP.getFieldTitle(lang), formatPP(move), true);
+		builder.addField(MoveField.PRIORITY.getFieldTitle(lang), Integer.toString(move.getPriority()), true);
+		builder.addField(MoveField.TARGET.getFieldTitle(lang), formatTarget((MoveTarget)data.getValue(MoveTarget.class.getName(), 0), lang), true);
+		if(data.containsKey(ContestType.class.getName()))
+			builder.addField(MoveField.CONTEST.getFieldTitle(lang), formatContest((ContestType)data.getValue(ContestType.class.getName(), 0), lang), true);
+		builder.addField(MoveField.DESC.getFieldTitle(lang), formatDescription(move, lang), false);
 		
 		//English-only data
 		if(lang == Language.ENGLISH)
 		{
 			if(move.getZBoost() != null)
-				builder.appendField("Z-Boosts", move.getZBoost().toString(), true);
+				builder.addField("Z-Boosts", move.getZBoost().toString(), true);
 			if(move.getZEffect() != null)
-				builder.appendField("Z-Effect", move.getZEffect().toString(), true);
+				builder.addField("Z-Effect", move.getZEffect().toString(), true);
 			
-			builder.appendField("Technical Description", move.getLdesc(), false);
+			builder.addField("Technical Description", move.getLdesc(), false);
 			
 			if(move.getFlags() != null)
-				builder.appendField("Other Properties", formatFlags(move), false);
+				builder.addField("Other Properties", formatFlags(move), false);
 		}
 		
 		//Image
 		if(image.isPresent())
-			builder.withImage(image.get().getUrl());
+			builder.setImage(image.get().getUrl());
 		
-		builder.withColor(ColorTracker.getColorForType(move.getType().getName()));
-		response.setEmbededReply(builder.build());
+		builder.setColor(colorService.getColorForType(move.getType().getName()));
+		response.setEmbed(builder);
 		return response;
 	}
 	
 	private String formatZPower(Type type, int power)
 	{
-		return EmojiTracker.getCrystalEmoji(TypeData.getByName(type.getName())) + " " + power;
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
+		return emojiService.getCrystalEmoji(type.getName()) + " " + power;
 	}
 	
 	private String formatContest(ContestType contest, Language lang)
@@ -109,10 +132,11 @@ public class MoveResponseFormatter implements IDiscordFormatter
 			return null;
 		
 		StringBuilder builder = new StringBuilder();
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		
-		builder.append(EmojiTracker.getContestEmoji(contest.getName()));
+		builder.append(emojiService.getContestEmoji(contest.getName()));
 		builder.append(" ");
-		builder.append(TextFormatter.flexFormToProper(contest.getNameInLanguage(lang.getFlexKey())));
+		builder.append(TextUtility.flexFormToProper(contest.getNameInLanguage(lang.getFlexKey())));
 		
 		return builder.toString();
 	}
@@ -138,7 +162,7 @@ public class MoveResponseFormatter implements IDiscordFormatter
 	
 	private String formatTarget(MoveTarget target, Language lang)
 	{
-		return TextFormatter.flexFormToProper(target.getNameInLanguage(lang.getFlexKey()));
+		return TextUtility.flexFormToProper(target.getNameInLanguage(lang.getFlexKey()));
 	}
 	
 	private String formatPP(Move move)
@@ -149,10 +173,11 @@ public class MoveResponseFormatter implements IDiscordFormatter
 	private String formatType(Type type, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		
-		builder.append(EmojiTracker.getTypeEmoji(TypeData.getByName(type.getName())));
+		builder.append(emojiService.getTypeEmoji((type.getName())));
 		builder.append(" ");
-		builder.append(TextFormatter.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
+		builder.append(TextUtility.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())));
 		
 		return builder.toString();
 	}
@@ -160,10 +185,11 @@ public class MoveResponseFormatter implements IDiscordFormatter
 	private String formatCategory(MoveDamageClass category, Language lang)
 	{
 		StringBuilder builder = new StringBuilder();
+		EmojiService emojiService = (EmojiService)services.getService(ServiceType.EMOJI);
 		
-		builder.append(EmojiTracker.getDamageEmoji(category.getName()));
+		builder.append(emojiService.getDamageEmoji(category.getName()));
 		builder.append(" ");
-		builder.append(TextFormatter.flexFormToProper(category.getNameInLanguage(lang.getFlexKey())));
+		builder.append(TextUtility.flexFormToProper(category.getNameInLanguage(lang.getFlexKey())));
 		
 		return builder.toString();
 	}
@@ -203,4 +229,5 @@ public class MoveResponseFormatter implements IDiscordFormatter
 			return titleMap.get(lang);
 		}
 	}
+
 }

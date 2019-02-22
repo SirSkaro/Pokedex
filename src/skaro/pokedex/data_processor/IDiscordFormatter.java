@@ -4,13 +4,14 @@ import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.input_processor.Input;
-import sx.blah.discord.util.EmbedBuilder;
+import skaro.pokeflex.api.IFlexObject;
 
 public interface IDiscordFormatter 
 {
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder);
 	public Response invalidInputResponse(Input input);
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder);
 	
 	default String listToItemizedString(List<?> list)
 	{

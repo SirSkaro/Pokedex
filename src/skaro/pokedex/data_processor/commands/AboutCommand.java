@@ -2,24 +2,32 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.Optional;
 
-import skaro.pokedex.core.Configurator;
-import skaro.pokedex.data_processor.AbstractCommand;
+import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Mono;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
-import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.ConfigurationService;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
 
-public class AboutCommand extends AbstractCommand 
+public class AboutCommand extends PokedexCommand 
 {
 	private Response staticDiscordReply;
 	
-	public AboutCommand()
+	public AboutCommand(IServiceManager services) throws ServiceConsumerException
 	{
-		super(null, null);
+		super(services);
+		if(!hasExpectedServices(this.services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
 		
-		Optional<Configurator> configurator = Configurator.getInstance();
+		Optional<ConfigurationService> configurator = ConfigurationService.getInstance();
 		String version;
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		
 		if(!configurator.isPresent())
 			version = "(unspecified)";
@@ -27,40 +35,50 @@ public class AboutCommand extends AbstractCommand
 			version = configurator.get().getVersion();
 		
 		commandName = "about".intern();
-		argCats.add(ArgumentCategory.NONE);
+		orderedArgumentCategories.add(ArgumentCategory.NONE);
 		expectedArgRange = new ArgumentRange(0,0);
 		
 		staticDiscordReply = new Response();
 		
-		EmbedBuilder builder = new EmbedBuilder();	
-		builder.setLenient(true);
-		builder.withColor(0xD60B01);
-		builder.withAuthorName("Pokedex "+version);
+		EmbedCreateSpec builder = new EmbedCreateSpec();	
+		builder.setColor(colorService.getPokedexColor());
+		builder.setAuthor("Pokedex "+version, null, null);
 		setStaticReplyFields(builder);
 		
-		staticDiscordReply.setEmbededReply(builder.build());
+		staticDiscordReply.setEmbed(builder);
 		
 		this.createHelpMessage("https://i.imgur.com/gC3tMJQ.gif");
 	}
 	
-	public boolean makesWebRequest() { return false; }
-	public String getArguments() { return "none"; }
-	public Response discordReply(Input input, IUser requester) { return staticDiscordReply; }
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{ 
+		return super.hasExpectedServices(services) &&
+					services.hasServices(ServiceType.COLOR, ServiceType.CONFIG); 
+	}
 	
-	private void setStaticReplyFields(EmbedBuilder builder)
+	@Override
+	public boolean makesWebRequest() { return false; }
+	@Override
+	public String getArguments() { return "none"; }
+	@Override
+	public Mono<Response> discordReply(Input input, User requester) 
+	{ return Mono.just(staticDiscordReply); }
+	
+	private void setStaticReplyFields(EmbedCreateSpec builder)
 	{
-		builder.appendField("Creator", "[Benjamin \"Sir Skaro\" Churchill](https://twitter.com/sirskaro)", true);
-		builder.appendField("Icon Artist", "[Domenic \"Jabberjock\" Serena](https://twitter.com/domenicserena)", true);
-		builder.appendField("License","[Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/)",true);
-		builder.appendField("Recognitions", "Data provided by PokeAPI and Pokemon Showdown", true);
-		builder.appendField("Github", "[Pokedex is open source!](https://github.com/SirSkaro/Pokedex)", true);
-		builder.appendField("Libraries/Services", "Discord4J, MaryTTS, MySQL, Caffine, Bucket4J, Jazzy, PokeAPI", false);
-		builder.appendField("Pledge on Patron!", "[Support Pokedex and get perks!](https://www.patreon.com/sirskaro)", true);
-		builder.appendField("Special Thanks", "PokeaimMD, Honko, the Pokemon Showdown Dev Team, "
+		builder.addField("Creator", "[Benjamin \"Sir Skaro\" Churchill](https://twitter.com/sirskaro)", true);
+		builder.addField("Icon Artist", "[Domenic \"Jabberjock\" Serena](https://twitter.com/domenicserena)", true);
+		builder.addField("License","[Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/)",true);
+		builder.addField("Recognitions", "Data provided by PokeAPI and Pokemon Showdown", true);
+		builder.addField("Github", "[Pokedex is open source!](https://github.com/SirSkaro/Pokedex)", true);
+		builder.addField("Libraries/Services", "Discord4J, MaryTTS, MySQL, Caffine, Bucket4J, Jazzy, PokeAPI", false);
+		builder.addField("Pledge on Patron!", "[Support Pokedex and get perks!](https://www.patreon.com/sirskaro)", true);
+		builder.addField("Special Thanks", "PokeaimMD, Honko, the Pokemon Showdown Dev Team, "
 				+ "and the Bulbapedia Community", false);
-		builder.withFooterText("Pokémon © 2002-2018 Pokémon. © 1995-2018 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. " + 
-				"No copyright or trademark infringement is intended.");
+		builder.setFooter("Pokémon © 2002-2018 Pokémon. © 1995-2018 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. " + 
+				"No copyright or trademark infringement is intended.", null);
 		
-		builder.withThumbnail("https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png");
+		builder.setThumbnail("https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png");
 	}
 }

@@ -6,41 +6,31 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.json.JSONObject;
 
-import skaro.pokedex.communicator.AbstractPublicationRecipient;
-import sx.blah.discord.api.IDiscordClient;
+import skaro.pokedex.communicator.PublicationRecipient;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceManager;
 
-public class BotsDiscordRecipient extends AbstractPublicationRecipient 
+public class BotsDiscordRecipient extends PublicationRecipient 
 {
-	String endpoint;
-			
-	public BotsDiscordRecipient(IDiscordClient client, int shardCount) 
+	public BotsDiscordRecipient(ServiceManager services) throws ServiceConsumerException	
 	{
-		super(client, shardCount);
+		super(services);
 		configID = "bots_discord";
 	}
 	
 	@Override
-	public boolean configure() 
+	public boolean sendPublication(int shardID, int totalShards, int connectedGuilds, long botId) 
 	{
-		if(!super.configure())
-			return false;
-		
-		endpoint = "https://bots.discord.pw/api/"+discordClient.getOurUser().getLongID()+"/stats";
-		return true;
-	}
-
-	@Override
-	public boolean sendPublication(int shardID) 
-	{
+		String endpoint = "https://bots.discord.pw/api/"+botId+"/stats";
 		HttpClient hClient = HttpClients.createDefault();
 		HttpPost post = new HttpPost(endpoint);
 		JSONObject object = new JSONObject();
-
+		
 		try 
 		{
 			object.put("shard_id", shardID);
 			object.put("shard_count", totalShards);
-			object.put("server_count", discordClient.getGuilds().size());
+			object.put("server_count", connectedGuilds);
 			
 			post.setEntity(new StringEntity(object.toString(), "UTF-8"));
 			post.addHeader("Content-type", "application/json");

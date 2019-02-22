@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>Pokedex</groupId>
 	<artifactId>Pokedex</artifactId>
-	<version>5.5.0</version>
+	<version>6.0.0</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>
@@ -53,12 +53,18 @@
 		</repository>
 	</repositories>
 	<dependencies>
-		<!-- Discord4j -->
+		<!-- Reactor 3 -->
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
+			<version>3.2.5.RELEASE</version>
+		</dependency>
+		<!-- Discord4j v3 -->
 		<dependency>
 			<!-- <groupId>com.github.austinv11</groupId> -->
-			<groupId>com.github.Discord4J</groupId>
-			<artifactId>Discord4j</artifactId>
-			<version>2.10.1</version>
+			<groupId>com.discord4j.discord4j</groupId>
+			<artifactId>discord4j-core</artifactId>
+			<version>v3-SNAPSHOT</version>
 		</dependency>
 		<!-- Logback Classic: SLF4J Binding -->
 		<dependency>
@@ -66,10 +72,10 @@
 			<artifactId>slf4j-simple</artifactId>
 			<version>1.7.9</version>
 		</dependency>
-		<!-- MaryTTS -->
+		<!-- MaryTTS English -->
 		<dependency>
 			<groupId>de.dfki.mary</groupId>
-			<artifactId>voice-cmu-slt-hsmm</artifactId>
+			<artifactId>voice-dfki-spike-hsmm</artifactId>
 			<version>5.2</version>
 			<exclusions>
 				<exclusion>
@@ -81,6 +87,24 @@
 					<artifactId>slf4j-log4j12</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<!-- MaryTTS French -->
+		<dependency>
+			<groupId>de.dfki.mary</groupId>
+			<artifactId>voice-enst-dennys-hsmm</artifactId>
+			<version>5.2</version>
+		</dependency>
+		<!-- MaryTTS German -->
+		<dependency>
+			<groupId>de.dfki.mary</groupId>
+			<artifactId>voice-dfki-pavoque-neutral-hsmm</artifactId>
+			<version>5.2</version>
+		</dependency>
+		<!-- MaryTTS Italian -->
+		<dependency>
+			<groupId>de.dfki.mary</groupId>
+			<artifactId>voice-istc-lucia-hsmm</artifactId>
+			<version>5.2</version>
 		</dependency>
 		<!-- Caffine Cache -->
 		<dependency>
@@ -129,6 +153,24 @@
 			<groupId>com.github.vladimir-bukhtoyarov</groupId>
 			<artifactId>bucket4j-core</artifactId>
 			<version>4.1.1</version>
+		</dependency>
+		<!-- Jetty Utility -->
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-util</artifactId>
+			<version>9.4.14.v20181114</version>
+		</dependency>
+		<!-- Apache Language Commons -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.8.1</version>
+		</dependency>
+		<!-- HttpClient -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.7</version>
 		</dependency>
 	</dependencies>
 	<properties>

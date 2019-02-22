@@ -7,20 +7,42 @@ import java.util.Optional;
 
 import org.eclipse.jetty.util.MultiMap;
 
-import skaro.pokedex.data_processor.ColorTracker;
+import discord4j.core.spec.EmbedCreateSpec;
+import skaro.pokedex.data_processor.AbilityList;
 import skaro.pokedex.data_processor.IDiscordFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.services.ColorService;
+import skaro.pokedex.services.IServiceConsumer;
+import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ServiceConsumerException;
+import skaro.pokedex.services.ServiceType;
+import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.ability.Ability;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
-import sx.blah.discord.util.EmbedBuilder;
 
-public class AbilityResponseFormatter implements IDiscordFormatter 
+public class AbilityResponseFormatter implements IDiscordFormatter, IServiceConsumer
 {
-
+	private IServiceManager services;
+	
+	public AbilityResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	{
+		if(!hasExpectedServices(services))
+			throw new ServiceConsumerException("Did not receive all necessary services");
+		
+		this.services = services;
+	}
+	
+	@Override
+	public boolean hasExpectedServices(IServiceManager services) 
+	{
+		return services.hasServices(ServiceType.COLOR);
+	}
+	
 	@Override
 	public Response invalidInputResponse(Input input)
 	{
@@ -32,7 +54,7 @@ public class AbilityResponseFormatter implements IDiscordFormatter
 				response.addToReply("You must specify exactly one Pokemon or Ability as input for this command.".intern());
 			break;
 			case INVALID_ARGUMENT:
-				response.addToReply("\""+input.getArg(0).getRawInput() +"\" is not a recognized Pokemon or Ability in " + input.getLanguage().getName());
+				response.addToReply("\""+input.getArgument(0).getRawInput() +"\" is not a recognized Pokemon or Ability in " + input.getLanguage().getName());
 			break;
 			default:
 				response.addToReply("A technical error occured (code 103)");
@@ -42,69 +64,69 @@ public class AbilityResponseFormatter implements IDiscordFormatter
 	}
 	
 	@Override
-	public Response format(Input input, MultiMap<Object> data, EmbedBuilder builder)
+	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder)
 	{
 		Language lang = input.getLanguage();
-		builder.setLenient(true);
 		
-		if(input.getArg(0).getCategory() == ArgumentCategory.ABILITY)
+		if(input.getArgument(0).getCategory() == ArgumentCategory.ABILITY)
 			return formatFromAbilityArgument(data, lang, builder);
 		return formatFromPokemonArgument(data, lang, builder);
 	}
 	
 	@SuppressWarnings("unchecked")
-	private Response formatFromPokemonArgument(MultiMap<Object> data, Language lang, EmbedBuilder builder)
+	private Response formatFromPokemonArgument(MultiMap<IFlexObject> data, Language lang, EmbedCreateSpec builder)
 	{
 		Response response = new Response();
 		Pokemon pokemon = (Pokemon)data.getValue(Pokemon.class.getName(), 0);
 		PokemonSpecies species = (PokemonSpecies)data.getValue(PokemonSpecies.class.getName(), 0);
 		AbilityList abilities = new AbilityList((List<Ability>)(List<?>)data.get(Ability.class.getName()), pokemon);
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		
 		//Header
 		response.addToReply("**__"+
-			TextFormatter.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+
+			TextUtility.flexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+
 			" | #" + species.getId() +
-			" | " + TextFormatter.formatGeneration(species.getGeneration().getName(), lang) + "__**");
+			" | " + TextUtility.formatGeneration(species.getGeneration().getName(), lang) + "__**");
 		
-		builder.appendField(AbilityField.SLOT1.getFieldTitle(lang), TextFormatter.flexFormToProper(abilities.getSlot1().getNameInLanguage(lang.getFlexKey())), true);
+		builder.addField(AbilityField.SLOT1.getFieldTitle(lang), TextUtility.flexFormToProper(abilities.getSlot1().getNameInLanguage(lang.getFlexKey())), true);
 		
 		if(abilities.hasSlot2())
-			builder.appendField(AbilityField.SLOT2.getFieldTitle(lang), TextFormatter.flexFormToProper(abilities.getSlot2().getNameInLanguage(lang.getFlexKey())), true);
+			builder.addField(AbilityField.SLOT2.getFieldTitle(lang), TextUtility.flexFormToProper(abilities.getSlot2().getNameInLanguage(lang.getFlexKey())), true);
 		
 		if(abilities.hasHidden())
-			builder.appendField(AbilityField.HIDDEN.getFieldTitle(lang), TextFormatter.flexFormToProper(abilities.getHidden().getNameInLanguage(lang.getFlexKey())), true);
+			builder.addField(AbilityField.HIDDEN.getFieldTitle(lang), TextUtility.flexFormToProper(abilities.getHidden().getNameInLanguage(lang.getFlexKey())), true);
 		
 		//Extra
-		builder.withThumbnail(pokemon.getSprites().getFrontDefault());
+		builder.setThumbnail(pokemon.getSprites().getFrontDefault());
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
-		builder.withColor(ColorTracker.getColorForType(type));
+		builder.setColor(colorService.getColorForType(type));
 		
-		response.setEmbededReply(builder.build());
+		response.setEmbed(builder);
 		return response;
 	}
 	
-	private Response formatFromAbilityArgument(MultiMap<Object> data, Language lang, EmbedBuilder builder)
+	private Response formatFromAbilityArgument(MultiMap<IFlexObject> data, Language lang, EmbedCreateSpec builder)
 	{
 		Response response = new Response();
-		
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Ability abil = (Ability)data.getValue(Ability.class.getName(), 0);
 		
-		response.addToReply(("**__"+TextFormatter.flexFormToProper(abil.getNameInLanguage(lang.getFlexKey()))+"__**").intern());
+		response.addToReply(("**__"+TextUtility.flexFormToProper(abil.getNameInLanguage(lang.getFlexKey()))+"__**").intern());
 		
-		builder.appendField(AbilityField.DEBUT.getFieldTitle(lang), TextFormatter.formatGeneration(abil.getGeneration().getName(), lang), true);
-		builder.appendField(AbilityField.OTHER_WITH.getFieldTitle(lang), Integer.toString(abil.getPokemon().size()), true);
+		builder.addField(AbilityField.DEBUT.getFieldTitle(lang), TextUtility.formatGeneration(abil.getGeneration().getName(), lang), true);
+		builder.addField(AbilityField.OTHER_WITH.getFieldTitle(lang), Integer.toString(abil.getPokemon().size()), true);
 		
 		//English-only data
 		if(lang == Language.ENGLISH)
 		{
-			builder.appendField("Smogon Viability", abil.getRating(), true);
-			builder.appendField("Technical Description", abil.getLdesc(), false);
+			builder.addField("Smogon Viability", abil.getRating(), true);
+			builder.addField("Technical Description", abil.getLdesc(), false);
 		}
 		
-		builder.appendField(AbilityField.DESC.getFieldTitle(lang), formatDescription(abil, lang), false);
+		builder.addField(AbilityField.DESC.getFieldTitle(lang), formatDescription(abil, lang), false);
 		
-		builder.withColor(ColorTracker.getColorForAbility());
-		response.setEmbededReply(builder.build());
+		builder.setColor(colorService.getColorForAbility());
+		response.setEmbed(builder);
 		return response;
 	}
 
