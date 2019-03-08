@@ -62,7 +62,7 @@ public class AboutCommand extends PokedexCommand
 	@Override
 	public String getArguments() { return "none"; }
 	@Override
-	public Mono<Response> discordReply(Input input, User requester) 
+	public Mono<Response> prepareResponse(Input input, User requester) 
 	{ return Mono.just(staticDiscordReply); }
 	
 	private void setStaticReplyFields(EmbedCreateSpec builder)

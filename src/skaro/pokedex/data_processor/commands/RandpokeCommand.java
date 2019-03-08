@@ -72,7 +72,7 @@ public class RandpokeCommand extends PokedexCommand
 	}
 	
 	@Override
-	public Mono<Response> discordReply(Input input, User requester)
+	public Mono<Response> prepareResponse(Input input, User requester)
 	{
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		EmbedCreateSpec builder = new EmbedCreateSpec();

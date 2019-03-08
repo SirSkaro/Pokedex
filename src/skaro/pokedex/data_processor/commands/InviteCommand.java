@@ -45,7 +45,7 @@ public class InviteCommand extends PokedexCommand
 	@Override
 	public String getArguments() { return "none"; }
 	@Override
-	public Mono<Response> discordReply(Input input, User requester) {  return Mono.just(staticDiscordReply); }
+	public Mono<Response> prepareResponse(Input input, User requester) {  return Mono.just(staticDiscordReply); }
 	
 	@Override
 	public boolean hasExpectedServices(IServiceManager services) 

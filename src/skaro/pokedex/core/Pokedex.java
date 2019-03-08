@@ -94,7 +94,7 @@ public class Pokedex
 		}
 		
 		System.out.println("[Pokedex main] Loading configurations...");
-		ConfigurationService configurationService = ConfigurationService.initialize(ConfigurationType.PRODUCTION);
+		ConfigurationService configurationService = ConfigurationService.initialize(ConfigurationType.DEVELOP);
 		Scheduler scheduler = Schedulers.newParallel("pokedex_pool", Runtime.getRuntime().availableProcessors() * 6);
 		CommandService commandMap = new CommandService();
 		PerkService perkService = createPatreonService(configurationService);

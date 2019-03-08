@@ -69,7 +69,7 @@ public class StatsCommand extends PokedexCommand
 	}
 	
 	@Override
-	public Mono<Response> discordReply(Input input, User author)
+	public Mono<Response> prepareResponse(Input input, User author)
 	{ 
 		if(!input.isValid())
 			return Mono.just(formatter.invalidInputResponse(input));
