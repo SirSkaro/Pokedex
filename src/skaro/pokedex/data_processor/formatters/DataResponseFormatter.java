@@ -330,9 +330,9 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 			builder.append(TextUtility.flexFormToProper(detail.getTrigger().getName())+": ");
 			
 			if(detail.getMinLevel() != 0)
-				builder.append("Min level: "+detail.getMinLevel() + " & ");
+				builder.append("Min level "+detail.getMinLevel() + " & ");
 			if(detail.getMinBeauty() != 0)
-				builder.append("Min beauty: "+detail.getMinBeauty() + " & ");
+				builder.append("Min beauty "+detail.getMinBeauty() + " & ");
 			if(detail.getTimeOfDay() != null && !detail.getTimeOfDay().isEmpty())
 				builder.append("At "+detail.getTimeOfDay()+ "-time & ");
 			if(detail.getGender() != 0)
@@ -361,7 +361,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 			if(detail.getKnownMoveType() != null)
 				builder.append("Know "+ TextUtility.flexFormToProper(detail.getKnownMoveType().getName()) +"-type move & ");
 			if(detail.getMinAffection() != 0)
-				builder.append("Min affection: "+detail.getMinAffection() + " & ");
+				builder.append("Min affection "+detail.getMinAffection() + " & ");
 			if(detail.getPartyType() != null)
 				builder.append("With "+ TextUtility.flexFormToProper(detail.getPartyType().getName()) +"-type in party & ");
 			if(detail.getTradeSpecies() != null)
@@ -369,7 +369,7 @@ public class DataResponseFormatter implements IDiscordFormatter, IServiceConsume
 			if(detail.getPartySpecies() != null)
 				builder.append("With "+ TextUtility.flexFormToProper(detail.getPartySpecies().getName()) +" as party member & ");
 			if(detail.getMinHappiness() != 0)
-				builder.append("Min happiness: "+detail.getMinHappiness() + " & ");
+				builder.append("Min happiness "+detail.getMinHappiness() + " & ");
 			if(detail.getHeldItem() != null)
 				builder.append("Holding item "+ TextUtility.flexFormToProper(detail.getHeldItem().getName()) +" & ");
 			if(detail.getKnownMove() != null)
