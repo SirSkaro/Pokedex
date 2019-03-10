@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
@@ -74,14 +75,12 @@ public class ShinyCommand extends PokedexCommand
 	}
 
 	@Override
-	public Mono<Response> respondTo(Input input, User requester)
+	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{
 		if(!input.isValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 
-		PerkService perkService = (PerkService)services.getService(ServiceType.PERK);
-		
-		if(!perkService.userHasPerksForTier(requester, PerkTier.YOUNGSTER_LASS).block())
+		if(!perkAffordedToUser(requester, guild))
 		{
 			return Mono.just(createNonPrivilegedReply(input))
 					.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
@@ -109,10 +108,13 @@ public class ShinyCommand extends PokedexCommand
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
-//	private boolean privilegesAllowedForUser()
-//	{
-//		
-//	}
+	private boolean perkAffordedToUser(User user, Guild guild)
+	{
+		PerkService perkService = (PerkService)services.getService(ServiceType.PERK);
+		
+		return (perkService.userHasPerksForTier(user, PerkTier.YOUNGSTER_LASS).block() 
+				|| perkService.ownerOfGuildHasPerksForTier(guild, PerkTier.CHAMPION).block());
+	}
 
 	private Response createNonPrivilegedReply(Input input)
 	{

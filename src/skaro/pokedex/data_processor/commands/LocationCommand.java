@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
@@ -90,7 +91,7 @@ public class LocationCommand extends PokedexCommand
 	}
 	
 	@Override
-	public Mono<Response> respondTo(Input input, User requester)
+	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{ 
 		Response reply = new Response();
 		

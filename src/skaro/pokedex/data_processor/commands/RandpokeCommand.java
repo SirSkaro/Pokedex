@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
@@ -72,7 +73,7 @@ public class RandpokeCommand extends PokedexCommand
 	}
 	
 	@Override
-	public Mono<Response> respondTo(Input input, User requester)
+	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		EmbedCreateSpec builder = new EmbedCreateSpec();

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
@@ -76,7 +77,7 @@ public class MoveCommand extends PokedexCommand
 	}
 	
 	@Override
-	public Mono<Response> respondTo(Input input, User requester)
+	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{
 		if(!input.isValid())
 			return Mono.just(formatter.invalidInputResponse(input));

@@ -1,5 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
@@ -54,7 +55,7 @@ public class HelpCommand extends PokedexCommand
 	}
 	
 	@Override
-	public Mono<Response> respondTo(Input input, User requester)
+	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{ 
 		if(input.getArgument(0) instanceof NoneArgument)
 			return Mono.just(defaultResponse);

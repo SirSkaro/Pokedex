@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.eclipse.jetty.util.MultiMap;
 
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
@@ -69,7 +70,7 @@ public class StatsCommand extends PokedexCommand
 	}
 	
 	@Override
-	public Mono<Response> respondTo(Input input, User author)
+	public Mono<Response> respondTo(Input input, User author, Guild guild)
 	{ 
 		if(!input.isValid())
 			return Mono.just(formatter.invalidInputResponse(input));

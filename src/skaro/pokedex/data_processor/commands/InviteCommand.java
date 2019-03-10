@@ -1,5 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
@@ -45,7 +46,7 @@ public class InviteCommand extends PokedexCommand
 	@Override
 	public String getArguments() { return "none"; }
 	@Override
-	public Mono<Response> respondTo(Input input, User requester) {  return Mono.just(staticDiscordReply); }
+	public Mono<Response> respondTo(Input input, User requester, Guild guild) {  return Mono.just(staticDiscordReply); }
 	
 	@Override
 	public boolean hasExpectedServices(IServiceManager services) 
