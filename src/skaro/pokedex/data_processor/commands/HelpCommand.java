@@ -54,7 +54,7 @@ public class HelpCommand extends PokedexCommand
 	}
 	
 	@Override
-	public Mono<Response> prepareResponse(Input input, User requester)
+	public Mono<Response> respondTo(Input input, User requester)
 	{ 
 		if(input.getArgument(0) instanceof NoneArgument)
 			return Mono.just(defaultResponse);

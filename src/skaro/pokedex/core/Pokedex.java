@@ -59,6 +59,7 @@ import skaro.pokedex.services.EmojiService;
 import skaro.pokedex.services.FlexCacheService;
 import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokedex.services.PerkService;
+import skaro.pokedex.services.PerkTierManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceException;
@@ -168,7 +169,7 @@ public class Pokedex
 	{
 		Optional<String> patreonAccessToken = configService.getConfigData("access_token", "patreon");
 		PatreonAPI patreonClient = new PatreonAPI(patreonAccessToken.get());
-		return new PerkService(patreonClient);
+		return new PerkService(patreonClient, new PerkTierManager());
 	}
 	
 	private static PokeFlexService createPokeFlexService(ConfigurationService configService, Scheduler scheduler)

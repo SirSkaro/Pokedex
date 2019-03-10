@@ -45,7 +45,7 @@ public class CommandsCommand extends PokedexCommand
 	}
 	
 	@Override
-	public Mono<Response> prepareResponse(Input input, User requester)
+	public Mono<Response> respondTo(Input input, User requester)
 	{ 
 		CommandService commands;
 		ColorService colorService;

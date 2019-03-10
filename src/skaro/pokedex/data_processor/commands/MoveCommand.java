@@ -76,7 +76,7 @@ public class MoveCommand extends PokedexCommand
 	}
 	
 	@Override
-	public Mono<Response> prepareResponse(Input input, User requester)
+	public Mono<Response> respondTo(Input input, User requester)
 	{
 		if(!input.isValid())
 			return Mono.just(formatter.invalidInputResponse(input));

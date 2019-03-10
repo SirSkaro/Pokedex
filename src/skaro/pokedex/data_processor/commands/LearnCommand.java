@@ -106,7 +106,7 @@ public class LearnCommand extends PokedexCommand
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public Mono<Response> prepareResponse(Input input, User requester)
+	public Mono<Response> respondTo(Input input, User requester)
 	{ 
 		if(!inputIsValid(null, input))
 			return Mono.just(formatter.invalidInputResponse(input));

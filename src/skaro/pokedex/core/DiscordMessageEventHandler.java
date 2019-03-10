@@ -190,7 +190,7 @@ public class DiscordMessageEventHandler
 		try
 		{
 			User author = struct.author;
-			return command.prepareResponse(input, author);
+			return command.respondTo(input, author);
 		}
 		catch(Exception e)
 		{

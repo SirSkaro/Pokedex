@@ -17,6 +17,7 @@ import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.ConfigurationService;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.PerkService;
+import skaro.pokedex.services.PerkTier;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
@@ -73,14 +74,14 @@ public class ShinyCommand extends PokedexCommand
 	}
 
 	@Override
-	public Mono<Response> prepareResponse(Input input, User requester)
+	public Mono<Response> respondTo(Input input, User requester)
 	{
 		if(!input.isValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 
 		PerkService perkService = (PerkService)services.getService(ServiceType.PERK);
 		
-		if(!perkService.userHasCommandPrivileges(requester))
+		if(!perkService.userHasPerksForTier(requester, PerkTier.YOUNGSTER_LASS).block())
 		{
 			return Mono.just(createNonPrivilegedReply(input))
 					.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
@@ -107,6 +108,11 @@ public class ShinyCommand extends PokedexCommand
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
+	
+//	private boolean privilegesAllowedForUser()
+//	{
+//		
+//	}
 
 	private Response createNonPrivilegedReply(Input input)
 	{

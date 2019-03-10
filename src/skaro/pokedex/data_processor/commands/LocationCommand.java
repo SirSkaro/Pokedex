@@ -90,7 +90,7 @@ public class LocationCommand extends PokedexCommand
 	}
 	
 	@Override
-	public Mono<Response> prepareResponse(Input input, User requester)
+	public Mono<Response> respondTo(Input input, User requester)
 	{ 
 		Response reply = new Response();
 		
