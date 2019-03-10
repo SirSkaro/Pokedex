@@ -21,6 +21,7 @@ public class PerkService implements IService, IServiceConsumer
 	private IServiceManager services;
 	private PerkTierManager tierManager;
 	private MySQLManager sqlManager;
+	private final Snowflake SUPPORT_SERVER_ID = Snowflake.of(339583821072564255L);
 	
 	public PerkService(PatreonAPI pClient, PerkTierManager tierManager)
 	{
@@ -60,10 +61,15 @@ public class PerkService implements IService, IServiceConsumer
 				.switchIfEmpty(Mono.just(false));
 	}
 	
-	public Mono<Boolean> ownerOfGuildHasPerksForTier(Guild guild, PerkTier tier)
+	public Mono<Boolean> ownerOfGuildHasPerksForTier(Guild guildToCheck, PerkTier tier)
 	{
-		return guild.getOwner()
-				.flatMap(owner -> userHasPerksForTier(owner, tier));
+		if(guildToCheck == null)
+			return Mono.just(false);
+		return Mono.just(guildToCheck)
+				.filter(guild -> !guild.getId().equals(SUPPORT_SERVER_ID))
+				.flatMap(guild -> guild.getOwner())
+				.flatMap(owner -> userHasPerksForTier(owner, tier))
+				.switchIfEmpty(Mono.just(false));
 	}
 	
 	public Mono<User> getPokemonsAdopterIfPledged(String pokemon)
@@ -109,7 +115,7 @@ public class PerkService implements IService, IServiceConsumer
 		{
 			JSONAPIDocument<List<Campaign>> apiResponse = patreonClient.fetchCampaigns();
 			Campaign campagin = apiResponse.get().get(0);
-			return campagin.getPledges();
+			return patreonClient.fetchAllPledges(campagin.getId());
 		}
 		catch(Exception e)
 		{

@@ -188,7 +188,8 @@ public class DiscordMessageEventHandler
 	{
 		return message.getGuild()
 				.doOnNext(guild -> struct.guild = guild)
-				.map(channel -> struct);
+				.map(channel -> struct)
+				.switchIfEmpty(Mono.just(struct));
 	}
 
 	private Mono<Response> getResponseFromCommand(ReplyStructure struct)
