@@ -74,19 +74,16 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 		Type type = (Type)data.getValue(Type.class.getName(), 0);
 		Optional<Image> image = move.getImage("en", 7);
 		
-		//Header
 		response.addToReply("**__"+
 				TextUtility.flexFormToProper(move.getNameInLanguage(lang.getFlexKey()))+
 				" | " + TextUtility.formatGeneration(move.getGeneration().getName(), lang) + "__**");
 		
-		//Data for attacking moves
 		if(!move.getDamageClass().getName().equals("status"))
 		{
 			builder.addField(MoveField.BASE_POWER.getFieldTitle(lang), Integer.toString(move.getPower()), true);
 			builder.addField(MoveField.Z_POWER.getFieldTitle(lang), formatZPower(type, move.getZPower()), true);
 		}
 		
-		//Data for all Moves
 		builder.addField(MoveField.ACCURACY.getFieldTitle(lang), (move.getAccuracy() != 0 ? Integer.toString(move.getAccuracy()) : "-"), true);
 		builder.addField(MoveField.CATEGORY.getFieldTitle(lang), formatCategory((MoveDamageClass)data.getValue(MoveDamageClass.class.getName(), 0), lang), true);
 		builder.addField(MoveField.TYPE.getFieldTitle(lang), formatType(type, lang), true);
@@ -97,7 +94,6 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 			builder.addField(MoveField.CONTEST.getFieldTitle(lang), formatContest((ContestType)data.getValue(ContestType.class.getName(), 0), lang), true);
 		builder.addField(MoveField.DESC.getFieldTitle(lang), formatDescription(move, lang), false);
 		
-		//English-only data
 		if(lang == Language.ENGLISH)
 		{
 			if(move.getZBoost() != null)
@@ -107,11 +103,10 @@ public class MoveResponseFormatter implements IDiscordFormatter, IServiceConsume
 			
 			builder.addField("Technical Description", move.getLdesc(), false);
 			
-			if(move.getFlags() != null)
+			if(move.getFlags() != null && !move.getFlags().isEmpty())
 				builder.addField("Other Properties", formatFlags(move), false);
 		}
 		
-		//Image
 		if(image.isPresent())
 			builder.setImage(image.get().getUrl());
 		
