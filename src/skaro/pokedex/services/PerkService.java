@@ -1,9 +1,12 @@
 package skaro.pokedex.services;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.patreon.PatreonAPI;
 import com.patreon.resources.Campaign;
@@ -17,17 +20,24 @@ import skaro.pokedex.input_processor.MySQLManager;
 
 public class PerkService implements IService, IServiceConsumer
 {
+	private Cache<Long, Pledge> pledgeCache;
 	private PatreonAPI patreonClient;
 	private IServiceManager services;
 	private PerkTierManager tierManager;
 	private MySQLManager sqlManager;
-	private final Snowflake SUPPORT_SERVER_ID = Snowflake.of(339583821072564255L);
+	private static final Snowflake SUPPORT_SERVER_ID = Snowflake.of(339583821072564255L);
 	
 	public PerkService(PatreonAPI pClient, PerkTierManager tierManager)
 	{
 		this.tierManager = tierManager;
 		patreonClient = pClient;
 		sqlManager = MySQLManager.getInstance();
+		
+		pledgeCache = Caffeine.newBuilder()
+				.weakValues()
+				.expireAfterAccess(Duration.ofHours(30L))
+				.maximumSize(50)
+				.build();
 	}
 	
 	@Override
@@ -96,14 +106,24 @@ public class PerkService implements IService, IServiceConsumer
 	
 	private Mono<Pledge> getPledgeForUser(long userDiscordId)
 	{
-		List<Pledge> pledges = getAllPledges();
+		Pledge usersPledge = pledgeCache.getIfPresent(userDiscordId);
+		if(usersPledge != null)
+			return Mono.just(usersPledge);
 		
-		for(Pledge pledge : pledges)
+		return getAndCachePledgeForUser(userDiscordId);
+	}
+	
+	private Mono<Pledge> getAndCachePledgeForUser(long userDiscordId)
+	{
+		for(Pledge pledge : getAllPledges())
 		{
 			com.patreon.resources.User userPatronInfo = pledge.getPatron();
 			Optional<String> userDiscordID = extractDiscordId(userPatronInfo);
 			if(userDiscordID.isPresent() && Long.parseLong(userDiscordID.get()) == userDiscordId)
+			{
+				pledgeCache.put(userDiscordId, pledge);
 				return Mono.just(pledge);
+			}
 		}
 		
 		return Mono.empty();
