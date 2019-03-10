@@ -2,6 +2,7 @@ package skaro.pokedex.data_processor.commands;
 
 import java.util.Optional;
 
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
@@ -62,7 +63,7 @@ public class AboutCommand extends PokedexCommand
 	@Override
 	public String getArguments() { return "none"; }
 	@Override
-	public Mono<Response> prepareResponse(Input input, User requester) 
+	public Mono<Response> respondTo(Input input, User requester, Guild guild) 
 	{ return Mono.just(staticDiscordReply); }
 	
 	private void setStaticReplyFields(EmbedCreateSpec builder)

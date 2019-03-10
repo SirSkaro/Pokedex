@@ -5,6 +5,7 @@ import java.util.Optional;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.event.domain.message.MessageUpdateEvent;
 import discord4j.core.object.VoiceState;
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.GuildChannel;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
@@ -77,7 +78,8 @@ public class DiscordMessageEventHandler
 				.flatMap(struct -> addChannelOfMessageToStructure(struct, receivedMessage))
 				.filterWhen(struct -> botHasPermissionsForThisChannel(struct, PermissionSet.of(Permission.SEND_MESSAGES)))
 				.filter(struct -> !rateLimiter.channelIsRateLimited(struct.channel.getId()))
-				.flatMap(struct -> addPrivateChannelToStructure(struct, struct.author));
+				.flatMap(struct -> addPrivateChannelToStructure(struct, struct.author))
+				.flatMap(struct -> addGuildToStructure(struct, receivedMessage));
 	}
 	
 	private Mono<Boolean> botHasPermissionsForThisChannel(ReplyStructure struct, PermissionSet neededPermissions)
@@ -181,6 +183,14 @@ public class DiscordMessageEventHandler
 				.doOnNext(channel -> struct.privateChannel = channel)
 				.map(channel -> struct);
 	}
+	
+	private Mono<ReplyStructure> addGuildToStructure(ReplyStructure struct, Message message)
+	{
+		return message.getGuild()
+				.doOnNext(guild -> struct.guild = guild)
+				.map(channel -> struct)
+				.switchIfEmpty(Mono.just(struct));
+	}
 
 	private Mono<Response> getResponseFromCommand(ReplyStructure struct)
 	{
@@ -190,7 +200,8 @@ public class DiscordMessageEventHandler
 		try
 		{
 			User author = struct.author;
-			return command.prepareResponse(input, author);
+			Guild guild = struct.guild;
+			return command.respondTo(input, author, guild);
 		}
 		catch(Exception e)
 		{
@@ -205,6 +216,7 @@ public class DiscordMessageEventHandler
 	
 	private class ReplyStructure
 	{
+		Guild guild;
 		Message ackMessage;
 		MessageChannel channel;
 		PrivateChannel privateChannel;

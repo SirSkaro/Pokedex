@@ -1,5 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
@@ -45,7 +46,7 @@ public class CommandsCommand extends PokedexCommand
 	}
 	
 	@Override
-	public Mono<Response> prepareResponse(Input input, User requester)
+	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{ 
 		CommandService commands;
 		ColorService colorService;

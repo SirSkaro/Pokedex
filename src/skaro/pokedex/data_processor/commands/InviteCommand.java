@@ -1,5 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
@@ -33,7 +34,7 @@ public class InviteCommand extends PokedexCommand
 		EmbedCreateSpec builder = new EmbedCreateSpec();	
 		builder.setColor(colorService.getPokedexColor());
 		
-		builder.addField("Invite Pokdex to your server!", "[Click to invite Pokedex](https://discordapp.com/oauth2/authorize?client_id=206147222746824704&scope=bot&permissions=37080128)", false);
+		builder.addField("Invite Pokedex to your server!", "[Click to invite Pokedex](https://discordapp.com/oauth2/authorize?client_id=206147222746824704&scope=bot&permissions=37080128)", false);
 		builder.addField("Join Pokedex's home server!", "[Click to join Pokedex's server](https://discord.gg/D5CfFkN)", false);
 		
 		staticDiscordReply.setEmbed(builder);
@@ -45,7 +46,7 @@ public class InviteCommand extends PokedexCommand
 	@Override
 	public String getArguments() { return "none"; }
 	@Override
-	public Mono<Response> prepareResponse(Input input, User requester) {  return Mono.just(staticDiscordReply); }
+	public Mono<Response> respondTo(Input input, User requester, Guild guild) {  return Mono.just(staticDiscordReply); }
 	
 	@Override
 	public boolean hasExpectedServices(IServiceManager services) 

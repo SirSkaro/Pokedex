@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 
 import discord4j.core.object.entity.User;
+import discord4j.core.object.entity.Guild;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.commands.ArgumentRange;
@@ -90,7 +91,7 @@ public abstract class PokedexCommand implements IServiceConsumer
 	
 	abstract public boolean makesWebRequest();
 	abstract public String getArguments();
-	abstract public Mono<Response> prepareResponse(Input input, User author);
+	abstract public Mono<Response> respondTo(Input input, User author, Guild guild);
 	
 	protected boolean inputIsValid(Response reply, Input input) { return true; }
 	
@@ -163,7 +164,7 @@ public abstract class PokedexCommand implements IServiceConsumer
 	protected Mono<Pokemon> addAdopter(Pokemon pokemon, EmbedCreateSpec builder)
 	{
 		PerkService checker = (PerkService)services.getService(ServiceType.PERK);
-		Mono<User> result = checker.getPokemonsAdopter(pokemon.getName())
+		Mono<User> result = checker.getPokemonsAdopterIfPledged(pokemon.getName())
 				.doOnNext(user -> builder.setAuthor(user.getUsername() + "'s "+ TextUtility.flexFormToProper(pokemon.getName()), null, getPatreonLogo()));
 
 		return result.then(Mono.just(pokemon));
