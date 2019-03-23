@@ -8,14 +8,14 @@ public class GenArgument extends CommandArgument
 {
 	public GenArgument()
 	{
-		
+		this.category = ArgumentCategory.GEN;
 	}
 	
+	@Override
 	public void setUp(String argument, Language lang) 
 	{
 		//Set up argument
 		this.dbForm = TextUtility.dbFormat(argument, lang).replaceAll("[^0-9]", "");
-		this.category = ArgumentCategory.GEN;
 		this.rawInput = argument;
 		
 		//Check if resource is recognized. If it is not recognized, attempt to spell check it.
@@ -30,7 +30,7 @@ public class GenArgument extends CommandArgument
 		this.flexForm = this.dbForm;
 	}
 	
-	public boolean isGen(String s)
+	private boolean isGen(String s)
 	{
 		if(s.length() != 1)
 			return false;

@@ -10,6 +10,7 @@ public class NoneArgument extends CommandArgument
 		
 	}
 	
+	@Override
 	public void setUp(String argument, Language lang) 
 	{
 		this.valid = true;
