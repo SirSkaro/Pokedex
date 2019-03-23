@@ -59,12 +59,12 @@
 			<artifactId>reactor-core</artifactId>
 			<version>3.2.5.RELEASE</version>
 		</dependency>
-		<!-- Discord4j v3 -->
+		<!-- Discord4j -->
 		<dependency>
 			<!-- <groupId>com.github.austinv11</groupId> -->
 			<groupId>com.discord4j.discord4j</groupId>
 			<artifactId>discord4j-core</artifactId>
-			<version>v3-SNAPSHOT</version>
+			<version>3.0.0</version>
 		</dependency>
 		<!-- Logback Classic: SLF4J Binding -->
 		<dependency>
