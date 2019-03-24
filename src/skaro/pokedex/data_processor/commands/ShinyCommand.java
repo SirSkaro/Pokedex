@@ -9,7 +9,7 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -33,7 +33,7 @@ public class ShinyCommand extends PokedexCommand
 	private final String baseModelPath;
 	private final String defaultPokemon;
 	
-	public ShinyCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
+	public ShinyCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))

@@ -9,7 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
-import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.Statistic;
 import skaro.pokedex.data_processor.TextUtility;
@@ -34,7 +34,7 @@ import skaro.pokeflex.objects.pokemon_form.PokemonForm;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.type.Type;
 
-public class DataResponseFormatter implements IDiscordFormatter, IServiceConsumer
+public class DataResponseFormatter implements ResponseFormatter, IServiceConsumer
 {
 	private IServiceManager services;
 	

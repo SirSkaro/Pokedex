@@ -11,7 +11,7 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
 import skaro.pokedex.input_processor.CommandArgument;
@@ -33,7 +33,7 @@ import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
 public class WeakCommand extends PokedexCommand 
 {
-	public WeakCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
+	public WeakCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))

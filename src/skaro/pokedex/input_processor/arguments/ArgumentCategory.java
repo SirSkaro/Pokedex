@@ -43,6 +43,11 @@ public enum ArgumentCategory
 		return Arrays.asList(createArgument(MoveArgument.class, itr, lang));
 	}},	
 	
+	ZMOVE{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
+	{
+		return Arrays.asList(createArgument(ZMoveArgument.class, itr, lang));
+	}},	
+	
 	META{public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
 		return Arrays.asList(createArgument(MetaArgument.class, itr, lang));
@@ -88,6 +93,13 @@ public enum ArgumentCategory
 	public List<CommandArgument> parse(Iterator<String> itr, Language lang)
 	{
 		List<CommandArgument> possibleArguments = createArguments(itr, lang, MoveArgument.class, TypeArgument.class);
+		return Arrays.asList(chooseBestArgument(possibleArguments));
+	}},	
+	
+	TYPE_ZMOVE{@SuppressWarnings("unchecked")
+	public List<CommandArgument> parse(Iterator<String> itr, Language lang)
+	{
+		List<CommandArgument> possibleArguments = createArguments(itr, lang, TypeArgument.class, ZMoveArgument.class);
 		return Arrays.asList(chooseBestArgument(possibleArguments));
 	}},	
 	

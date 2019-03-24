@@ -15,10 +15,12 @@ import skaro.pokeflex.objects.type.Type;
 public class TypeData implements ICachedData
 {
 	private final Map<String, Type> typeMap;
+	private final Map<String, String> zMoveMap;
 	
 	public TypeData(PokeFlexService factory)
 	{
 		typeMap = new HashMap<>();
+		zMoveMap = new HashMap<>();
 		initialize(factory);
 	}
 	
@@ -26,6 +28,11 @@ public class TypeData implements ICachedData
 	public Type getByName(String name)
 	{
 		return typeMap.get(name);
+	}
+	
+	public String getZMoveByType(String typeName)
+	{
+		return zMoveMap.get(typeName);
 	}
 	
 	public List<Type> getAllTypes()
@@ -44,11 +51,20 @@ public class TypeData implements ICachedData
 		
 		factory.createFlexObjects(concurrentRequests, factory.getScheduler())
 			.ofType(Type.class)
-			.doOnNext(learnMethod -> typeMap.put(learnMethod.getName(), learnMethod))
+			.doOnNext(type -> typeMap.put(type.getName(), type))
+			.doOnNext(type -> mapZMoveToType(type))
 		.subscribe(value -> System.out.println("[TypeData] Cached data"), 
 					error -> {
 						System.out.println("[TypeData] Unable to get all Types from external API");
 						System.exit(1);
 					});
+	}
+	
+	private void mapZMoveToType(Type type)
+	{
+		type.getMoves().stream()
+			.filter(move -> move.getName().contains("--physical"))
+			.findFirst()
+			.ifPresent(zMove -> zMoveMap.put(type.getName(), zMove.getName()));
 	}
 }

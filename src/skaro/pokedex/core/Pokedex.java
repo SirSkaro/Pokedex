@@ -38,6 +38,7 @@ import skaro.pokedex.data_processor.commands.SetCommand;
 import skaro.pokedex.data_processor.commands.ShinyCommand;
 import skaro.pokedex.data_processor.commands.StatsCommand;
 import skaro.pokedex.data_processor.commands.WeakCommand;
+import skaro.pokedex.data_processor.commands.ZMoveCommand;
 import skaro.pokedex.data_processor.formatters.AbilityResponseFormatter;
 import skaro.pokedex.data_processor.formatters.CoverageResponseFormatter;
 import skaro.pokedex.data_processor.formatters.DataResponseFormatter;
@@ -49,6 +50,7 @@ import skaro.pokedex.data_processor.formatters.RandpokeResponseFormatter;
 import skaro.pokedex.data_processor.formatters.ShinyResponseFormatter;
 import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
 import skaro.pokedex.data_processor.formatters.WeakResponseFormatter;
+import skaro.pokedex.data_processor.formatters.ZMoveResponseFormatter;
 import skaro.pokedex.input_processor.InputProcessor;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.CommandService;
@@ -217,6 +219,7 @@ public class Pokedex
 		commandService.addCommand(new LearnCommand(commandServiceBuilder.build(), new LearnResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new MoveCommand(commandServiceBuilder.build(), new MoveResponseFormatter(serviceBuilderEmoji.build())));
 		commandService.addCommand(new DataCommand(commandServiceBuilder.build(), new DataResponseFormatter(serviceBuilderEmoji.build())));
+		commandService.addCommand(new ZMoveCommand(commandServiceBuilder.build(), new ZMoveResponseFormatter(serviceBuilderEmoji.build())));
 		
 		//ColorService, PokeFlexService, PerkService, TypeService
 		commandServiceBuilder.removeService(ServiceType.CACHE);

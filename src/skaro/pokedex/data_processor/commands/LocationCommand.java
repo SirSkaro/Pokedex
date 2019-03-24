@@ -11,7 +11,7 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.CommandArgument;
@@ -34,7 +34,7 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 
 public class LocationCommand extends PokedexCommand 
 {
-	public LocationCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
+	public LocationCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))

@@ -22,7 +22,7 @@ public class ResourceDictionary
 		languageMap = new HashMap<>();
 		for(Language lang : supportedLanguages)
 		{
-			SpellDictionary dictionary = populateDict(fileName, lang);
+			SpellDictionary dictionary = createDictionary(fileName, lang);
 			languageMap.put(lang, dictionary);
 		}
 	}
@@ -30,15 +30,16 @@ public class ResourceDictionary
 	public String spellCheckPhrase(String word, Language lang)
 	{
 		word = word.toLowerCase();
+		SpellDictionary dictionary = languageMap.get(lang);
 		String[] temp = word.split(" ");
 		StringBuilder output = new StringBuilder();
 		for(int i = 0; i < temp.length; i++)
-			output.append(getBestSuggestion(languageMap.get(lang), temp[i]) + " ");
+			output.append(getBestSuggestion(dictionary, temp[i]) + " ");
 		
 		return output.toString().trim();
 	}
 	
-	private SpellDictionary populateDict(String fileName, Language lang) throws IOException
+	private SpellDictionary createDictionary(String fileName, Language lang) throws IOException
 	{
 		String line;
 		SpellDictionary result = new SpellDictionaryHashMap();

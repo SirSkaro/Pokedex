@@ -10,7 +10,7 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeData;
@@ -32,7 +32,7 @@ import skaro.pokeflex.objects.type.Type;
 
 public class MoveCommand extends PokedexCommand 
 {
-	public MoveCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
+	public MoveCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))

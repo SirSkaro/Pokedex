@@ -30,6 +30,7 @@ public class SpellChecker
 		dictionaryMap.put(SQLResource.POKEMON, new ResourceDictionary("pokemon.txt", supportedLanguages));
 		dictionaryMap.put(SQLResource.TYPE, new ResourceDictionary("types.txt", supportedLanguages));
 		dictionaryMap.put(SQLResource.VERSION, new ResourceDictionary("versions.txt", supportedLanguages));
+		dictionaryMap.put(SQLResource.ZMOVE, new ResourceDictionary("zmoves.txt", supportedLanguages));
 	}
 	
 	public static SpellChecker getInstance()

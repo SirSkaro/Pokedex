@@ -13,7 +13,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.LearnMethodData;
 import skaro.pokedex.data_processor.LearnMethodWrapper;
 import skaro.pokedex.data_processor.Response;
@@ -40,7 +40,7 @@ import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
 public class LearnCommand extends PokedexCommand
 {
-	public LearnCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
+	public LearnCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))

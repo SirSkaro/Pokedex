@@ -5,7 +5,7 @@ import java.io.File;
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
-import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
@@ -20,7 +20,7 @@ import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
-public class ShinyResponseFormatter implements IDiscordFormatter, IServiceConsumer
+public class ShinyResponseFormatter implements ResponseFormatter, IServiceConsumer
 {
 	private final String baseModelPath;
 	private IServiceManager services;
@@ -63,8 +63,6 @@ public class ShinyResponseFormatter implements IDiscordFormatter, IServiceConsum
 	@Override
 	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder)
 	{
-		String path;
-		File image;
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		Language lang = input.getLanguage();
 		Response response = new Response();
@@ -76,8 +74,8 @@ public class ShinyResponseFormatter implements IDiscordFormatter, IServiceConsum
 			+ " | " + TextUtility.formatGeneration(species.getGeneration().getName(), lang) + "__**");
 		
 		//Upload local file
-		path = baseModelPath + "/" + pokemon.getName() + ".gif";
-		image = new File(path);
+		String path = baseModelPath + "/" + pokemon.getName() + ".gif";
+		File image = new File(path);
 		response.addImage(image);
 		
 		//Add images

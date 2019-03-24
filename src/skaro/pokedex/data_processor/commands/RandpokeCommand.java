@@ -12,7 +12,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -29,7 +29,7 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 
 public class RandpokeCommand extends PokedexCommand 
 {
-	public RandpokeCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
+	public RandpokeCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))
