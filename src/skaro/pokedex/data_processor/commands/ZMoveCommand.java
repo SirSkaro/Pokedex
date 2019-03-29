@@ -22,6 +22,7 @@ import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.Request;
+import skaro.pokeflex.objects.item.Item;
 import skaro.pokeflex.objects.move.Move;
 import skaro.pokeflex.objects.type.Type;
 
@@ -91,7 +92,11 @@ public class ZMoveCommand extends PokedexCommand
 						.doOnNext(move -> {
 							dataMap.put(Move.class.getName(), move);
 							dataMap.put(Type.class.getName(), cachedTypeData.getByName(move.getType().getName()));
-						}).then(Mono.just(dataMap)));
+						})
+						.map(move -> new Request(Endpoint.ITEM, move.getCrystal()))
+						.flatMap(itemRequest -> itemRequest.makeRequest(factory))
+						.doOnNext(item -> dataMap.put(Item.class.getName(), item))
+						.then(Mono.just(dataMap)));
 		
 		this.addRandomExtraMessage(builder);
 		return result
