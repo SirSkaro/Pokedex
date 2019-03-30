@@ -126,7 +126,7 @@ public class ShinyCommand extends PokedexCommand
 		if(!input.getArgument(0).getDbForm().equals(defaultPokemon))
 		{
 			builder.setImage("attachment://jirachi.gif");
-			builder.setColor(colorService.getColorForType("psychic"));
+			builder.setColor(colorService.getColorForPatreon());
 			String path = baseModelPath + "/"+ defaultPokemon +".gif";
 			response.addImage(new File(path));
 			builder.setFooter("Pledge $1 to receive this perk!", this.getPatreonLogo());
