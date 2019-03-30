@@ -3,12 +3,12 @@ package skaro.pokedex.input_processor.arguments;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.SQLResource;
 
-public class PokemonArgument extends CommandArgument
+public class ZMoveArgument extends CommandArgument
 {
-	public PokemonArgument()
+	public ZMoveArgument()
 	{
 		super();
-		this.category = ArgumentCategory.POKEMON;
-		this.sqlResource = SQLResource.POKEMON;
+		this.category = ArgumentCategory.ZMOVE;
+		this.sqlResource = SQLResource.ZMOVE;
 	}
 }

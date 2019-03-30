@@ -1,38 +1,22 @@
 package skaro.pokedex.input_processor.arguments;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Language;
 
 public class MetaArgument extends CommandArgument 
 {
-	private static List<String> metas;
-	
-	static
-	{
-		metas = new ArrayList<String>();
-		metas.add("lc"); metas.add("nu"); metas.add("uber");
-		metas.add("ou"); metas.add("pu"); metas.add("ru"); metas.add("uu");
-	}
-	
 	public MetaArgument()
 	{
-		
+		this.category = ArgumentCategory.META;
 	}
 
 	public void setUp(String argument, Language lang) 
 	{
-		//Set up argument
 		this.dbForm = TextUtility.dbFormat(argument, lang);
-		this.category = ArgumentCategory.META;
 		this.rawInput = argument;
 		
-		//Check if resource is recognized. If it is not recognized, attempt to spell check it.
-		//If it is still not recognized, then return the argument as invalid (default)
-		if(!isMeta(this.dbForm))
+		if(!Meta.isMeta(this.dbForm))
 		{
 			this.valid = false;
 			return;
@@ -42,8 +26,31 @@ public class MetaArgument extends CommandArgument
 		this.flexForm = this.dbForm;
 	}
 	
-	private boolean isMeta(String s)
+	private enum Meta 
 	{
-		return metas.contains(s);
+		LC("lc"),
+		NU("nu"),
+		PU("pu"),
+		RU("ru"),
+		UU("uu"),
+		OU("ou"),
+		UBER("uber"),
+		;
+		
+		private String name;
+		
+		private Meta(String name)
+		{
+			this.name = name;
+		}
+		
+		public static boolean isMeta(String metaName)
+		{
+			for(Meta meta : Meta.values())
+				if(meta.name.equals(metaName))
+					return true;
+			
+			return false;
+		}
 	}
 }

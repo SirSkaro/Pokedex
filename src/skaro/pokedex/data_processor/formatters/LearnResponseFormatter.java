@@ -8,7 +8,7 @@ import java.util.Map;
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
-import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.LearnMethodWrapper;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextUtility;
@@ -24,7 +24,7 @@ import skaro.pokeflex.objects.move_learn_method.MoveLearnMethod;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
-public class LearnResponseFormatter implements IDiscordFormatter, IServiceConsumer
+public class LearnResponseFormatter implements ResponseFormatter, IServiceConsumer
 {
 	private IServiceManager services;
 	

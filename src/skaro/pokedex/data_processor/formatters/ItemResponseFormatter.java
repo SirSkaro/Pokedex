@@ -7,7 +7,7 @@ import java.util.Optional;
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
-import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
@@ -23,7 +23,7 @@ import skaro.pokeflex.objects.item.Item;
 import skaro.pokeflex.objects.item_category.ItemCategory;
 import skaro.pokeflex.objects.type.Type;
 
-public class ItemResponseFormatter implements IDiscordFormatter, IServiceConsumer
+public class ItemResponseFormatter implements ResponseFormatter, IServiceConsumer
 {
 	private IServiceManager services;
 	

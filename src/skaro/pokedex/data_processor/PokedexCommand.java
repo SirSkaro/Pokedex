@@ -30,7 +30,7 @@ public abstract class PokedexCommand implements IServiceConsumer
 	protected List<String> extraMessages;
 	protected EmbedCreateSpec helpMessage;
 	protected Map<String, Language> aliases;
-	protected IDiscordFormatter formatter;
+	protected ResponseFormatter formatter;
 	protected IServiceManager services;
 	
 	public PokedexCommand(IServiceManager serviceManager)
@@ -41,7 +41,7 @@ public abstract class PokedexCommand implements IServiceConsumer
 		populateDefaultExtraMessage();
 	}
 	
-	public PokedexCommand(IServiceManager serviceManager, IDiscordFormatter discordFormatter)
+	public PokedexCommand(IServiceManager serviceManager, ResponseFormatter discordFormatter)
 	{
 		services = serviceManager;
 		formatter = discordFormatter;

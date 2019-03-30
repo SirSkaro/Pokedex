@@ -5,7 +5,7 @@ import java.util.List;
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
-import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
@@ -24,7 +24,7 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.type.Type;
 
-public class WeakResponseFormatter implements IDiscordFormatter, IServiceConsumer 
+public class WeakResponseFormatter implements ResponseFormatter, IServiceConsumer 
 {
 	private IServiceManager services;
 	

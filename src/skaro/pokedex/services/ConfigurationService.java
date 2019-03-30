@@ -146,6 +146,15 @@ public class ConfigurationService implements IService
 		return dataNode.get(dataKey).asText();
 	}
 	
+	public String getZMoveClipPath()
+	{
+		JsonNode dataNode = rootNode.get("zmove_clip_path");
+		if(dataNode == null)
+			throw new IllegalStateException("No database congifuration data could be found.");
+		
+		return dataNode.get(dataKey).asText();
+	}
+	
 	public String getDebugLevel()
 	{
 		JsonNode dataNode = rootNode.get("debug_level");

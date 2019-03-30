@@ -8,14 +8,13 @@ public class AnyArgument extends CommandArgument
 {
 	public AnyArgument()
 	{
-		
-	};
+		this.category = ArgumentCategory.ANY_NONE;
+	}
 	
 	@Override
 	public void setUp(String argument, Language lang)
 	{
 		this.dbForm = TextUtility.dbFormat(argument, lang);
-		this.category = ArgumentCategory.ANY_NONE;
 		this.rawInput = argument;
 		this.valid = true;
 	}

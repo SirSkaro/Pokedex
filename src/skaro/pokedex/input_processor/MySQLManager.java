@@ -47,15 +47,59 @@ public class MySQLManager
 		return instance;
 	}
 	
-	public Optional<ResultSet> dbQuery(String query)
+	public Optional<String> getFlexFormOfResource(SQLResource resourceType, String resource, Language lang)
 	{
-		Statement stmt;
+		String query = "SELECT flex_form FROM "+ resourceType.getTableName() + " WHERE "+lang.getSQLAttribute()+" = '"+resource+"';";
+		Optional<ResultSet> resultSetCheck = executeQuery(query);
+		
+		if(!resultSetCheck.isPresent())
+			return Optional.empty();
+		
+		return getFlexForm(resultSetCheck.get());
+	}
+	
+	public boolean userIsDiscordVIP(long id)
+	{
+		Optional<ResultSet> dataCheck = executeQuery("SELECT user_id FROM DiscordVIP WHERE user_id = "+id+";");
+		
+		if(!dataCheck.isPresent())
+			return false;
+		
+		try 
+		{
+			ResultSet result = dataCheck.get();
+			boolean exists = result.next();
+			result.close();
+			return exists; 
+		} 
+		catch (SQLException e) { return false; }
+	}
+	
+	public Optional<Long> getPokemonsAdopter(String pokemon)
+	{
+		Optional<ResultSet> dataCheck = executeQuery("SELECT user_id FROM DiscordAdopter WHERE pokemon = \""+pokemon+"\";");
 		ResultSet rs;
 		
+		if(!dataCheck.isPresent())
+			return Optional.empty();
+			
+		try
+		{ 
+			rs = dataCheck.get();
+			rs.next();
+			long userId = rs.getLong(1);
+			rs.close();
+			return Optional.of(userId); 
+		} 
+		catch (SQLException e) { return Optional.empty(); }
+	}
+	
+	private Optional<ResultSet> executeQuery(String query)
+	{
 		try
 		{
-			stmt = con.createStatement();
-			rs = stmt.executeQuery(query);
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
 			return Optional.of(rs);
 		}
 		catch (SQLException e) 
@@ -67,93 +111,12 @@ public class MySQLManager
 		try 
 		{
 			resultSet.next();
-			return Optional.of(resultSet.getString("flex_form"));
+			String flexForm = resultSet.getString("flex_form");
+			resultSet.close();
+			return Optional.ofNullable(flexForm);
 		} 
 		catch (SQLException e) 
 		{ return Optional.empty(); }
 	}
-	
-	public Optional<String> getPokemonFlexForm(String dbForm, Language lang)
-	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Pokemon WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
-		
-		if(!dataCheck.isPresent())
-			return Optional.empty();
-		return getFlexForm(dataCheck.get());
-	}
-	
-	public Optional<String> getTypeFlexForm(String dbForm, Language lang)
-	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Type WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
-		
-		if(!dataCheck.isPresent())
-			return Optional.empty();
-		return getFlexForm(dataCheck.get());
-	}
-	
-	public Optional<String> getAbilityFlexForm(String dbForm, Language lang)
-	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Ability WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
-		
-		if(!dataCheck.isPresent())
-			return Optional.empty();
-		return getFlexForm(dataCheck.get());
-	}
-	
-	public Optional<String> getMoveFlexForm(String dbForm, Language lang)
-	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Move WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
-		
-		if(!dataCheck.isPresent())
-			return Optional.empty();
-		return getFlexForm(dataCheck.get());
-	}
-	
-	public Optional<String> getItemFlexForm(String dbForm, Language lang)
-	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Item WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
-		
-		if(!dataCheck.isPresent())
-			return Optional.empty();
-		return getFlexForm(dataCheck.get());
-	}
-	
-	public Optional<String> getVersionFlexForm(String dbForm, Language lang) 
-	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT flex_form FROM Version WHERE "+lang.getSQLAttribute()+" = '"+dbForm+"';");
-		
-		if(!dataCheck.isPresent())
-			return Optional.empty();
-		return getFlexForm(dataCheck.get());
-	}
-	
-	public boolean userIsDiscordVIP(long id)
-	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT user_id FROM DiscordVIP WHERE user_id = "+id+";");
-		
-		//If some error occurs, assume the data does not exist
-		if(!dataCheck.isPresent())
-			return false;
-		
-		try { return dataCheck.get().next(); } 
-		catch (SQLException e) { return false; }
-	}
-	
-	public Optional<Long> getPokemonsAdopter(String pokemon)
-	{
-		Optional<ResultSet> dataCheck = dbQuery("SELECT user_id FROM DiscordAdopter WHERE pokemon = \""+pokemon+"\";");
-		ResultSet rs;
-		
-		//If some error occurs, assume the data does not exist
-		if(!dataCheck.isPresent())
-			return Optional.empty();
-			
-		try
-		{ 
-			rs = dataCheck.get();
-			rs.next();
-			return Optional.of(rs.getLong(1)); 
-		} 
-		catch (SQLException e) { return Optional.empty(); }
-	}
 }
+

@@ -10,7 +10,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
 import skaro.pokedex.input_processor.CommandArgument;
@@ -30,7 +30,7 @@ import skaro.pokeflex.objects.move.Move;
 
 public class CoverageCommand extends PokedexCommand 
 {
-	public CoverageCommand(IServiceManager services, IDiscordFormatter formatter) throws ServiceConsumerException
+	public CoverageCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))

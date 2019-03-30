@@ -9,7 +9,7 @@ import javax.sound.sampled.AudioInputStream;
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
-import skaro.pokedex.data_processor.IDiscordFormatter;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.CommandArgument;
@@ -26,7 +26,7 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.version.Version;
 
-public class DexResponseFormatter implements IDiscordFormatter, IServiceConsumer
+public class DexResponseFormatter implements ResponseFormatter, IServiceConsumer
 {
 	private IServiceManager services;
 

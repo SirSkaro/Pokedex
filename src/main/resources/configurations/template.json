@@ -74,6 +74,11 @@
 		"production": ""
 	},
 	
+	"zmove_clip_path": {
+		"debug": "",
+		"production": ""
+	},
+	
 	"debug_level": {
 		"debug": "",
 		"production": ""

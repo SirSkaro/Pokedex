@@ -8,7 +8,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokeflex.api.IFlexObject;
 
-public interface IDiscordFormatter 
+public interface ResponseFormatter 
 {
 	public Response invalidInputResponse(Input input);
 	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder);
