@@ -66,6 +66,9 @@ public class ZMoveCommand extends PokedexCommand
 		aliases.put("z기술", Language.KOREAN);
 		aliases.put("Ｚ招式", Language.CHINESE_SIMPMLIFIED);
 		aliases.put("z招式", Language.CHINESE_SIMPMLIFIED);
+		
+		createHelpMessage("Bloom Doom", "Fire", "10000000 volt thunderbolt", "Guardian of Alola",
+				"https://cdn.discordapp.com/attachments/377981091287400448/561425563554676738/unknown.png");
 	}
 
 	@Override
