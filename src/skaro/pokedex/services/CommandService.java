@@ -40,7 +40,7 @@ public class CommandService implements IService
 		return cache.asMap().containsKey(cmd);
 	}
 	
-	public PokedexCommand getCommandByAnyAlias(String key)
+	public PokedexCommand getByAnyAlias(String key)
 	{
 		return cache.getIfPresent(key);
 	}

@@ -75,7 +75,7 @@ public class HelpCommand extends PokedexCommand
 				return Mono.empty();
 			}
 
-			command = commands.getCommandByAnyAlias(arg);
+			command = commands.getByAnyAlias(arg);
 			reply.addToReply("__**"+TextUtility.flexFormToProper(command.getCommandName())+" Command**__");
 			reply.setEmbed(command.getHelpMessage());
 			return Mono.just(reply);

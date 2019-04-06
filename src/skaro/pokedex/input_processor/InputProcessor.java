@@ -73,7 +73,7 @@ public class InputProcessor
 	
 	private Input createInputFromParsedText(ParsedText parsedText)
 	{
-		PokedexCommand command = commandService.getCommandByAnyAlias(parsedText.getFunction());
+		PokedexCommand command = commandService.getByAnyAlias(parsedText.getFunction());
 		Language lang = command.getLanguageOfAlias(parsedText.getFunction());
 		InputBuilder builder = Input.newBuilder();
 		List<CommandArgument> parsedArguments = parseArguments(parsedText, command.getArgumentCategories(), lang);

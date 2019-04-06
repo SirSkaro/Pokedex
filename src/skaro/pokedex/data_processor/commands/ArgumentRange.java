@@ -5,7 +5,7 @@ public class ArgumentRange
 	private int miniumum;
 	private int maximum;
 	
-	ArgumentRange(int min, int max)
+	public ArgumentRange(int min, int max)
 	{
 		miniumum = min;
 		maximum = max;
@@ -13,6 +13,8 @@ public class ArgumentRange
 	
 	public int getMin() { return miniumum; }
 	public int getMax() { return maximum; }
+	public void setMin(int min) { miniumum = min; }
+	public void setMax(int max) { maximum = max; }
 	
 	public boolean numberInRange(int number)
 	{
