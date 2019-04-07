@@ -8,13 +8,12 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.AbilityArgument;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.PokeFlexService;
@@ -77,7 +76,7 @@ public class AbilityCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{
-		if(!input.anyArgumentInvalid())
+		if(!input.allArgumentValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 
 		EmbedCreateSpec builder = new EmbedCreateSpec();
@@ -86,7 +85,7 @@ public class AbilityCommand extends PokedexCommand
 
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 
-		if(input.getArgument(0).getCategory() == ArgumentCategory.ABILITY)
+		if(input.getArgument(0) instanceof AbilityArgument)
 		{
 			Request request = new Request(Endpoint.ABILITY, userInput);
 			result = Mono.just(new MultiMap<IFlexObject>())

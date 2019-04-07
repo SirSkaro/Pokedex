@@ -47,6 +47,7 @@ import skaro.pokedex.data_processor.formatters.ItemResponseFormatter;
 import skaro.pokedex.data_processor.formatters.LearnResponseFormatter;
 import skaro.pokedex.data_processor.formatters.MoveResponseFormatter;
 import skaro.pokedex.data_processor.formatters.RandpokeResponseFormatter;
+import skaro.pokedex.data_processor.formatters.SetResponseFormatter;
 import skaro.pokedex.data_processor.formatters.ShinyResponseFormatter;
 import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
 import skaro.pokedex.data_processor.formatters.WeakResponseFormatter;
@@ -209,7 +210,7 @@ public class Pokedex
 		commandServiceBuilder.addService(ServiceType.PERK);
 		commandService.addCommand(new AbilityCommand(commandServiceBuilder.build(), new AbilityResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new RandpokeCommand(commandServiceBuilder.build(), new RandpokeResponseFormatter(serviceBuilderColor.build())));
-		commandService.addCommand(new SetCommand(commandServiceBuilder.build()));
+		commandService.addCommand(new SetCommand(commandServiceBuilder.build(), new SetResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new ShinyCommand(commandServiceBuilder.build(), new ShinyResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new StatsCommand(commandServiceBuilder.build(), new StatsResponseFormatter(serviceBuilderColor.build())));
 		

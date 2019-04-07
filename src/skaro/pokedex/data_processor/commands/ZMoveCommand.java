@@ -15,7 +15,6 @@ import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.TypeArgument;
 import skaro.pokedex.input_processor.arguments.ZMoveArgument;
 import skaro.pokedex.services.ColorService;
@@ -87,7 +86,7 @@ public class ZMoveCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User author, Guild guild)
 	{
-		if(!input.anyArgumentInvalid())
+		if(!input.allArgumentValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		if(!perkAffordedToUser(author, guild))
@@ -103,7 +102,7 @@ public class ZMoveCommand extends PokedexCommand
 		FlexCacheService flexCache = (FlexCacheService)services.getService(ServiceType.CACHE);
 		TypeData cachedTypeData = (TypeData)flexCache.getCachedData(CachedResource.TYPE);
 		
-		if(input.getArgument(0).getCategory() == ArgumentCategory.TYPE)
+		if(input.getArgument(0) instanceof TypeArgument)
 			userInput = cachedTypeData.getZMoveByType(userInput);
 		
 		Request request = new Request(Endpoint.MOVE, userInput);

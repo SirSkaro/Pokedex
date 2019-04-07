@@ -93,8 +93,6 @@ public abstract class PokedexCommand implements IServiceConsumer
 	abstract public Mono<Response> respondTo(Input input, User author, Guild guild);
 	abstract protected void createArgumentSpecifications();
 	
-	protected boolean inputIsValid(Response reply, Input input) { return true; }
-	
 	protected String listToItemizedString(List<?> list)
 	{
 		if(list.isEmpty())

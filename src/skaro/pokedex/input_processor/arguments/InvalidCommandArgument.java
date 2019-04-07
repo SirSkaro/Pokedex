@@ -11,6 +11,7 @@ public abstract class InvalidCommandArgument extends CommandArgument
 	
 	public InvalidCommandArgument(List<Class<? extends CommandArgument>> arguments)
 	{
+		super("Invalid", null);
 		argumentCategories = arguments;
 		this.valid = false;
 	}

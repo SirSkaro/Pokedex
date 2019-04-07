@@ -7,8 +7,6 @@ public class MoveArgument extends CommandArgument
 {
 	public MoveArgument()
 	{
-		super();
-		this.category = ArgumentCategory.MOVE;
-		this.sqlResource = SQLResource.MOVE;
+		super("Move", SQLResource.MOVE);
 	}
 }

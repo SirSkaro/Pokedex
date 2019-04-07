@@ -21,8 +21,8 @@ import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.MoveArgument;
+import skaro.pokedex.input_processor.arguments.NoneArgument;
 import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.services.FlexCacheService;
 import skaro.pokedex.services.FlexCacheService.CachedResource;
@@ -81,35 +81,11 @@ public class LearnCommand extends PokedexCommand
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.CACHE);
 	}
 	
-	@Override
-	public boolean inputIsValid(Response reply, Input input)
-	{
-		if(!input.anyArgumentInvalid())
-		{
-//			switch(input.getError())
-//			{
-//				case ARGUMENT_NUMBER:
-//					return false;
-//				default:
-//					break;
-//			}
-			
-			//Because inputs that are not valid (case 2) are allowed this far, it is necessary to check if
-			//the Pokemon is valid but allow other arguments to go unchecked
-			if(!input.getArgument(0).isValid())
-			{
-				return false;
-			}
-		}
-		
-		return true;
-	}
-	
 	@SuppressWarnings("unchecked")
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{ 
-		if(!inputIsValid(null, input))
+		if(!input.allArgumentValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
@@ -119,17 +95,15 @@ public class LearnCommand extends PokedexCommand
 		List<PokeFlexRequest> initialRequests = new ArrayList<>();
 		MultiMap<IFlexObject> dataToFormat = new MultiMap<>();
 		
+		//Get data of Pokemon
+		initialRequests.add(new Request(Endpoint.POKEMON, input.getArgument(0).getFlexForm()));
+		
 		for(int i = 1; i < input.getArguments().size(); i++)
 		{
 			CommandArgument arg = input.getArgument(i);
-			if(arg.isValid())
+			if(!(arg instanceof NoneArgument))
 				initialRequests.add(new Request(Endpoint.MOVE, arg.getFlexForm()));
-			else
-				dataToFormat.add(LearnMethodWrapper.class.getName(), new LearnMethodWrapper(arg.getRawInput()));
 		}
-		
-		//Get data of Pokemon
-		initialRequests.add(new Request(Endpoint.POKEMON, input.getArgument(0).getFlexForm()));
 		
 		result = Mono.just(dataToFormat)
 				.flatMap(dataMap -> Flux.fromIterable(initialRequests)

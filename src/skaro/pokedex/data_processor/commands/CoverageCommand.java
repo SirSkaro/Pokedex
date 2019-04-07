@@ -17,7 +17,6 @@ import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.MoveArgument;
 import skaro.pokedex.input_processor.arguments.TypeArgument;
 import skaro.pokedex.services.IServiceManager;
@@ -77,7 +76,7 @@ public class CoverageCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{ 
-		if(!input.anyArgumentInvalid())
+		if(!input.allArgumentValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();
@@ -85,7 +84,7 @@ public class CoverageCommand extends PokedexCommand
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		
 		result = result
-				.flatMap(dataMap -> Flux.fromIterable(input.getArguments())
+				.flatMap(dataMap -> Flux.fromIterable(input.getNonEmptyArguments())
 				.parallel()
 				.runOn(factory.getScheduler())
 				.flatMap(userArgument -> getTypeFromArgument(userArgument))
@@ -114,7 +113,7 @@ public class CoverageCommand extends PokedexCommand
 	{
 		Mono<String> result;
 		
-		if(argument.getCategory() == ArgumentCategory.MOVE)
+		if(argument instanceof MoveArgument)
 		{
 			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 			

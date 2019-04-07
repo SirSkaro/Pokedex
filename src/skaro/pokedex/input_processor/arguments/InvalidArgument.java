@@ -7,9 +7,10 @@ import skaro.pokedex.input_processor.Language;
 
 public class InvalidArgument extends InvalidCommandArgument
 {
-	public InvalidArgument(List<Class<? extends CommandArgument>> arguments)
+	public InvalidArgument(String textFromUser, List<Class<? extends CommandArgument>> arguments)
 	{
 		super(arguments);
+		this.rawInput = textFromUser;
 	}
 	
 	@Override
@@ -19,11 +20,11 @@ public class InvalidArgument extends InvalidCommandArgument
 	public String createErrorMessage()
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.append("\"").append(this.rawInput).append("\"");
+		builder.append(":small_red_triangle_down:").append("\"").append(this.rawInput).append("\"");
 		builder.append(" is not a recognized ");
 		
 		for(Class<? extends CommandArgument> argumentCategory : argumentCategories)
-			builder.append(argumentCategory.getName()).append(" or ");
+			builder.append("`").append(argumentCategory.getSimpleName()).append("`").append(" or ");
 		
 		return builder.substring(0, builder.lastIndexOf(" or "));
 	}

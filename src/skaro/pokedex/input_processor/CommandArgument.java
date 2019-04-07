@@ -3,26 +3,31 @@ package skaro.pokedex.input_processor;
 import java.util.Optional;
 
 import skaro.pokedex.data_processor.TextUtility;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 
 public abstract class CommandArgument 
 {
-	protected String rawInput;	
+	protected String argumentName;
+	protected String rawInput;
 	protected String dbForm;		
 	protected String flexForm;
 	protected boolean valid;		
 	protected boolean isSpellChecked;	
-	protected ArgumentCategory category;	
 	protected SQLResource sqlResource;
 	protected static MySQLManager sqlManager = MySQLManager.getInstance();
 	protected static SpellChecker sc = SpellChecker.getInstance();
 	
+	public String getArgumentname() {return argumentName; }
 	public String getRawInput() { return rawInput; }
 	public String getDbForm() { return dbForm; }
 	public String getFlexForm() { return flexForm; }
 	public boolean isValid() { return valid; }
 	public boolean isSpellChecked() { return isSpellChecked; }
-	public ArgumentCategory getCategory() { return category; }
+	
+	public CommandArgument(String name, SQLResource resource)
+	{
+		argumentName = name;
+		sqlResource = resource;
+	}
 	
 	@Override
 	public String toString()

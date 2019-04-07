@@ -72,7 +72,7 @@ public class ItemCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{
-		if(!input.anyArgumentInvalid())
+		if(!input.allArgumentValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		Mono<MultiMap<IFlexObject>> result;

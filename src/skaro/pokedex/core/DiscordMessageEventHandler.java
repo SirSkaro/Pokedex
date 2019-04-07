@@ -211,7 +211,7 @@ public class DiscordMessageEventHandler
 	
 	private boolean shouldHaveAckMessage(Input input)
 	{
-		return input.getCommand().makesWebRequest() && input.anyArgumentInvalid();
+		return input.getCommand().makesWebRequest() && input.allArgumentValid();
 	}
 	
 	private class ReplyStructure

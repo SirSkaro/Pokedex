@@ -7,8 +7,6 @@ public class ZMoveArgument extends CommandArgument
 {
 	public ZMoveArgument()
 	{
-		super();
-		this.category = ArgumentCategory.ZMOVE;
-		this.sqlResource = SQLResource.ZMOVE;
+		super("Z Move", SQLResource.ZMOVE);
 	}
 }

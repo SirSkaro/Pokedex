@@ -7,6 +7,7 @@ public class NoneArgument extends CommandArgument
 {
 	public NoneArgument()
 	{
+		super("None", null);
 		this.valid = true;
 	}
 	

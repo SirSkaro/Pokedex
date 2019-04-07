@@ -76,7 +76,7 @@ public class ShinyCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{
-		if(!input.anyArgumentInvalid())
+		if(!input.allArgumentValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 
 		if(!perkAffordedToUser(requester, guild))

@@ -27,10 +27,10 @@ public class MissingArgument extends InvalidCommandArgument
 	public String createErrorMessage()
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.append("You must also specify a ");
+		builder.append(":small_red_triangle_down:").append("You must also specify a ");
 		
 		for(Class<? extends CommandArgument> argumentCategory : argumentCategories)
-			builder.append(argumentCategory.getName()).append(" or ");
+			builder.append("`").append(argumentCategory.getSimpleName()).append("`").append(" or ");
 		
 		return builder.substring(0, builder.lastIndexOf(" or "));
 	}

@@ -7,8 +7,6 @@ public class PokemonArgument extends CommandArgument
 {
 	public PokemonArgument()
 	{
-		super();
-		this.category = ArgumentCategory.POKEMON;
-		this.sqlResource = SQLResource.POKEMON;
+		super("Pokemon", SQLResource.POKEMON);
 	}
 }

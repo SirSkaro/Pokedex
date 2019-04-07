@@ -8,7 +8,7 @@ public class GenArgument extends CommandArgument
 {
 	public GenArgument()
 	{
-		this.category = ArgumentCategory.GEN;
+		super("Generation", null);
 	}
 	
 	@Override

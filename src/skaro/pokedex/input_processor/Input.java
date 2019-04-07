@@ -2,9 +2,11 @@ package skaro.pokedex.input_processor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.input_processor.arguments.InvalidCommandArgument;
+import skaro.pokedex.input_processor.arguments.NoneArgument;
 
 public class Input 
 {
@@ -36,6 +38,13 @@ public class Input
 		return arguments.get(index);
 	}
 	
+	public List<CommandArgument> getNonEmptyArguments()
+	{
+		return arguments.stream()
+				.filter(argument -> !(argument instanceof NoneArgument))
+				.collect(Collectors.toList());
+	}
+	
 	public String argsToString()
 	{
 		if(arguments.isEmpty())
@@ -49,10 +58,13 @@ public class Input
 		return builder.substring(0, builder.length() - 2);
 	}
 	
-	public boolean anyArgumentInvalid()
+	public boolean allArgumentValid()
 	{
-		return arguments.stream()
-				.anyMatch(argument -> argument instanceof InvalidCommandArgument);
+		for(CommandArgument argument : arguments)
+			if(argument instanceof InvalidCommandArgument)
+				return false;
+		
+		return true;
 	}
 	
 	@Override

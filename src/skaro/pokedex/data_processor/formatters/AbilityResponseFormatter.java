@@ -14,7 +14,7 @@ import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.AbilityArgument;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.IServiceConsumer;
 import skaro.pokedex.services.IServiceManager;
@@ -48,7 +48,7 @@ public class AbilityResponseFormatter implements ResponseFormatter, IServiceCons
 	{
 		Language lang = input.getLanguage();
 		
-		if(input.getArgument(0).getCategory() == ArgumentCategory.ABILITY)
+		if(input.getArgument(0) instanceof AbilityArgument)
 			return formatFromAbilityArgument(data, lang, builder);
 		return formatFromPokemonArgument(data, lang, builder);
 	}

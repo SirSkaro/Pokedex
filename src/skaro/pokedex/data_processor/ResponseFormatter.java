@@ -18,6 +18,8 @@ public interface ResponseFormatter
 	{
 		Response response = new Response();
 		
+		response.addToReply("Could not process your request due to the following reasons:");
+		
 		for(CommandArgument argument : input.getArguments())
 		{
 			if(argument instanceof InvalidCommandArgument)

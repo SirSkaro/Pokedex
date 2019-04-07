@@ -36,11 +36,11 @@ public class ArgumentSpec
 				parsedArguments.add(possibleArgument);
 			}
 
-			return chooseBestArgument(parsedArguments);
+			return chooseBestArgument(rawArgument, parsedArguments);
 		}
 		catch(Exception e)
 		{
-			return new InvalidArgument(Lists.newArrayList(argumentCategories));
+			return new InvalidArgument(rawArgument, Lists.newArrayList(argumentCategories));
 		}
 	}
 	
@@ -52,7 +52,7 @@ public class ArgumentSpec
 		return new MissingArgument(Lists.newArrayList(argumentCategories));
 	}
 
-	private CommandArgument chooseBestArgument(List<CommandArgument> arguments)
+	private CommandArgument chooseBestArgument(String rawArgument, List<CommandArgument> arguments)
 	{
 		Optional<CommandArgument> possibleBestArgument = arguments.stream()
 				.filter(CommandArgument::isValid)
@@ -69,7 +69,7 @@ public class ArgumentSpec
 		if(possibleBestArgument.isPresent())
 			return possibleBestArgument.get();
 
-		return new InvalidArgument(Lists.newArrayList(argumentCategories));
+		return new InvalidArgument(rawArgument, Lists.newArrayList(argumentCategories));
 	}
 
 }

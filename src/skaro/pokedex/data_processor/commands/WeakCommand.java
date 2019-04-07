@@ -17,7 +17,6 @@ import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.input_processor.arguments.TypeArgument;
 import skaro.pokedex.services.IServiceManager;
@@ -77,14 +76,14 @@ public class WeakCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{ 
-		if(!input.anyArgumentInvalid())
+		if(!input.allArgumentValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>());
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		
-		if(input.getArgument(0).getCategory() == ArgumentCategory.POKEMON)
+		if(input.getArgument(0) instanceof PokemonArgument)
 		{	
 			String pokemonName = input.getArgument(0).getFlexForm();
 			Request pokemonRequest = new Request(Endpoint.POKEMON, pokemonName);
@@ -102,7 +101,7 @@ public class WeakCommand extends PokedexCommand
 		}
 		else
 		{
-			result = result.doOnNext(dataMap -> dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapperFromArguments(input.getArguments())));
+			result = result.doOnNext(dataMap -> dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapperFromArguments(input.getNonEmptyArguments())));
 		}
 		
 		this.addRandomExtraMessage(builder);
@@ -132,7 +131,6 @@ public class WeakCommand extends PokedexCommand
 	{
 		TypeService typeService = (TypeService)services.getService(ServiceType.TYPE);
 		List<String> typeNames = types.stream()
-				.filter(argument -> argument instanceof TypeArgument)
 				.map(argument -> argument.getFlexForm())
 				.collect(Collectors.toList());
 		
