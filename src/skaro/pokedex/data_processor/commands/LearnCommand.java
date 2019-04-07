@@ -12,21 +12,24 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.LearnMethodData;
 import skaro.pokedex.data_processor.LearnMethodWrapper;
+import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.MoveArgument;
+import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.services.FlexCacheService;
+import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
-import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexRequest;
@@ -47,9 +50,6 @@ public class LearnCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "learn".intern();
-		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
-		orderedArgumentCategories.add(ArgumentCategory.MOVE_LIST);
-		expectedArgRange = new ArgumentRange(2,5);
 		
 		aliases.put("knows", Language.ENGLISH);
 		aliases.put("erlernen", Language.GERMAN);
@@ -84,15 +84,15 @@ public class LearnCommand extends PokedexCommand
 	@Override
 	public boolean inputIsValid(Response reply, Input input)
 	{
-		if(!input.isValid())
+		if(!input.anyArgumentInvalid())
 		{
-			switch(input.getError())
-			{
-				case ARGUMENT_NUMBER:
-					return false;
-				default:
-					break;
-			}
+//			switch(input.getError())
+//			{
+//				case ARGUMENT_NUMBER:
+//					return false;
+//				default:
+//					break;
+//			}
 			
 			//Because inputs that are not valid (case 2) are allowed this far, it is necessary to check if
 			//the Pokemon is valid but allow other arguments to go unchecked
@@ -171,6 +171,16 @@ public class LearnCommand extends PokedexCommand
 			return result
 					.map(dataMap -> formatter.format(input, dataMap, builder))
 					.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, PokemonArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(false, MoveArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(true, MoveArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(true, MoveArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(true, MoveArgument.class));
 	}
 	
 	private Map<String, Move> getAllLearnableMoves(Pokemon thisPokemon, List<Pokemon> preEvolutions)

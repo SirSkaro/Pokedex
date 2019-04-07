@@ -9,7 +9,6 @@ import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.ConfigurationService;
 import skaro.pokedex.services.IServiceManager;
@@ -36,9 +35,6 @@ public class AboutCommand extends PokedexCommand
 			version = configurator.get().getVersion();
 		
 		commandName = "about".intern();
-		orderedArgumentCategories.add(ArgumentCategory.NONE);
-		expectedArgRange = new ArgumentRange(0,0);
-		
 		staticDiscordReply = new Response();
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();	
@@ -65,6 +61,12 @@ public class AboutCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild) 
 	{ return Mono.just(staticDiscordReply); }
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		
+	}
 	
 	private void setStaticReplyFields(EmbedCreateSpec builder)
 	{

@@ -47,16 +47,6 @@ public class LearnResponseFormatter implements ResponseFormatter, IServiceConsum
 	{
 		Response response = new Response();
 		
-		switch(input.getError())
-		{
-			case ARGUMENT_NUMBER:
-				response.addToReply("You must specify 1 Pokemon and 1 to 4 Moves as input for this command "
-						+ "(seperated by commas).");
-				return response;	
-			default:
-				break;
-		}
-		
 		//Because inputs that are not valid (case 2) are allowed this far, it is necessary to check if
 		//the Pokemon is valid but allow other arguments to go unchecked
 		if(!input.getArgument(0).isValid())

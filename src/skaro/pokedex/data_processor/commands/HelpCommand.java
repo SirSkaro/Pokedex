@@ -7,8 +7,9 @@ import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextUtility;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.AnyArgument;
 import skaro.pokedex.input_processor.arguments.NoneArgument;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.CommandService;
@@ -27,8 +28,6 @@ public class HelpCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "help".intern();
-		orderedArgumentCategories.add(ArgumentCategory.ANY_NONE);
-		expectedArgRange = new ArgumentRange(0,1);
 		defaultResponse = new Response();
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();	
@@ -84,6 +83,12 @@ public class HelpCommand extends PokedexCommand
 		{
 			return Mono.just(this.createErrorResponse(input, e));
 		}
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(true, AnyArgument.class));
 	}
 	
 }

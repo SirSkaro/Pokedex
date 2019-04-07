@@ -12,11 +12,10 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
@@ -36,8 +35,6 @@ public class RandpokeCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "randpoke".intern();
-		orderedArgumentCategories.add(ArgumentCategory.NONE);
-		expectedArgRange = new ArgumentRange(0,0);
 		aliases.put("rand", Language.ENGLISH);
 		aliases.put("randompoke", Language.ENGLISH);
 		aliases.put("randompokemon", Language.ENGLISH);
@@ -95,6 +92,12 @@ public class RandpokeCommand extends PokedexCommand
 				.flatMap(pokemon -> this.addAdopter(pokemon, builder))
 				.map(pokemon -> formatter.format(input, dataMap, builder)))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		
 	}
 	
 	private List<PokeFlexRequest> createRequests(int pokedexNumber)

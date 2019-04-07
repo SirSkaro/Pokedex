@@ -43,7 +43,7 @@ public class DiscordMessageEventHandler
 
 		return processMessageEvent(newlyReceivedMessage, possibleContent.get())
 				.map(reply -> reply.input)
-				.onErrorResume(error -> Mono.empty());
+				.onErrorResume(error -> {error.printStackTrace(); return Mono.empty();});
 	}
 
 	public Mono<Input> onMessageEditEvent(MessageUpdateEvent event)
@@ -211,7 +211,7 @@ public class DiscordMessageEventHandler
 	
 	private boolean shouldHaveAckMessage(Input input)
 	{
-		return input.getCommand().makesWebRequest() && input.isValid();
+		return input.getCommand().makesWebRequest() && input.anyArgumentInvalid();
 	}
 	
 	private class ReplyStructure

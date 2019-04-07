@@ -9,11 +9,12 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.ConfigurationService;
 import skaro.pokedex.services.IServiceManager;
@@ -40,8 +41,6 @@ public class ShinyCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "shiny".intern();
-		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
-		expectedArgRange = new ArgumentRange(1,1);
 		baseModelPath = ConfigurationService.getInstance().get().getModelBasePath();
 		defaultPokemon = "jirachi";
 		
@@ -77,7 +76,7 @@ public class ShinyCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{
-		if(!input.isValid())
+		if(!input.anyArgumentInvalid())
 			return Mono.just(formatter.invalidInputResponse(input));
 
 		if(!perkAffordedToUser(requester, guild))
@@ -106,6 +105,12 @@ public class ShinyCommand extends PokedexCommand
 		return result
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, PokemonArgument.class));
 	}
 	
 	private boolean perkAffordedToUser(User user, Guild guild)

@@ -45,26 +45,6 @@ public class ZMoveResponseFormatter implements ResponseFormatter, IServiceConsum
 	}
 
 	@Override
-	public Response invalidInputResponse(Input input)
-	{
-		Response response = new Response();
-		
-		switch(input.getError())
-		{
-			case ARGUMENT_NUMBER:
-				response.addToReply("You must specify exactly one Type or Z-Move as input for this command.".intern());
-			break;
-			case INVALID_ARGUMENT:
-				response.addToReply("\""+input.getArgument(0).getRawInput() +"\" is not a recognized Type or Z-Move in "+input.getLanguage().getName());
-			break;
-			default:
-				response.addToReply("A technical error occured");
-		}
-		
-		return response;
-	}
-
-	@Override
 	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder)
 	{
 		Response response = new Response();

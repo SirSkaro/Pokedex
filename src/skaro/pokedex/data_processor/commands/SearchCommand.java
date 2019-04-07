@@ -20,8 +20,6 @@ import skaro.pokedex.services.ServiceType;
 
 public class SearchCommand extends PokedexCommand
 {
-	private List<ArgumentSpec> argumentSpecifications;
-	
 	public SearchCommand(IServiceManager serviceManager, ResponseFormatter discordFormatter) throws ServiceConsumerException
 	{
 		super(serviceManager, discordFormatter);
@@ -35,20 +33,6 @@ public class SearchCommand extends PokedexCommand
 				"");
 	}
 	
-	private void createArgumentSpecifications()
-	{
-		argumentSpecifications = new ArrayList<>();
-		
-		ArgumentSpec argumentSpec = new ArgumentSpec(false, MoveArgument.class, AbilityArgument.class, TypeArgument.class);
-		argumentSpecifications.add(argumentSpec);
-		for(int i = 0; i < 8; i++)
-		{
-			argumentSpec = new ArgumentSpec(false, MoveArgument.class, AbilityArgument.class, TypeArgument.class);
-		}
-		
-		argumentSpecifications.add(argumentSpec);
-	}
-
 	@Override
 	public boolean makesWebRequest() { return true; }
 
@@ -69,6 +53,21 @@ public class SearchCommand extends PokedexCommand
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX);
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications = new ArrayList<>();
+		
+		ArgumentSpec argumentSpec = new ArgumentSpec(false, MoveArgument.class, AbilityArgument.class, TypeArgument.class);
+		argumentSpecifications.add(argumentSpec);
+		for(int i = 0; i < 8; i++)
+		{
+			argumentSpec = new ArgumentSpec(false, MoveArgument.class, AbilityArgument.class, TypeArgument.class);
+		}
+		
+		argumentSpecifications.add(argumentSpec);
 	}
 
 }

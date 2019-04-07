@@ -34,12 +34,6 @@ public class RandpokeResponseFormatter implements ResponseFormatter, IServiceCon
 	{
 		return services.hasServices(ServiceType.COLOR);
 	}
-	
-	@Override
-	public Response invalidInputResponse(Input input) 
-	{
-		return null;
-	}
 
 	@Override
 	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder) 

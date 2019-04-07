@@ -7,14 +7,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 
-import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.commands.ArgumentRange;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.IServiceConsumer;
 import skaro.pokedex.services.IServiceManager;
@@ -24,9 +23,8 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 
 public abstract class PokedexCommand implements IServiceConsumer
 {
-	protected ArgumentRange expectedArgRange;
 	protected String commandName;
-	protected List<ArgumentCategory> orderedArgumentCategories;
+	protected List<ArgumentSpec> argumentSpecifications;
 	protected List<String> extraMessages;
 	protected EmbedCreateSpec helpMessage;
 	protected Map<String, Language> aliases;
@@ -36,23 +34,24 @@ public abstract class PokedexCommand implements IServiceConsumer
 	public PokedexCommand(IServiceManager serviceManager)
 	{
 		services = serviceManager;
-		orderedArgumentCategories = new ArrayList<>();
+		argumentSpecifications = new ArrayList<>();
 		aliases = new HashMap<>();
 		populateDefaultExtraMessage();
+		createArgumentSpecifications();
 	}
 	
 	public PokedexCommand(IServiceManager serviceManager, ResponseFormatter discordFormatter)
 	{
 		services = serviceManager;
 		formatter = discordFormatter;
-		orderedArgumentCategories = new ArrayList<>();
+		argumentSpecifications = new ArrayList<>();
 		aliases = new HashMap<>();
 		populateDefaultExtraMessage();
+		createArgumentSpecifications();
 	}
 	
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
-	public List<ArgumentCategory> getArgumentCategories() { return orderedArgumentCategories; }
+	public List<ArgumentSpec> getArgumentSpecifications() { return argumentSpecifications; }
 	public Map<String, Language> getAliases() { return aliases; }
 	public List<String> getExtraMessages() { return extraMessages; }
 	public EmbedCreateSpec getHelpMessage() { return helpMessage; }
@@ -92,6 +91,7 @@ public abstract class PokedexCommand implements IServiceConsumer
 	abstract public boolean makesWebRequest();
 	abstract public String getArguments();
 	abstract public Mono<Response> respondTo(Input input, User author, Guild guild);
+	abstract protected void createArgumentSpecifications();
 	
 	protected boolean inputIsValid(Response reply, Input input) { return true; }
 	
@@ -135,7 +135,6 @@ public abstract class PokedexCommand implements IServiceConsumer
 		exampleBuilder.append("@Pokedex "+commandName+" "+ex4);
 		
 		builder.addField("Input", this.getArguments(), true);
-		builder.addField("Min/Max Inputs", expectedArgRange.getMin()+"/"+expectedArgRange.getMax(), true);
 		this.addAliasFields(builder);
 		builder.addField("Examples", exampleBuilder.toString(), true);
 		builder.setImage(imageURL);

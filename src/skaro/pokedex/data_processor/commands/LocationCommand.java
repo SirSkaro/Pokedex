@@ -11,13 +11,16 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TextUtility;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.PokemonArgument;
+import skaro.pokedex.input_processor.arguments.VersionArgument;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
@@ -41,9 +44,6 @@ public class LocationCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "location".intern();
-		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
-		orderedArgumentCategories.add(ArgumentCategory.VERSION);
-		expectedArgRange = new ArgumentRange(2,2);
 		aliases.put("loc", Language.ENGLISH);
 		
 		createHelpMessage("fearow, blue", "Abra, Soul Silver", "Ditto, Yellow", "trubbish, black 2",
@@ -65,24 +65,24 @@ public class LocationCommand extends PokedexCommand
 	@Override
 	public boolean inputIsValid(Response reply, Input input)
 	{
-		if(!input.isValid())
+		if(!input.anyArgumentInvalid())
 		{
-			switch(input.getError())
-			{
-				case ARGUMENT_NUMBER:
-					reply.addToReply("You must specify a Pokemon and a Version as input for this command "
-							+ "(seperated by commas).");
-				break;
-				case INVALID_ARGUMENT:
-					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(CommandArgument arg : input.getArguments())
-						if(!arg.isValid())
-							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
-					reply.addToReply("\n*top suggestion*: Not updated for gen7. Try versions from gens 1-6?");
-				break;
-				default:
-					reply.addToReply("A technical error occured (code 111)");
-			}
+//			switch(input.getError())
+//			{
+//				case ARGUMENT_NUMBER:
+//					reply.addToReply("You must specify a Pokemon and a Version as input for this command "
+//							+ "(seperated by commas).");
+//				break;
+//				case INVALID_ARGUMENT:
+//					reply.addToReply("Could not process your request due to the following problem(s):".intern());
+//					for(CommandArgument arg : input.getArguments())
+//						if(!arg.isValid())
+//							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
+//					reply.addToReply("\n*top suggestion*: Not updated for gen7. Try versions from gens 1-6?");
+//				break;
+//				default:
+//					reply.addToReply("A technical error occured (code 111)");
+//			}
 			
 			return false;
 		}
@@ -141,6 +141,13 @@ public class LocationCommand extends PokedexCommand
 		{ 
 			return Mono.just(this.createErrorResponse(input, e));
 		}
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, PokemonArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(false, VersionArgument.class));
 	}
 	
 	private EmbedCreateSpec formatEmbed(List<EncounterPotential> encounterDataFromVersion, String version, Pokemon pokemon) throws ServiceException 

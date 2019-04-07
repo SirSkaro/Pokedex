@@ -10,13 +10,16 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.MoveArgument;
+import skaro.pokedex.input_processor.arguments.TypeArgument;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
@@ -37,8 +40,6 @@ public class CoverageCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "coverage".intern();
-		orderedArgumentCategories.add(ArgumentCategory.MOVE_TYPE_LIST);
-		expectedArgRange = new ArgumentRange(1,4);
 		aliases.put("strong", Language.ENGLISH);
 		aliases.put("cov", Language.ENGLISH);
 		aliases.put("effective", Language.ENGLISH);
@@ -76,7 +77,7 @@ public class CoverageCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{ 
-		if(!input.isValid())
+		if(!input.anyArgumentInvalid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();
@@ -98,6 +99,15 @@ public class CoverageCommand extends PokedexCommand
 		return result
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, TypeArgument.class, MoveArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(true, TypeArgument.class, MoveArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(true, TypeArgument.class, MoveArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(true, TypeArgument.class, MoveArgument.class));
 	}
 	
 	private Mono<String> getTypeFromArgument(CommandArgument argument)

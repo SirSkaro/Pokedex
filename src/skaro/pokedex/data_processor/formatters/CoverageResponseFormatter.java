@@ -5,12 +5,11 @@ import java.util.List;
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper.Efficacy;
-import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
@@ -38,31 +37,6 @@ public class CoverageResponseFormatter implements ResponseFormatter, IServiceCon
 	public boolean hasExpectedServices(IServiceManager services) 
 	{
 		return services.hasServices(ServiceType.COLOR, ServiceType.EMOJI);
-	}
-	
-	@Override
-	public Response invalidInputResponse(Input input) 
-	{
-		Response response = new Response();
-		
-		switch(input.getError())
-		{
-			case ARGUMENT_NUMBER:
-				response.addToReply("You must specify between 1 to 4 Types or Moves as input for this command "
-						+ "(seperated by commas).");
-			break;
-			case INVALID_ARGUMENT:
-				response.addToReply("Could not process your request due to the following problem(s):".intern());
-				for(CommandArgument arg : input.getArguments())
-					if(!arg.isValid())
-						response.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized Type or Move in "+ input.getLanguage().getName());
-				response.addToReply("\n*top suggestion*: did you include commas between inputs?");
-			break;
-			default:
-				response.addToReply("A technical error occured (code 107)");
-		}
-		
-		return response;
 	}
 
 	@Override

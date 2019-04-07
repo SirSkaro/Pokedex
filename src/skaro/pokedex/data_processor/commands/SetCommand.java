@@ -14,9 +14,13 @@ import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.TextUtility;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.GenArgument;
+import skaro.pokedex.input_processor.arguments.MetaArgument;
+import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.PokeFlexService;
@@ -41,11 +45,6 @@ public class SetCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "set".intern();
-		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
-		orderedArgumentCategories.add(ArgumentCategory.META);
-		orderedArgumentCategories.add(ArgumentCategory.GEN);
-		expectedArgRange = new ArgumentRange(3,3);
-		
 		createHelpMessage("Gengar, OU, 4", "Pikachu, NU, 5", "Groudon, Uber, 6", "tapu lele, ou, 7",
 				"https://i.imgur.com/SWCCW3H.gif");
 	}
@@ -62,25 +61,25 @@ public class SetCommand extends PokedexCommand
 	
 	public boolean inputIsValid(Response reply, Input input)
 	{
-		if(!input.isValid())
+		if(!input.anyArgumentInvalid())
 		{
-			switch(input.getError())
-			{
-				case ARGUMENT_NUMBER:
-					reply.addToReply("You must specify a Pokemon, a Meta, and a Generation as input for this command "
-							+ "(seperated by commas).");
-				break;
-				case INVALID_ARGUMENT:
-					reply.addToReply("Could not process your request due to the following problem(s):".intern());
-					for(CommandArgument arg : input.getArguments())
-						if(!arg.isValid())
-							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
-					reply.addToReply("\n*top suggestion*: Only Smogon metas are supported."
-							+ "Try an official tier (Uber, OU, UU, RU, NU, PU, LC)");
-				break;
-				default:
-					reply.addToReply("A technical error occured (code 109)");
-			}
+//			switch(input.getError())
+//			{
+//				case ARGUMENT_NUMBER:
+//					reply.addToReply("You must specify a Pokemon, a Meta, and a Generation as input for this command "
+//							+ "(seperated by commas).");
+//				break;
+//				case INVALID_ARGUMENT:
+//					reply.addToReply("Could not process your request due to the following problem(s):".intern());
+//					for(CommandArgument arg : input.getArguments())
+//						if(!arg.isValid())
+//							reply.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
+//					reply.addToReply("\n*top suggestion*: Only Smogon metas are supported."
+//							+ "Try an official tier (Uber, OU, UU, RU, NU, PU, LC)");
+//				break;
+//				default:
+//					reply.addToReply("A technical error occured (code 109)");
+//			}
 			
 			return false;
 		}
@@ -120,6 +119,14 @@ public class SetCommand extends PokedexCommand
 		
 		return result
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, PokemonArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(false, MetaArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(false, GenArgument.class));
 	}
 	
 	private void formatHeader(Response response, Pokemon pokemon, Set sets, String tier, int generation)

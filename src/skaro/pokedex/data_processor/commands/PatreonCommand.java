@@ -8,7 +8,6 @@ import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
@@ -25,8 +24,6 @@ public class PatreonCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "patreon".intern();
-		orderedArgumentCategories.add(ArgumentCategory.NONE);
-		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
 		aliases.put("donate", Language.ENGLISH);
 		
@@ -53,6 +50,12 @@ public class PatreonCommand extends PokedexCommand
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.COLOR);
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+
 	}
 	
 }

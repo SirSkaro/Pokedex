@@ -42,26 +42,6 @@ public class StatsResponseFormatter implements ResponseFormatter, IServiceConsum
 	}
 	
 	@Override
-	public Response invalidInputResponse(Input input) 
-	{
-		Response response = new Response();
-		
-		switch(input.getError())
-		{
-			case ARGUMENT_NUMBER:
-				response.addToReply("You must specify exactly one Pokemon as input for this command.".intern());
-			break;
-			case INVALID_ARGUMENT:
-				response.addToReply("\""+ input.getArgument(0).getRawInput() +"\" is not a recognized Pokemon");
-			break;
-			default:
-				response.addToReply("A technical error occured (code 101)");
-		}
-		
-		return response;
-	}
-	
-	@Override
 	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder) 
 	{
 		Response response = new Response();

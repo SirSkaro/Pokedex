@@ -1,7 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.util.ArrayList;
-
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.object.entity.Guild;
@@ -9,11 +7,12 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
@@ -33,9 +32,6 @@ public class StatsCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "stats".intern();
-		orderedArgumentCategories = new ArrayList<ArgumentCategory>();
-		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
-		expectedArgRange = new ArgumentRange(1,1);
 		
 		aliases.put("statistiken", Language.GERMAN);
 		aliases.put("statistica", Language.ITALIAN);
@@ -72,7 +68,7 @@ public class StatsCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User author, Guild guild)
 	{ 
-		if(!input.isValid())
+		if(!input.anyArgumentInvalid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
@@ -95,6 +91,12 @@ public class StatsCommand extends PokedexCommand
 		return result
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, PokemonArgument.class));
 	}
 	
 }

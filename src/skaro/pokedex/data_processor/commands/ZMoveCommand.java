@@ -8,23 +8,26 @@ import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.ResponseFormatter;
-import skaro.pokedex.data_processor.TypeData;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
+import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.TypeArgument;
+import skaro.pokedex.input_processor.arguments.ZMoveArgument;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.ConfigurationService;
 import skaro.pokedex.services.FlexCacheService;
+import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.PerkService;
 import skaro.pokedex.services.PerkTier;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
-import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.Request;
@@ -44,8 +47,6 @@ public class ZMoveCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "zmove".intern();
-		orderedArgumentCategories.add(ArgumentCategory.TYPE_ZMOVE);
-		expectedArgRange = new ArgumentRange(1,1);
 		zMoveClipPath = ConfigurationService.getInstance().get().getZMoveClipPath();
 		defaultZMove = "extreme-evoboost-3";
 		
@@ -86,7 +87,7 @@ public class ZMoveCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User author, Guild guild)
 	{
-		if(!input.isValid())
+		if(!input.anyArgumentInvalid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		if(!perkAffordedToUser(author, guild))
@@ -122,6 +123,12 @@ public class ZMoveCommand extends PokedexCommand
 		return result
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, ZMoveArgument.class, TypeArgument.class));
 	}
 	
 	private boolean perkAffordedToUser(User user, Guild guild)

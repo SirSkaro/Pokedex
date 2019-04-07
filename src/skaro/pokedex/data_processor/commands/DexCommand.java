@@ -8,11 +8,13 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.PokemonArgument;
+import skaro.pokedex.input_processor.arguments.VersionArgument;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
@@ -31,9 +33,6 @@ public class DexCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "dex".intern();
-		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
-		orderedArgumentCategories.add(ArgumentCategory.VERSION);
-		expectedArgRange = new ArgumentRange(2,2);
 		
 		aliases.put("pokedex", Language.ENGLISH);
 		aliases.put("entry", Language.ENGLISH);
@@ -73,7 +72,7 @@ public class DexCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{
-		if(!input.isValid())
+		if(!input.anyArgumentInvalid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
@@ -102,5 +101,12 @@ public class DexCommand extends PokedexCommand
 		return result
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, PokemonArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(false, VersionArgument.class));
 	}
 }

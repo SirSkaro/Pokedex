@@ -9,8 +9,8 @@ import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.AbilityList;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -41,26 +41,6 @@ public class AbilityResponseFormatter implements ResponseFormatter, IServiceCons
 	public boolean hasExpectedServices(IServiceManager services) 
 	{
 		return services.hasServices(ServiceType.COLOR);
-	}
-	
-	@Override
-	public Response invalidInputResponse(Input input)
-	{
-		Response response = new Response();
-		
-		switch(input.getError())
-		{
-			case ARGUMENT_NUMBER:
-				response.addToReply("You must specify exactly one Pokemon or Ability as input for this command.".intern());
-			break;
-			case INVALID_ARGUMENT:
-				response.addToReply("\""+input.getArgument(0).getRawInput() +"\" is not a recognized Pokemon or Ability in " + input.getLanguage().getName());
-			break;
-			default:
-				response.addToReply("A technical error occured (code 103)");
-		}
-		
-		return response;
 	}
 	
 	@Override

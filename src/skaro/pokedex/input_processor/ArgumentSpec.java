@@ -5,6 +5,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import com.google.common.collect.Lists;
+
+import skaro.pokedex.input_processor.arguments.InvalidArgument;
+import skaro.pokedex.input_processor.arguments.MissingArgument;
 import skaro.pokedex.input_processor.arguments.NoneArgument;
 
 public class ArgumentSpec
@@ -36,7 +40,7 @@ public class ArgumentSpec
 		}
 		catch(Exception e)
 		{
-			return new InvalidArgument();
+			return new InvalidArgument(Lists.newArrayList(argumentCategories));
 		}
 	}
 	
@@ -45,7 +49,7 @@ public class ArgumentSpec
 		if(isOptional)
 			return new NoneArgument();
 		
-		return new MissingArgument();
+		return new MissingArgument(Lists.newArrayList(argumentCategories));
 	}
 
 	private CommandArgument chooseBestArgument(List<CommandArgument> arguments)
@@ -65,7 +69,7 @@ public class ArgumentSpec
 		if(possibleBestArgument.isPresent())
 			return possibleBestArgument.get();
 
-		return new InvalidArgument();
+		return new InvalidArgument(Lists.newArrayList(argumentCategories));
 	}
 
 }

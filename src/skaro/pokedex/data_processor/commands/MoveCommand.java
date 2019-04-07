@@ -10,13 +10,14 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TypeData;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.MoveArgument;
 import skaro.pokedex.services.FlexCacheService;
 import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokedex.services.IServiceManager;
@@ -39,8 +40,6 @@ public class MoveCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "move".intern();
-		orderedArgumentCategories.add(ArgumentCategory.MOVE);
-		expectedArgRange = new ArgumentRange(1,1);
 		
 		aliases.put("mv", Language.ENGLISH);
 		aliases.put("moves", Language.ENGLISH);
@@ -79,7 +78,7 @@ public class MoveCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{
-		if(!input.isValid())
+		if(!input.anyArgumentInvalid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();
@@ -110,6 +109,12 @@ public class MoveCommand extends PokedexCommand
 		return result
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, MoveArgument.class));
 	}
 	
 	private RequestURL[] createPeripheralRequests(Move move)

@@ -43,31 +43,6 @@ public class WeakResponseFormatter implements ResponseFormatter, IServiceConsume
 	}
 	
 	@Override
-	public Response invalidInputResponse(Input input) 
-	{
-		Response response = new Response();
-		
-		switch(input.getError())
-		{
-			case ARGUMENT_NUMBER:
-				response.addToReply("You must specify 1 Pokemon or between 1 and 2 Types (seperated by commas) "
-						+ "as input for this command.");
-			break;
-			case INVALID_ARGUMENT:
-				response.addToReply("Could not process your request due to the following problem(s):".intern());
-				for(CommandArgument arg : input.getArguments())
-					if(!arg.isValid())
-						response.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
-				response.addToReply("\n*top suggestion*: did you include commas between inputs?");
-			break;
-			default:
-				response.addToReply("A technical error occured (code 106)");
-		}
-		
-		return response;
-	}
-
-	@Override
 	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder) 
 	{
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);

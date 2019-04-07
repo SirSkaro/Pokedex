@@ -8,7 +8,6 @@ import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.CommandService;
 import skaro.pokedex.services.IServiceManager;
@@ -24,8 +23,6 @@ public class CommandsCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "commands".intern();
-		orderedArgumentCategories.add(ArgumentCategory.NONE);
-		expectedArgRange = new ArgumentRange(0,0);
 		aliases.put("cmds", Language.ENGLISH);
 		aliases.put("useage", Language.ENGLISH);
 		aliases.put("command", Language.ENGLISH);
@@ -80,6 +77,12 @@ public class CommandsCommand extends PokedexCommand
 		{
 			return Mono.just(this.createErrorResponse(input, e));
 		}
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+
 	}
 	
 	private String formatCommandFieldTitle(PokedexCommand command)

@@ -12,17 +12,18 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.services.FlexCacheService;
+import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
-import skaro.pokedex.services.FlexCacheService.CachedResource;
 import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexRequest;
@@ -43,8 +44,6 @@ public class DataCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "data".intern();
-		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
-		expectedArgRange = new ArgumentRange(1,1);
 		
 		aliases.put("pokemon", Language.ENGLISH);
 		aliases.put("dt", Language.ENGLISH);
@@ -83,7 +82,7 @@ public class DataCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{
-		if(!input.isValid())
+		if(!input.anyArgumentInvalid())
 			return Mono.just(formatter.invalidInputResponse(input));
 
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
@@ -140,6 +139,12 @@ public class DataCommand extends PokedexCommand
 		return result
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, PokemonArgument.class));
 	}
 	
 	private void addTypesToMap(Pokemon pokemon, MultiMap<IFlexObject> map)

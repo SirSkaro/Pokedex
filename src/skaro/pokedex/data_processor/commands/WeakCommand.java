@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,13 +10,15 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.input_processor.arguments.TypeArgument;
 import skaro.pokedex.services.IServiceManager;
 import skaro.pokedex.services.PokeFlexService;
@@ -40,9 +41,6 @@ public class WeakCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "weak".intern();
-		orderedArgumentCategories = new ArrayList<ArgumentCategory>();
-		orderedArgumentCategories.add(ArgumentCategory.POKE_TYPE_LIST);
-		expectedArgRange = new ArgumentRange(1,2);
 		
 		aliases.put("weakness", Language.ENGLISH);
 		aliases.put("debilidad", Language.SPANISH);
@@ -79,7 +77,7 @@ public class WeakCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{ 
-		if(!input.isValid())
+		if(!input.anyArgumentInvalid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();
@@ -111,6 +109,13 @@ public class WeakCommand extends PokedexCommand
 		return result
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, PokemonArgument.class, TypeArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(true, TypeArgument.class));
 	}
 	
 	private TypeEfficacyWrapper createWrapper(List<Type> types)
