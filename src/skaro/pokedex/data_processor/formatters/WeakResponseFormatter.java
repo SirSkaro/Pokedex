@@ -5,18 +5,17 @@ import java.util.List;
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper.Efficacy;
-import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.EmojiService;
-import skaro.pokedex.services.IServiceConsumer;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceConsumer;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.api.IFlexObject;
@@ -24,11 +23,11 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.type.Type;
 
-public class WeakResponseFormatter implements ResponseFormatter, IServiceConsumer 
+public class WeakResponseFormatter implements ResponseFormatter, PokedexServiceConsumer 
 {
-	private IServiceManager services;
+	private PokedexServiceManager services;
 	
-	public WeakResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	public WeakResponseFormatter(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		if(!hasExpectedServices(services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
@@ -37,7 +36,7 @@ public class WeakResponseFormatter implements ResponseFormatter, IServiceConsume
 	}
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return services.hasServices(ServiceType.COLOR, ServiceType.EMOJI);
 	}

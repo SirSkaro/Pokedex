@@ -9,7 +9,7 @@ import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 
@@ -17,7 +17,7 @@ public class InviteCommand extends PokedexCommand
 {
 	private Response staticDiscordReply;
 	
-	public InviteCommand(IServiceManager services) throws ServiceConsumerException
+	public InviteCommand(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		super(services);
 		if(!hasExpectedServices(this.services))
@@ -46,7 +46,7 @@ public class InviteCommand extends PokedexCommand
 	public Mono<Response> respondTo(Input input, User requester, Guild guild) {  return Mono.just(staticDiscordReply); }
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.COLOR);

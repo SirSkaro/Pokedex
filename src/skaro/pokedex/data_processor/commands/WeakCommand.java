@@ -19,7 +19,7 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.input_processor.arguments.TypeArgument;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
@@ -33,7 +33,7 @@ import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
 public class WeakCommand extends PokedexCommand 
 {
-	public WeakCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
+	public WeakCommand(PokedexServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))
@@ -67,7 +67,7 @@ public class WeakCommand extends PokedexCommand
 	public String getArguments() { return "<pokemon> or <type> or <type>, <type>"; }
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.TYPE);

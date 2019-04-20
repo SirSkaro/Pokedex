@@ -18,7 +18,7 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.GenArgument;
 import skaro.pokedex.input_processor.arguments.MetaArgument;
 import skaro.pokedex.input_processor.arguments.PokemonArgument;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
@@ -30,7 +30,7 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 
 public class SetCommand extends PokedexCommand 
 {
-	public SetCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
+	public SetCommand(PokedexServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))
@@ -45,7 +45,7 @@ public class SetCommand extends PokedexCommand
 	public String getArguments() { return "<pokemon>, <meta>, <generation>"; }
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.COLOR);

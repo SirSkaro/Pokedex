@@ -19,7 +19,7 @@ import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.MoveArgument;
 import skaro.pokedex.input_processor.arguments.TypeArgument;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
@@ -32,7 +32,7 @@ import skaro.pokeflex.objects.move.Move;
 
 public class CoverageCommand extends PokedexCommand 
 {
-	public CoverageCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
+	public CoverageCommand(PokedexServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))
@@ -67,7 +67,7 @@ public class CoverageCommand extends PokedexCommand
 	public String getArguments() { return "<type/move>,...,<type/move>"; }
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.TYPE);

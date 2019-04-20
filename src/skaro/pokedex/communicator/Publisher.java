@@ -9,13 +9,13 @@ import java.util.stream.Collectors;
 
 import discord4j.core.object.util.Snowflake;
 import skaro.pokedex.services.DiscordService;
-import skaro.pokedex.services.IServiceConsumer;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceConsumer;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceManager;
 import skaro.pokedex.services.ServiceType;
 
-public class Publisher implements IServiceConsumer
+public class Publisher implements PokedexServiceConsumer
 {
 	private ServiceManager services;
 	private List<PublicationRecipient> applicableRecipients;
@@ -39,7 +39,7 @@ public class Publisher implements IServiceConsumer
 	}
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services)
+	public boolean hasExpectedServices(PokedexServiceManager services)
 	{
 		return services.hasServices(ServiceType.DISCORD);
 	}

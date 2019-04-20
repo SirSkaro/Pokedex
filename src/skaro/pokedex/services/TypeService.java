@@ -8,12 +8,12 @@ import skaro.pokedex.data_processor.TypeEfficacyWrapper.EfficacyCategory;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper.EfficacyInteractionBuilder;
 import skaro.pokedex.services.FlexCacheService.CachedResource;
 
-public class TypeService implements IService, IServiceConsumer
+public class TypeService implements PokedexService, PokedexServiceConsumer
 {	 		
-	IServiceManager services;
+	PokedexServiceManager services;
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services)
+	public boolean hasExpectedServices(PokedexServiceManager services)
 	{
 		return services.hasServices(ServiceType.CACHE);
 	}
@@ -24,7 +24,7 @@ public class TypeService implements IService, IServiceConsumer
 		return ServiceType.TYPE;
 	}
 	
-	public void setServiceManager(IServiceManager services) throws ServiceConsumerException
+	public void setServiceManager(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		if(!hasExpectedServices(services))
 			throw new ServiceConsumerException("Did not receive all necessary services");

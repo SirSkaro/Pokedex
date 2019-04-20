@@ -21,7 +21,7 @@ import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.ConfigurationService;
 import skaro.pokedex.services.FlexCacheService;
 import skaro.pokedex.services.FlexCacheService.CachedResource;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PerkService;
 import skaro.pokedex.services.PerkTier;
 import skaro.pokedex.services.PokeFlexService;
@@ -39,7 +39,7 @@ public class ZMoveCommand extends PokedexCommand
 	private final String zMoveClipPath;
 	private final String defaultZMove; 
 	
-	public ZMoveCommand(IServiceManager serviceManager, ResponseFormatter discordFormatter) throws ServiceConsumerException
+	public ZMoveCommand(PokedexServiceManager serviceManager, ResponseFormatter discordFormatter) throws ServiceConsumerException
 	{
 		super(serviceManager, discordFormatter);
 		if(!hasExpectedServices(this.services))
@@ -77,7 +77,7 @@ public class ZMoveCommand extends PokedexCommand
 	public String getArguments() { return "<type> or <z move>"; }
 
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.CACHE, ServiceType.PERK);

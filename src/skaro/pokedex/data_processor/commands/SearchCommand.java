@@ -1,26 +1,46 @@
 package skaro.pokedex.data_processor.commands;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.ResponseFormatter;
+import skaro.pokedex.data_processor.SearchCriteriaFilter;
+import skaro.pokedex.data_processor.SearchCriteriaFilter.SearchCriteriaBuilder;
 import skaro.pokedex.input_processor.ArgumentSpec;
+import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.AbilityArgument;
 import skaro.pokedex.input_processor.arguments.MoveArgument;
 import skaro.pokedex.input_processor.arguments.TypeArgument;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.FlexCacheService;
+import skaro.pokedex.services.FlexCacheService.CachedResource;
+import skaro.pokedex.services.PokeFlexService;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
+import skaro.pokeflex.api.Endpoint;
+import skaro.pokeflex.api.IFlexObject;
+import skaro.pokeflex.api.PokeFlexRequest;
+import skaro.pokeflex.api.Request;
+import skaro.pokeflex.objects.ability.Ability;
+import skaro.pokeflex.objects.move.Move;
+import skaro.pokeflex.objects.type.Type;
 
 public class SearchCommand extends PokedexCommand
 {
-	public SearchCommand(IServiceManager serviceManager, ResponseFormatter discordFormatter) throws ServiceConsumerException
+	public SearchCommand(PokedexServiceManager serviceManager, ResponseFormatter discordFormatter) throws ServiceConsumerException
 	{
 		super(serviceManager, discordFormatter);
 		if(!hasExpectedServices(this.services))
@@ -45,14 +65,25 @@ public class SearchCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User author, Guild guild)
 	{
-		return null;
+		if(!input.allArgumentValid())
+			return Mono.just(formatter.invalidInputResponse(input));
+		
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		Mono<MultiMap<IFlexObject>> result = getDataForArguments(input.getArguments())
+				.collectList()
+				.map(flexObjects -> populateMap(flexObjects))
+				.flatMap(map -> fetchAndAddPokemonByCriteria(map));
+		
+		return result
+			.map(dataMap -> formatter.format(input, dataMap, builder))
+			.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
-				services.hasServices(ServiceType.POKE_FLEX);
+				services.hasServices(ServiceType.POKE_FLEX, ServiceType.CACHE);
 	}
 	
 	@Override
@@ -68,6 +99,111 @@ public class SearchCommand extends PokedexCommand
 		}
 		
 		argumentSpecifications.add(argumentSpec);
+	}
+	
+	private Flux<IFlexObject> getDataForArguments(List<CommandArgument> arguments)
+	{
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
+		List<PokeFlexRequest> requestsToMake = createRequestsFromArguments(arguments);
+		List<IFlexObject> cachedData = getCachedDataFromArguments(arguments);
+		
+		return Flux.fromIterable(requestsToMake)
+				.parallel()
+				.runOn(factory.getScheduler())
+				.flatMap(request -> request.makeRequest(factory))
+				.sequential()
+				.concatWithValues(cachedData.stream().toArray(IFlexObject[]::new));
+		
+	}
+	
+	private MultiMap<IFlexObject> populateMap(List<IFlexObject> requestedData)
+	{
+		MultiMap<IFlexObject> result = new MultiMap<IFlexObject>();
+		
+		for(IFlexObject flexObj : requestedData)
+			result.add(flexObj.getClass().getName(), flexObj);
+		
+		return result;
+	}
+	
+	private List<IFlexObject> getCachedDataFromArguments(List<CommandArgument> arguments)
+	{
+		FlexCacheService cache = (FlexCacheService)services.getService(ServiceType.CACHE);
+		
+		 return arguments.stream()
+				.filter(argument -> argument instanceof TypeArgument)
+				.map(argument -> (TypeArgument)argument)
+				.map(type -> cache.getCachedData(CachedResource.TYPE, type.getFlexForm()))
+				.collect(Collectors.toList());
+	}
+	
+	private List<PokeFlexRequest> createRequestsFromArguments(List<CommandArgument> arguments)
+	{
+		List<PokeFlexRequest> result = new ArrayList<>();
+		Map<String, Endpoint> endpoints = new HashMap<>();
+		endpoints.put(MoveArgument.class.getName(), Endpoint.MOVE);
+		endpoints.put(AbilityArgument.class.getName(), Endpoint.ABILITY);
+		
+		for(CommandArgument argument : arguments)
+		{
+			String argumentClassName = argument.getClass().getName();
+			Endpoint endpoint = endpoints.get(argumentClassName);
+			result.add(new Request(endpoint, argument.getFlexForm()));
+		}
+		
+		return result;
+	}
+	
+	private Mono<MultiMap<IFlexObject>> fetchAndAddPokemonByCriteria(MultiMap<IFlexObject> searchCriteria)
+	{
+		SearchCriteriaFilter search = createFilter(searchCriteria);
+		List<PokeFlexRequest> pokemonRequests = createPokemonRequests(search);
+		Flux<IFlexObject> pokemonData = makePokemonRequests(pokemonRequests);
+		
+		return pokemonData.collectList()
+				.map(pokemon -> populateMap(pokemon))
+				.doOnNext(result -> result.addAllValues(searchCriteria));
+	}
+	
+	private Flux<IFlexObject> makePokemonRequests(List<PokeFlexRequest> requests)
+	{
+		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
+		
+		return Flux.fromIterable(requests)
+				.parallel()
+				.runOn(factory.getScheduler())
+				.flatMap(request -> request.makeRequest(factory))
+				.sequential();
+	}
+	
+	private List<PokeFlexRequest> createPokemonRequests(SearchCriteriaFilter search)
+	{
+		return search.filterForPokemon()
+				.stream()
+				.map(pokemon -> new Request(Endpoint.POKEMON, pokemon))
+				.collect(Collectors.toList());
+	}
+	
+	private SearchCriteriaFilter createFilter(MultiMap<IFlexObject> searchCriteria)
+	{
+		List<Ability> abilities = searchCriteria.get(Ability.class.getName())
+				.stream()
+				.map(ability -> (Ability)ability)
+				.collect(Collectors.toList());
+		List<Type> types = searchCriteria.get(Type.class.getName())
+				.stream()
+				.map(type -> (Type)type)
+				.collect(Collectors.toList());
+		List<Move> moves = searchCriteria.get(Move.class.getName())
+				.stream()
+				.map(move -> (Move)move)
+				.collect(Collectors.toList());
+		
+		return SearchCriteriaBuilder.newInstance()
+				.withAbilities(abilities)
+				.withMoves(moves)
+				.withTypes(types)
+				.build();
 	}
 
 }

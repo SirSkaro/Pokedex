@@ -2,7 +2,7 @@ package skaro.pokedex.services;
 
 import discord4j.core.DiscordClient;
 
-public class DiscordService implements IService 
+public class DiscordService implements PokedexService 
 {
 	private DiscordClient v3Client;
 	

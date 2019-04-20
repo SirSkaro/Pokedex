@@ -7,7 +7,7 @@ import java.util.Map;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
 import skaro.pokeflex.objects.type.Type;
 
-public class ColorService implements IService
+public class ColorService implements PokedexService
 {
 	private final Map<String, Color> typeColorMap;
 	private final Map<String, Color> versionColorMap;

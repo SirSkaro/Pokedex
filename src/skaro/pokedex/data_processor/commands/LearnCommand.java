@@ -26,7 +26,7 @@ import skaro.pokedex.input_processor.arguments.NoneArgument;
 import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.services.FlexCacheService;
 import skaro.pokedex.services.FlexCacheService.CachedResource;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
@@ -43,7 +43,7 @@ import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
 public class LearnCommand extends PokedexCommand
 {
-	public LearnCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
+	public LearnCommand(PokedexServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))
@@ -75,7 +75,7 @@ public class LearnCommand extends PokedexCommand
 	public String getArguments() { return "<pokemon>, <move>,...,<move>"; }
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.CACHE);

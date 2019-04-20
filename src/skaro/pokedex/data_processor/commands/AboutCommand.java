@@ -11,7 +11,7 @@ import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.ConfigurationService;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 
@@ -19,7 +19,7 @@ public class AboutCommand extends PokedexCommand
 {
 	private Response staticDiscordReply;
 	
-	public AboutCommand(IServiceManager services) throws ServiceConsumerException
+	public AboutCommand(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		super(services);
 		if(!hasExpectedServices(this.services))
@@ -48,7 +48,7 @@ public class AboutCommand extends PokedexCommand
 	}
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{ 
 		return super.hasExpectedServices(services) &&
 					services.hasServices(ServiceType.COLOR, ServiceType.CONFIG); 

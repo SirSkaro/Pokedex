@@ -18,11 +18,11 @@ import discord4j.core.object.util.Snowflake;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.input_processor.MySQLManager;
 
-public class PerkService implements IService, IServiceConsumer
+public class PerkService implements PokedexService, PokedexServiceConsumer
 {
 	private Cache<Long, Pledge> pledgeCache;
 	private PatreonAPI patreonClient;
-	private IServiceManager services;
+	private PokedexServiceManager services;
 	private PerkTierManager tierManager;
 	private MySQLManager sqlManager;
 	private static final Snowflake SUPPORT_SERVER_ID = Snowflake.of(339583821072564255L);
@@ -41,7 +41,7 @@ public class PerkService implements IService, IServiceConsumer
 	}
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return services.hasServices(ServiceType.DISCORD);
 	}
@@ -52,7 +52,7 @@ public class PerkService implements IService, IServiceConsumer
 		return ServiceType.PERK;
 	}
 	
-	public void setServiceManager(IServiceManager services) throws ServiceConsumerException
+	public void setServiceManager(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		if(!hasExpectedServices(services))
 			throw new ServiceConsumerException("Did not receive all necessary services");

@@ -12,7 +12,7 @@ import marytts.exceptions.MaryConfigurationException;
 import marytts.exceptions.SynthesisException;
 import skaro.pokedex.input_processor.Language;
 
-public class TextToSpeechService implements IService
+public class TextToSpeechService implements PokedexService
 {
 	private MaryInterface textToSpeechEngine;
 	private Map<Language, String> voiceMap;

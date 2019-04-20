@@ -17,7 +17,7 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.ConfigurationService;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PerkService;
 import skaro.pokedex.services.PerkTier;
 import skaro.pokedex.services.PokeFlexService;
@@ -34,7 +34,7 @@ public class ShinyCommand extends PokedexCommand
 	private final String baseModelPath;
 	private final String defaultPokemon;
 	
-	public ShinyCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
+	public ShinyCommand(PokedexServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))
@@ -67,7 +67,7 @@ public class ShinyCommand extends PokedexCommand
 	public String getArguments() { return "<pokemon>"; }
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.COLOR);

@@ -11,8 +11,8 @@ import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.services.ColorService;
-import skaro.pokedex.services.IServiceConsumer;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceConsumer;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.api.IFlexObject;
@@ -22,11 +22,11 @@ import skaro.pokeflex.objects.set.Iv;
 import skaro.pokeflex.objects.set.Set;
 import skaro.pokeflex.objects.set.Set_;
 
-public class SetResponseFormatter implements ResponseFormatter, IServiceConsumer
+public class SetResponseFormatter implements ResponseFormatter, PokedexServiceConsumer
 {
-	private IServiceManager services;
+	private PokedexServiceManager services;
 	
-	public SetResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	public SetResponseFormatter(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		if(!hasExpectedServices(services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
@@ -35,7 +35,7 @@ public class SetResponseFormatter implements ResponseFormatter, IServiceConsumer
 	}
 
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return services.hasServices(ServiceType.COLOR);
 	}

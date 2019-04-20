@@ -15,13 +15,13 @@ import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
-import skaro.pokedex.services.IServiceConsumer;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceConsumer;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PerkService;
 import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 
-public abstract class PokedexCommand implements IServiceConsumer
+public abstract class PokedexCommand implements PokedexServiceConsumer
 {
 	protected String commandName;
 	protected List<ArgumentSpec> argumentSpecifications;
@@ -29,9 +29,9 @@ public abstract class PokedexCommand implements IServiceConsumer
 	protected EmbedCreateSpec helpMessage;
 	protected Map<String, Language> aliases;
 	protected ResponseFormatter formatter;
-	protected IServiceManager services;
+	protected PokedexServiceManager services;
 	
-	public PokedexCommand(IServiceManager serviceManager)
+	public PokedexCommand(PokedexServiceManager serviceManager)
 	{
 		services = serviceManager;
 		argumentSpecifications = new ArrayList<>();
@@ -40,7 +40,7 @@ public abstract class PokedexCommand implements IServiceConsumer
 		createArgumentSpecifications();
 	}
 	
-	public PokedexCommand(IServiceManager serviceManager, ResponseFormatter discordFormatter)
+	public PokedexCommand(PokedexServiceManager serviceManager, ResponseFormatter discordFormatter)
 	{
 		services = serviceManager;
 		formatter = discordFormatter;
@@ -67,7 +67,7 @@ public abstract class PokedexCommand implements IServiceConsumer
 	}
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return services.hasServices(ServiceType.COLOR);
 	}

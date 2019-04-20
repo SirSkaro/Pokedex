@@ -13,7 +13,7 @@ import skaro.pokedex.input_processor.arguments.AnyArgument;
 import skaro.pokedex.input_processor.arguments.NoneArgument;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.CommandService;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 
@@ -21,7 +21,7 @@ public class HelpCommand extends PokedexCommand
 {
 	Response defaultResponse;
 	
-	public HelpCommand(IServiceManager services) throws ServiceConsumerException
+	public HelpCommand(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		super(services);
 		if(!hasExpectedServices(this.services))
@@ -47,7 +47,7 @@ public class HelpCommand extends PokedexCommand
 	public String getArguments() { return "<command> or none"; }
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.COMMAND, ServiceType.COLOR);
