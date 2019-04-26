@@ -27,8 +27,10 @@ public class SearchCriteriaFilter implements IFlexObject
 	public Set<String> filterForPokemon()
 	{
 		Set<String> result = new HashSet<>();
-		result.addAll(filterByTypeCriteria());
-		result.retainAll(filterByAbilityCriteria());
+		if(!types.isEmpty())
+			result.addAll(filterByTypeCriteria());
+		if(!learnableAbilities.isEmpty())
+			result.retainAll(filterByAbilityCriteria());
 		
 		return result;
 	}
@@ -42,8 +44,8 @@ public class SearchCriteriaFilter implements IFlexObject
 		
 		for(int i = 1; i < types.size(); i++)
 		{
-			List<String> pokemonWithAbility = getPokemon(types.get(i));
-			result.retainAll(pokemonWithAbility);
+			List<String> pokemonWithType = getPokemon(types.get(i));
+			result.retainAll(pokemonWithType);
 		}
 		
 		return result;
@@ -101,19 +103,19 @@ public class SearchCriteriaFilter implements IFlexObject
 		
 		public SearchCriteriaBuilder withMoves(List<Move> moves)
 		{
-			learnableMoves = moves;
+			learnableMoves.addAll(moves);
 			return this;
 		}
 		
 		public SearchCriteriaBuilder withTypes(List<Type> types)
 		{
-			this.types = types;
+			this.types.addAll(types);
 			return this;
 		}
 		
 		public SearchCriteriaBuilder withAbilities(List<Ability> abilities)
 		{
-			learnableAbilities = abilities;
+			learnableAbilities.addAll(abilities);
 			return this;
 		}
 		

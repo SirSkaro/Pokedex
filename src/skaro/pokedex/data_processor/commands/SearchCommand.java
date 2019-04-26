@@ -34,8 +34,10 @@ import skaro.pokeflex.api.Endpoint;
 import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
+import skaro.pokeflex.api.RequestURL;
 import skaro.pokeflex.objects.ability.Ability;
 import skaro.pokeflex.objects.move.Move;
+import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.type.Type;
 
 public class SearchCommand extends PokedexCommand
@@ -76,7 +78,7 @@ public class SearchCommand extends PokedexCommand
 		
 		return result
 			.map(dataMap -> formatter.format(input, dataMap, builder))
-			.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+			.onErrorResume(error -> { error.printStackTrace(); return Mono.just(this.createErrorResponse(input, error));});
 	}
 	
 	@Override
@@ -95,7 +97,7 @@ public class SearchCommand extends PokedexCommand
 		argumentSpecifications.add(argumentSpec);
 		for(int i = 0; i < 8; i++)
 		{
-			argumentSpec = new ArgumentSpec(false, MoveArgument.class, AbilityArgument.class, TypeArgument.class);
+			argumentSpec = new ArgumentSpec(true, MoveArgument.class, AbilityArgument.class, TypeArgument.class);
 		}
 		
 		argumentSpecifications.add(argumentSpec);
@@ -147,6 +149,9 @@ public class SearchCommand extends PokedexCommand
 		for(CommandArgument argument : arguments)
 		{
 			String argumentClassName = argument.getClass().getName();
+			if(!endpoints.containsKey(argumentClassName))
+				continue;
+			
 			Endpoint endpoint = endpoints.get(argumentClassName);
 			result.add(new Request(endpoint, argument.getFlexForm()));
 		}
@@ -168,10 +173,12 @@ public class SearchCommand extends PokedexCommand
 	private Flux<IFlexObject> makePokemonRequests(List<PokeFlexRequest> requests)
 	{
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
-		
 		return Flux.fromIterable(requests)
 				.parallel()
 				.runOn(factory.getScheduler())
+				.flatMap(request -> request.makeRequest(factory))
+				.map(pokemon -> (Pokemon)pokemon)
+				.map(pokemon -> new RequestURL(pokemon.getSpecies().getUrl(), Endpoint.POKEMON_SPECIES))
 				.flatMap(request -> request.makeRequest(factory))
 				.sequential();
 	}
@@ -186,24 +193,36 @@ public class SearchCommand extends PokedexCommand
 	
 	private SearchCriteriaFilter createFilter(MultiMap<IFlexObject> searchCriteria)
 	{
-		List<Ability> abilities = searchCriteria.get(Ability.class.getName())
-				.stream()
-				.map(ability -> (Ability)ability)
-				.collect(Collectors.toList());
-		List<Type> types = searchCriteria.get(Type.class.getName())
-				.stream()
-				.map(type -> (Type)type)
-				.collect(Collectors.toList());
-		List<Move> moves = searchCriteria.get(Move.class.getName())
-				.stream()
-				.map(move -> (Move)move)
-				.collect(Collectors.toList());
+		SearchCriteriaBuilder builder = SearchCriteriaBuilder.newInstance();
 		
-		return SearchCriteriaBuilder.newInstance()
-				.withAbilities(abilities)
-				.withMoves(moves)
-				.withTypes(types)
-				.build();
+		if(searchCriteria.containsKey(Ability.class.getName()))
+		{
+			List<Ability> abilities = searchCriteria.get(Ability.class.getName())
+					.stream()
+					.map(ability -> (Ability)ability)
+					.collect(Collectors.toList());
+			builder.withAbilities(abilities);
+		}
+		
+		if(searchCriteria.containsKey(Type.class.getName()))
+		{
+			List<Type> types = searchCriteria.get(Type.class.getName())
+					.stream()
+					.map(type -> (Type)type)
+					.collect(Collectors.toList());
+			builder.withTypes(types);
+		}
+		
+		if(searchCriteria.containsKey(Move.class.getName()))
+		{
+			List<Move> moves = searchCriteria.get(Move.class.getName())
+					.stream()
+					.map(move -> (Move)move)
+					.collect(Collectors.toList());
+			builder.withMoves(moves);
+		}
+		
+		return builder.build();
 	}
 
 }
