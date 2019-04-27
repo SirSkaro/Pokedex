@@ -16,6 +16,7 @@ public class SearchCriteriaFilter implements IFlexObject
 	List<Move> learnableMoves;
 	List<Type> types;
 	List<Ability> learnableAbilities;
+	Set<String> pokemon;
 	
 	private SearchCriteriaFilter(SearchCriteriaBuilder builder)
 	{
@@ -24,7 +25,24 @@ public class SearchCriteriaFilter implements IFlexObject
 		types = builder.types;
 	}
 	
-	public Set<String> filterForPokemon()
+	public Set<String> getPokemonThatMeetCriteria()
+	{
+		if(pokemon != null)
+			return pokemon;
+		
+		pokemon = filterForPokemon();
+		return pokemon;
+	}
+	
+	public boolean hasMoreResultsThan(int amount)
+	{
+		if(pokemon == null)
+			pokemon = filterForPokemon();
+		
+		return pokemon.size() > amount;
+	}
+	
+	private Set<String> filterForPokemon()
 	{
 		Set<String> result = new HashSet<>();
 		if(!types.isEmpty())

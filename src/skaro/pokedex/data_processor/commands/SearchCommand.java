@@ -93,14 +93,13 @@ public class SearchCommand extends PokedexCommand
 	{
 		argumentSpecifications = new ArrayList<>();
 		
-		ArgumentSpec argumentSpec = new ArgumentSpec(false, MoveArgument.class, AbilityArgument.class, TypeArgument.class);
+		ArgumentSpec argumentSpec = new ArgumentSpec(false, TypeArgument.class, AbilityArgument.class, MoveArgument.class);
 		argumentSpecifications.add(argumentSpec);
 		for(int i = 0; i < 8; i++)
 		{
-			argumentSpec = new ArgumentSpec(true, MoveArgument.class, AbilityArgument.class, TypeArgument.class);
+			argumentSpec = new ArgumentSpec(true, TypeArgument.class, AbilityArgument.class, MoveArgument.class);
+			argumentSpecifications.add(argumentSpec);
 		}
-		
-		argumentSpecifications.add(argumentSpec);
 	}
 	
 	private Flux<IFlexObject> getDataForArguments(List<CommandArgument> arguments)
@@ -167,6 +166,7 @@ public class SearchCommand extends PokedexCommand
 		
 		return pokemonData.collectList()
 				.map(pokemon -> populateMap(pokemon))
+				.doOnNext(result -> result.add(SearchCriteriaFilter.class.getName(), search))
 				.doOnNext(result -> result.addAllValues(searchCriteria));
 	}
 	
@@ -174,6 +174,7 @@ public class SearchCommand extends PokedexCommand
 	{
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		return Flux.fromIterable(requests)
+				.take(10)
 				.parallel()
 				.runOn(factory.getScheduler())
 				.flatMap(request -> request.makeRequest(factory))
@@ -185,7 +186,7 @@ public class SearchCommand extends PokedexCommand
 	
 	private List<PokeFlexRequest> createPokemonRequests(SearchCriteriaFilter search)
 	{
-		return search.filterForPokemon()
+		return search.getPokemonThatMeetCriteria()
 				.stream()
 				.map(pokemon -> new Request(Endpoint.POKEMON, pokemon))
 				.collect(Collectors.toList());

@@ -10,6 +10,7 @@ import org.eclipse.jetty.util.MultiMap;
 import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.ResponseFormatter;
+import skaro.pokedex.data_processor.SearchCriteriaFilter;
 import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
@@ -51,6 +52,7 @@ public class SearchResponseFormatter implements ResponseFormatter, PokedexServic
 		List<Ability> abilities = (List<Ability>)(List<?>)data.get(Ability.class.getName());
 		List<Type> types = (List<Type>)(List<?>)data.get(Type.class.getName());
 		List<PokemonSpecies> species = (List<PokemonSpecies>)(List<?>)data.get(PokemonSpecies.class.getName());
+		SearchCriteriaFilter filter = (SearchCriteriaFilter)data.getValue(SearchCriteriaFilter.class.getName(), 0);
 		
 		response.addToReply(SearchField.SEARCH_RESULT.getFieldTitle(lang));
 		
@@ -60,7 +62,7 @@ public class SearchResponseFormatter implements ResponseFormatter, PokedexServic
 		if(types != null && !types.isEmpty())
 			builder.addField(SearchField.TYPE.getFieldTitle(lang), formatTypes(types, lang), true);
 		
-		builder.setDescription(formatPokemon(species, lang));
+		builder.setDescription(formatPokemon(species, filter, lang));
 		
 		builder.setColor(colorService.getPokedexColor());
 		response.setEmbed(builder);
@@ -85,15 +87,24 @@ public class SearchResponseFormatter implements ResponseFormatter, PokedexServic
 				.collect(Collectors.joining("\n"));
 	}
 	
-	private String formatPokemon(List<PokemonSpecies> species, Language lang)
+	private String formatPokemon(List<PokemonSpecies> species, SearchCriteriaFilter filter, Language lang)
 	{
 		if(species == null || species.isEmpty())
 			return SearchField.NO_RESULT.getFieldTitle(lang);
 		
-		return species.stream()
+		StringBuilder builder = new StringBuilder();
+		
+		if(filter.hasMoreResultsThan(10))
+			builder.append("Your search had too many results. Here are the first 10 results.")
+					.append("\n\n");
+			
+		String pokemon = species.stream()
 				.map(specie -> specie.getNameInLanguage(lang.getFlexKey()))
 				.map(specieName -> TextUtility.flexFormToProper(specieName))
-				.collect(Collectors.joining(", "));
+				.collect(Collectors.joining("\n"));
+		
+		builder.append(pokemon);
+		return builder.toString();
 	}
 	
 	private enum SearchField
