@@ -22,6 +22,7 @@ import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.ability.Ability;
+import skaro.pokeflex.objects.move.Move;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.type.Type;
 
@@ -51,6 +52,7 @@ public class SearchResponseFormatter implements ResponseFormatter, PokedexServic
 		Language lang = input.getLanguage();
 		List<Ability> abilities = (List<Ability>)(List<?>)data.get(Ability.class.getName());
 		List<Type> types = (List<Type>)(List<?>)data.get(Type.class.getName());
+		List<Move> moves = (List<Move>)(List<?>)data.get(Move.class.getName());
 		List<PokemonSpecies> species = (List<PokemonSpecies>)(List<?>)data.get(PokemonSpecies.class.getName());
 		SearchCriteriaFilter filter = (SearchCriteriaFilter)data.getValue(SearchCriteriaFilter.class.getName(), 0);
 		
@@ -61,6 +63,9 @@ public class SearchResponseFormatter implements ResponseFormatter, PokedexServic
 		
 		if(types != null && !types.isEmpty())
 			builder.addField(SearchField.TYPE.getFieldTitle(lang), formatTypes(types, lang), true);
+		
+		if(moves != null && !moves.isEmpty())
+			builder.addField(SearchField.MOVE.getFieldTitle(lang), formatMoves(moves, lang), true);
 		
 		builder.setDescription(formatPokemon(species, filter, lang));
 		
@@ -84,6 +89,14 @@ public class SearchResponseFormatter implements ResponseFormatter, PokedexServic
 		
 		return types.stream()
 				.map(type -> emojiService.getTypeEmoji(type.getName()) + TextUtility.flexFormToProper(type.getNameInLanguage(lang.getFlexKey())))
+				.collect(Collectors.joining("\n"));
+	}
+	
+	private String formatMoves(List<Move> moves, Language lang)
+	{
+		return moves.stream()
+				.map(move -> move.getNameInLanguage(lang.getFlexKey()))
+				.map(moveName -> TextUtility.flexFormToProper(moveName))
 				.collect(Collectors.joining("\n"));
 	}
 	

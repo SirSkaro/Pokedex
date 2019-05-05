@@ -47,8 +47,18 @@ public class SearchCriteriaFilter implements IFlexObject
 		Set<String> result = new HashSet<>();
 		if(!types.isEmpty())
 			result.addAll(filterByTypeCriteria());
+		
 		if(!learnableAbilities.isEmpty())
-			result.retainAll(filterByAbilityCriteria());
+			if(result.isEmpty())
+				result.addAll(filterByAbilityCriteria());
+			else
+				result.retainAll(filterByAbilityCriteria());
+		
+		if(!learnableMoves.isEmpty())
+			if(result.isEmpty())
+				result.addAll(filterByMoveCriteria());
+			else
+				result.retainAll(filterByMoveCriteria());
 		
 		return result;
 	}
@@ -85,12 +95,20 @@ public class SearchCriteriaFilter implements IFlexObject
 		return result;
 	}
 	
-	private List<String> getPokemon(Ability ability)
+	private Set<String> filterByMoveCriteria()
 	{
-		return ability.getPokemon()
-				.stream()
-				.map(pokemon -> pokemon.getPokemon().getName())
-				.collect(Collectors.toList());
+		Set<String> result = new HashSet<>();
+		
+		if(!learnableMoves.isEmpty())
+			result.addAll(getPokemon(learnableMoves.get(0)));
+		
+		for(int i = 1; i < learnableMoves.size(); i++)
+		{
+			List<String> pokemonWithAbility = getPokemon(learnableMoves.get(i));
+			result.retainAll(pokemonWithAbility);
+		}
+		
+		return result;
 	}
 	
 	private List<String> getPokemon(Type type)
@@ -99,6 +117,19 @@ public class SearchCriteriaFilter implements IFlexObject
 				.stream()
 				.map(pokemon -> pokemon.getPokemon().getName())
 				.collect(Collectors.toList());
+	}
+	
+	private List<String> getPokemon(Ability ability)
+	{
+		return ability.getPokemon()
+				.stream()
+				.map(pokemon -> pokemon.getPokemon().getName())
+				.collect(Collectors.toList());
+	}
+	
+	private List<String> getPokemon(Move move)
+	{
+		return move.getPokemon();
 	}
 	
 	public static class SearchCriteriaBuilder
