@@ -29,13 +29,15 @@ import skaro.pokeflex.objects.type.Type;
 public class SearchResponseFormatter implements ResponseFormatter, PokedexServiceConsumer
 {
 	private PokedexServiceManager services;
+	private int maxResultCap;
 	
-	public SearchResponseFormatter(PokedexServiceManager services) throws ServiceConsumerException
+	public SearchResponseFormatter(PokedexServiceManager services, int cap) throws ServiceConsumerException
 	{
 		if(!hasExpectedServices(services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		this.services = services;
+		maxResultCap = cap;
 	}
 	
 	@Override
@@ -56,7 +58,7 @@ public class SearchResponseFormatter implements ResponseFormatter, PokedexServic
 		List<PokemonSpecies> species = (List<PokemonSpecies>)(List<?>)data.get(PokemonSpecies.class.getName());
 		SearchCriteriaFilter filter = (SearchCriteriaFilter)data.getValue(SearchCriteriaFilter.class.getName(), 0);
 		
-		response.addToReply(SearchField.SEARCH_RESULT.getFieldTitle(lang));
+		response.addToReply("__**"+ filter.getNumberOfResults() + " " + SearchField.RESULT.getFieldTitle(lang) + "**__");
 		
 		if(abilities != null && !abilities.isEmpty())
 			builder.addField(SearchField.ABILITIY.getFieldTitle(lang), formatAbilities(abilities, lang), true);
@@ -67,7 +69,7 @@ public class SearchResponseFormatter implements ResponseFormatter, PokedexServic
 		if(moves != null && !moves.isEmpty())
 			builder.addField(SearchField.MOVE.getFieldTitle(lang), formatMoves(moves, lang), true);
 		
-		builder.setDescription(formatPokemon(species, filter, lang));
+		builder.addField(SearchField.SEARCH_RESULT.getFieldTitle(lang),formatPokemon(species, filter, lang), false);
 		
 		builder.setColor(colorService.getPokedexColor());
 		response.setEmbed(builder);
@@ -107,7 +109,7 @@ public class SearchResponseFormatter implements ResponseFormatter, PokedexServic
 		
 		StringBuilder builder = new StringBuilder();
 		
-		if(filter.hasMoreResultsThan(10))
+		if(filter.hasMoreResultsThan(maxResultCap))
 			builder.append("Your search had too many results. Here are the first 10 results.")
 					.append("\n\n");
 			
@@ -128,6 +130,7 @@ public class SearchResponseFormatter implements ResponseFormatter, PokedexServic
 		SEARCH_RESULT("Search Result", "Resultado de Búsqueda", "Résultat de la Recherche", 
 				"Risultato della Ricerca", "Suchergebnis", "検索結果", "搜索结果", "검색 결과"),
 		NO_RESULT("No Result", "No Hay Resultados", "Aucun Résultat", "Nessun Risultato", "Keine Ergebnisse", "結果がありません", "没有结果", "결과 없음"),
+		RESULT("Result(s)", "Resultado(s)", "Résultat(s)", "Risultato/i", "Ergebnis(se)", "の結果", "结果", "결과")
 		;
 		
 		private Map<Language, String> titleMap;

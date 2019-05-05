@@ -221,7 +221,7 @@ public class Pokedex
 		commandService.addCommand(new MoveCommand(commandServiceBuilder.build(), new MoveResponseFormatter(serviceBuilderEmoji.build())));
 		commandService.addCommand(new DataCommand(commandServiceBuilder.build(), new DataResponseFormatter(serviceBuilderEmoji.build())));
 		commandService.addCommand(new ZMoveCommand(commandServiceBuilder.build(), new ZMoveResponseFormatter(serviceBuilderEmoji.build())));
-		commandService.addCommand(new SearchCommand(commandServiceBuilder.build(), new SearchResponseFormatter(serviceBuilderEmoji.build())));
+		commandService.addCommand(new SearchCommand(commandServiceBuilder.build(), new SearchResponseFormatter(serviceBuilderEmoji.build(), 10), 10));
 		
 		//ColorService, PokeFlexService, PerkService, TypeService
 		commandServiceBuilder.removeService(ServiceType.CACHE);

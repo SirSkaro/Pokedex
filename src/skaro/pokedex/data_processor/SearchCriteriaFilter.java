@@ -34,6 +34,14 @@ public class SearchCriteriaFilter implements IFlexObject
 		return pokemon;
 	}
 	
+	public int getNumberOfResults()
+	{
+		if(pokemon == null)
+			pokemon = filterForPokemon();
+		
+		return pokemon.size();
+	}
+	
 	public boolean hasMoreResultsThan(int amount)
 	{
 		if(pokemon == null)

@@ -42,13 +42,16 @@ import skaro.pokeflex.objects.type.Type;
 
 public class SearchCommand extends PokedexCommand
 {
-	public SearchCommand(PokedexServiceManager serviceManager, ResponseFormatter discordFormatter) throws ServiceConsumerException
+	private int maxResultCap;
+	
+	public SearchCommand(PokedexServiceManager serviceManager, ResponseFormatter discordFormatter, int cap) throws ServiceConsumerException
 	{
 		super(serviceManager, discordFormatter);
 		if(!hasExpectedServices(this.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 	
 		commandName = "search".intern();
+		maxResultCap = cap;
 		createArgumentSpecifications();
 		
 		createHelpMessage("", "", "", "",
@@ -61,7 +64,7 @@ public class SearchCommand extends PokedexCommand
 	@Override
 	public String getArguments()
 	{
-		return "list of <moves> (max of 4) or <abilities> (max of 3) or <types> (max of 2)";
+		return "list of <move> (max of 4) and/or <ability> (max of 3) and/or <type> (max of 2)";
 	}
 
 	@Override
@@ -71,7 +74,8 @@ public class SearchCommand extends PokedexCommand
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();
-		Mono<MultiMap<IFlexObject>> result = getDataForArguments(input.getArguments())
+		List<CommandArgument> trimmedArguments = dropExcessArguments(input.getArguments());
+		Mono<MultiMap<IFlexObject>> result = getDataForArguments(trimmedArguments)
 				.collectList()
 				.map(flexObjects -> populateMap(flexObjects))
 				.flatMap(map -> fetchAndAddPokemonByCriteria(map));
@@ -100,6 +104,35 @@ public class SearchCommand extends PokedexCommand
 			argumentSpec = new ArgumentSpec(true, TypeArgument.class, AbilityArgument.class, MoveArgument.class);
 			argumentSpecifications.add(argumentSpec);
 		}
+	}
+	
+	private List<CommandArgument> dropExcessArguments(List<CommandArgument> arguments)
+	{
+		int moveCount = 0;
+		int abilityCount = 0;
+		int typeCount = 0;
+		List<CommandArgument> result = new ArrayList<>();
+		
+		for(CommandArgument argument : arguments)
+		{
+			if(argument instanceof MoveArgument && moveCount < 4)
+			{
+				result.add(argument);
+				moveCount++;
+			}
+			else if(argument instanceof AbilityArgument && abilityCount < 3)
+			{
+				result.add(argument);
+				abilityCount++;
+			}
+			else if(argument instanceof TypeArgument && typeCount < 2)
+			{
+				result.add(argument);
+				typeCount++;
+			}
+		}
+		
+		return result;
 	}
 	
 	private Flux<IFlexObject> getDataForArguments(List<CommandArgument> arguments)
@@ -174,7 +207,7 @@ public class SearchCommand extends PokedexCommand
 	{
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		return Flux.fromIterable(requests)
-				.take(10)
+				.take(maxResultCap)
 				.parallel()
 				.runOn(factory.getScheduler())
 				.flatMap(request -> request.makeRequest(factory))
