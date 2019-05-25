@@ -54,7 +54,10 @@ public class SearchCommand extends PokedexCommand
 		maxResultCap = cap;
 		createArgumentSpecifications();
 		
-		createHelpMessage("", "", "", "");
+		createHelpMessage("Magic Guard, unaware, moonblast, Fairy",
+				"fire, drought",
+				"Adaptability, Return, Normal",
+				"hyper beam, ice beam, charge beam, solar beam");
 	}
 	
 	@Override

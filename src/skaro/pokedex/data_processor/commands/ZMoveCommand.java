@@ -72,7 +72,7 @@ public class ZMoveCommand extends PokedexCommand
 	@Override
 	public boolean makesWebRequest() { return true; }
 	@Override
-	public String getArguments() { return "<type> or <z move>"; }
+	public String getArguments() { return "<type>"; }
 
 	@Override
 	public boolean hasExpectedServices(PokedexServiceManager services) 
