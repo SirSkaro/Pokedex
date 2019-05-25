@@ -6,13 +6,13 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TextUtility;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.AnyArgument;
 import skaro.pokedex.input_processor.arguments.NoneArgument;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.CommandService;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 
@@ -20,15 +20,13 @@ public class HelpCommand extends PokedexCommand
 {
 	Response defaultResponse;
 	
-	public HelpCommand(IServiceManager services) throws ServiceConsumerException
+	public HelpCommand(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		super(services);
 		if(!hasExpectedServices(this.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "help".intern();
-		orderedArgumentCategories.add(ArgumentCategory.ANY_NONE);
-		expectedArgRange = new ArgumentRange(0,1);
 		defaultResponse = new Response();
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();	
@@ -39,7 +37,7 @@ public class HelpCommand extends PokedexCommand
 				+ "(https://discordbots.org/bot/pokedex)", false);
 		
 		defaultResponse.setEmbed(builder);
-		this.createHelpMessage("https://cdn.bulbagarden.net/upload/c/ce/Helping_Hand_IV.png");
+		this.createNonGifHelpMessage("https://cdn.bulbagarden.net/upload/c/ce/Helping_Hand_IV.png");
 	}
 	
 	@Override
@@ -48,7 +46,7 @@ public class HelpCommand extends PokedexCommand
 	public String getArguments() { return "<command> or none"; }
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.COMMAND, ServiceType.COLOR);
@@ -61,29 +59,28 @@ public class HelpCommand extends PokedexCommand
 			return Mono.just(defaultResponse);
 		
 		String arg = input.getArgument(0).getDbForm();
-		Response reply = new Response();
-		CommandService commands;
-		PokedexCommand command;
 		
 		try
 		{
-			commands = (CommandService)services.getService(ServiceType.COMMAND);
+			CommandService commands = (CommandService)services.getService(ServiceType.COMMAND);
 			
 			if(!commands.commandOrAliasExists(arg))
-			{
-				//reply.addToReply("\""+arg +"\" is not a supported command!");
 				return Mono.empty();
-			}
 
-			command = commands.getCommandByAnyAlias(arg);
-			reply.addToReply("__**"+TextUtility.flexFormToProper(command.getCommandName())+" Command**__");
-			reply.setEmbed(command.getHelpMessage());
-			return Mono.just(reply);
+			PokedexCommand command = commands.getByAnyAlias(arg);
+			Response response = command.getHelpMessage();
+			return Mono.just(response);
 		}
 		catch(Exception e)
 		{
 			return Mono.just(this.createErrorResponse(input, e));
 		}
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(true, AnyArgument.class));
 	}
 	
 }

@@ -3,13 +3,13 @@ package skaro.pokedex.communicator;
 import java.util.Optional;
 
 import skaro.pokedex.services.ConfigurationService;
-import skaro.pokedex.services.IServiceConsumer;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceConsumer;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceManager;
 import skaro.pokedex.services.ServiceType;
 
-public abstract class PublicationRecipient implements IServiceConsumer
+public abstract class PublicationRecipient implements PokedexServiceConsumer
 {
 	protected int designatedShardID;
 	protected String authToken, configID;
@@ -47,7 +47,7 @@ public abstract class PublicationRecipient implements IServiceConsumer
 	}
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services)
+	public boolean hasExpectedServices(PokedexServiceManager services)
 	{
 		return services.hasServices(ServiceType.CONFIG);
 	}

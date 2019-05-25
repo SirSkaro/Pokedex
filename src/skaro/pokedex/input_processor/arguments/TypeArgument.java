@@ -7,8 +7,6 @@ public class TypeArgument extends CommandArgument
 {
 	public TypeArgument()
 	{
-		super();
-		this.category = ArgumentCategory.TYPE;
-		this.sqlResource = SQLResource.TYPE;
+		super("Typing", SQLResource.TYPE);
 	}
 }

@@ -5,9 +5,9 @@ import java.util.Map;
 
 import skaro.pokedex.core.PokedexApplicationManager;
 
-public class ServiceManager implements IServiceManager 
+public class ServiceManager implements PokedexServiceManager 
 {
-	private Map<ServiceType, IService> services;
+	private Map<ServiceType, PokedexService> services;
 	
 	private ServiceManager(ServiceManagerBuilder builder)
 	{
@@ -15,7 +15,7 @@ public class ServiceManager implements IServiceManager
 	}
 	
 	@Override
-	public IService getService(ServiceType service)
+	public PokedexService getService(ServiceType service)
 	{
 		return services.get(service);
 	}
@@ -31,7 +31,7 @@ public class ServiceManager implements IServiceManager
 	
 	public static class ServiceManagerBuilder
 	{
-		private Map<ServiceType, IService> services;
+		private Map<ServiceType, PokedexService> services;
 		private PokedexApplicationManager availableServices;
 		
 		public static ServiceManagerBuilder newInstance(PokedexApplicationManager allServices) 

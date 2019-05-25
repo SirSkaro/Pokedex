@@ -8,29 +8,26 @@ import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.CommandService;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 
 public class CommandsCommand extends PokedexCommand 
 {
-	public CommandsCommand(IServiceManager services) throws ServiceConsumerException
+	public CommandsCommand(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		super(services);
 		if(!hasExpectedServices(this.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "commands".intern();
-		orderedArgumentCategories.add(ArgumentCategory.NONE);
-		expectedArgRange = new ArgumentRange(0,0);
 		aliases.put("cmds", Language.ENGLISH);
 		aliases.put("useage", Language.ENGLISH);
 		aliases.put("command", Language.ENGLISH);
 		
-		this.createHelpMessage("https://i.imgur.com/QAMZRcf.gif");
+		this.createNonGifHelpMessage("https://i.imgur.com/xuR40h5.png");
 	}
 	
 	@Override
@@ -39,7 +36,7 @@ public class CommandsCommand extends PokedexCommand
 	public String getArguments() { return "none"; }
 
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.COMMAND, ServiceType.COLOR);
@@ -80,6 +77,12 @@ public class CommandsCommand extends PokedexCommand
 		{
 			return Mono.just(this.createErrorResponse(input, e));
 		}
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+
 	}
 	
 	private String formatCommandFieldTitle(PokedexCommand command)

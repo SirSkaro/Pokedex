@@ -1,5 +1,6 @@
 package skaro.pokedex.data_processor;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,55 +8,58 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 
-import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
-import skaro.pokedex.data_processor.commands.ArgumentRange;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.services.ColorService;
-import skaro.pokedex.services.IServiceConsumer;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.ConfigurationService;
 import skaro.pokedex.services.PerkService;
+import skaro.pokedex.services.PokedexServiceConsumer;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 
-public abstract class PokedexCommand implements IServiceConsumer
+public abstract class PokedexCommand implements PokedexServiceConsumer
 {
-	protected ArgumentRange expectedArgRange;
 	protected String commandName;
-	protected List<ArgumentCategory> orderedArgumentCategories;
+	protected List<ArgumentSpec> argumentSpecifications;
 	protected List<String> extraMessages;
-	protected EmbedCreateSpec helpMessage;
+	protected Response helpMessage;
 	protected Map<String, Language> aliases;
 	protected ResponseFormatter formatter;
-	protected IServiceManager services;
+	protected PokedexServiceManager services;
+	private final String helpGifPath;
 	
-	public PokedexCommand(IServiceManager serviceManager)
+	public PokedexCommand(PokedexServiceManager serviceManager)
 	{
 		services = serviceManager;
-		orderedArgumentCategories = new ArrayList<>();
+		argumentSpecifications = new ArrayList<>();
 		aliases = new HashMap<>();
 		populateDefaultExtraMessage();
+		createArgumentSpecifications();
+		helpGifPath = ConfigurationService.getInstance().get().getHelpGifPath();
 	}
 	
-	public PokedexCommand(IServiceManager serviceManager, ResponseFormatter discordFormatter)
+	public PokedexCommand(PokedexServiceManager serviceManager, ResponseFormatter discordFormatter)
 	{
 		services = serviceManager;
 		formatter = discordFormatter;
-		orderedArgumentCategories = new ArrayList<>();
+		argumentSpecifications = new ArrayList<>();
 		aliases = new HashMap<>();
 		populateDefaultExtraMessage();
+		createArgumentSpecifications();
+		helpGifPath = ConfigurationService.getInstance().get().getHelpGifPath();
 	}
 	
-	public ArgumentRange getExpectedArgumentRange() { return expectedArgRange; }
 	public String getCommandName() { return commandName; }
-	public List<ArgumentCategory> getArgumentCategories() { return orderedArgumentCategories; }
+	public List<ArgumentSpec> getArgumentSpecifications() { return argumentSpecifications; }
 	public Map<String, Language> getAliases() { return aliases; }
 	public List<String> getExtraMessages() { return extraMessages; }
-	public EmbedCreateSpec getHelpMessage() { return helpMessage; }
+	public Response getHelpMessage() { return helpMessage; }
 	
 	public Language getLanguageOfAlias(String alias)
 	{
@@ -68,7 +72,7 @@ public abstract class PokedexCommand implements IServiceConsumer
 	}
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return services.hasServices(ServiceType.COLOR);
 	}
@@ -92,8 +96,7 @@ public abstract class PokedexCommand implements IServiceConsumer
 	abstract public boolean makesWebRequest();
 	abstract public String getArguments();
 	abstract public Mono<Response> respondTo(Input input, User author, Guild guild);
-	
-	protected boolean inputIsValid(Response reply, Input input) { return true; }
+	abstract protected void createArgumentSpecifications();
 	
 	protected String listToItemizedString(List<?> list)
 	{
@@ -123,8 +126,9 @@ public abstract class PokedexCommand implements IServiceConsumer
 		}
 	}
 	
-	protected void createHelpMessage(String ex1, String ex2, String ex3, String ex4, String imageURL)
+	protected void createHelpMessage(String ex1, String ex2, String ex3, String ex4)
 	{
+		helpMessage = new Response();
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		StringBuilder exampleBuilder = new StringBuilder();
@@ -135,18 +139,35 @@ public abstract class PokedexCommand implements IServiceConsumer
 		exampleBuilder.append("@Pokedex "+commandName+" "+ex4);
 		
 		builder.addField("Input", this.getArguments(), true);
-		builder.addField("Min/Max Inputs", expectedArgRange.getMin()+"/"+expectedArgRange.getMax(), true);
 		this.addAliasFields(builder);
 		builder.addField("Examples", exampleBuilder.toString(), true);
-		builder.setImage(imageURL);
+		builder.setThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
+
+		builder.setColor(colorService.getPokedexColor());
+		
+		String gifPath = helpGifPath+ "/" + commandName + "-command.gif";
+		helpMessage.addImage(new File(gifPath));
+		helpMessage.setEmbed(builder);
+	}
+	
+	protected void createHelpMessage()
+	{
+		helpMessage = new Response();
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
+		EmbedCreateSpec builder = new EmbedCreateSpec();
+		
+		builder.addField("Input", this.getArguments(), true);
+		this.addAliasFields(builder);
 		builder.setThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 		
 		builder.setColor(colorService.getPokedexColor());
 		
-		helpMessage = builder;
+		String gifPath = helpGifPath+ "/" + commandName + "-command.gif";
+		helpMessage.addImage(new File(gifPath));
+		helpMessage.setEmbed(builder);
 	}
 	
-	protected void createHelpMessage(String imageURL)
+	protected void createNonGifHelpMessage(String imageURL)
 	{
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		EmbedCreateSpec builder = new EmbedCreateSpec();
@@ -158,7 +179,9 @@ public abstract class PokedexCommand implements IServiceConsumer
 		
 		builder.setColor(colorService.getPokedexColor());
 		
-		helpMessage = builder;
+		helpMessage = new Response();
+		helpMessage.addToReply("__**"+TextUtility.flexFormToProper(commandName)+" Command**__");
+		helpMessage.setEmbed(builder);
 	}
 	
 	protected Mono<Pokemon> addAdopter(Pokemon pokemon, EmbedCreateSpec builder)

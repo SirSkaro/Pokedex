@@ -34,6 +34,7 @@ import skaro.pokedex.data_processor.commands.LearnCommand;
 import skaro.pokedex.data_processor.commands.MoveCommand;
 import skaro.pokedex.data_processor.commands.PatreonCommand;
 import skaro.pokedex.data_processor.commands.RandpokeCommand;
+import skaro.pokedex.data_processor.commands.SearchCommand;
 import skaro.pokedex.data_processor.commands.SetCommand;
 import skaro.pokedex.data_processor.commands.ShinyCommand;
 import skaro.pokedex.data_processor.commands.StatsCommand;
@@ -47,6 +48,8 @@ import skaro.pokedex.data_processor.formatters.ItemResponseFormatter;
 import skaro.pokedex.data_processor.formatters.LearnResponseFormatter;
 import skaro.pokedex.data_processor.formatters.MoveResponseFormatter;
 import skaro.pokedex.data_processor.formatters.RandpokeResponseFormatter;
+import skaro.pokedex.data_processor.formatters.SearchResponseFormatter;
+import skaro.pokedex.data_processor.formatters.SetResponseFormatter;
 import skaro.pokedex.data_processor.formatters.ShinyResponseFormatter;
 import skaro.pokedex.data_processor.formatters.StatsResponseFormatter;
 import skaro.pokedex.data_processor.formatters.WeakResponseFormatter;
@@ -75,14 +78,12 @@ public class Pokedex
 {
 	public static void main(String[] args) throws Exception
 	{
-		//Parse command line arguments
 		if(args.length != 2)
 		{
 			System.out.println("Usage: <shard ID> <total shards>");
 			System.exit(1);
 		}
 		
-		//Record on command line arguments
 		int shardToManage = -1;
 		int totalShards = -1;
 		try
@@ -209,7 +210,7 @@ public class Pokedex
 		commandServiceBuilder.addService(ServiceType.PERK);
 		commandService.addCommand(new AbilityCommand(commandServiceBuilder.build(), new AbilityResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new RandpokeCommand(commandServiceBuilder.build(), new RandpokeResponseFormatter(serviceBuilderColor.build())));
-		commandService.addCommand(new SetCommand(commandServiceBuilder.build()));
+		commandService.addCommand(new SetCommand(commandServiceBuilder.build(), new SetResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new ShinyCommand(commandServiceBuilder.build(), new ShinyResponseFormatter(serviceBuilderColor.build())));
 		commandService.addCommand(new StatsCommand(commandServiceBuilder.build(), new StatsResponseFormatter(serviceBuilderColor.build())));
 		
@@ -220,6 +221,7 @@ public class Pokedex
 		commandService.addCommand(new MoveCommand(commandServiceBuilder.build(), new MoveResponseFormatter(serviceBuilderEmoji.build())));
 		commandService.addCommand(new DataCommand(commandServiceBuilder.build(), new DataResponseFormatter(serviceBuilderEmoji.build())));
 		commandService.addCommand(new ZMoveCommand(commandServiceBuilder.build(), new ZMoveResponseFormatter(serviceBuilderEmoji.build())));
+		commandService.addCommand(new SearchCommand(commandServiceBuilder.build(), new SearchResponseFormatter(serviceBuilderEmoji.build(), 10), 10));
 		
 		//ColorService, PokeFlexService, PerkService, TypeService
 		commandServiceBuilder.removeService(ServiceType.CACHE);

@@ -1,7 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.util.ArrayList;
-
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.object.entity.Guild;
@@ -9,12 +7,13 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.input_processor.arguments.PokemonArgument;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
@@ -26,16 +25,13 @@ import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
 public class StatsCommand extends PokedexCommand  
 {	
-	public StatsCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
+	public StatsCommand(PokedexServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "stats".intern();
-		orderedArgumentCategories = new ArrayList<ArgumentCategory>();
-		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
-		expectedArgRange = new ArgumentRange(1,1);
 		
 		aliases.put("statistiken", Language.GERMAN);
 		aliases.put("statistica", Language.ITALIAN);
@@ -53,8 +49,7 @@ public class StatsCommand extends PokedexCommand
 		aliases.put("통계량", Language.KOREAN);
 		aliases.put("统计", Language.CHINESE_SIMPMLIFIED);
 		
-		createHelpMessage("Darmanitan", "Alolan Sandshrew", "Ninetales Alola", "Mega Venusaur",
-				"https://i.imgur.com/svFfe9Q.gif");
+		createHelpMessage("Darmanitan", "Alolan Sandshrew", "Ninetales Alola", "Mega Venusaur");
 	}
 	
 	@Override
@@ -63,7 +58,7 @@ public class StatsCommand extends PokedexCommand
 	public String getArguments() { return "<pokemon>"; }
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
@@ -72,7 +67,7 @@ public class StatsCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User author, Guild guild)
 	{ 
-		if(!input.isValid())
+		if(!input.allArgumentValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
@@ -95,6 +90,12 @@ public class StatsCommand extends PokedexCommand
 		return result
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, PokemonArgument.class));
 	}
 	
 }

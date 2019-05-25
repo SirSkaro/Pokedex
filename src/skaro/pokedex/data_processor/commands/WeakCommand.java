@@ -1,6 +1,5 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,15 +10,16 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.input_processor.arguments.TypeArgument;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
@@ -33,16 +33,13 @@ import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
 public class WeakCommand extends PokedexCommand 
 {
-	public WeakCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
+	public WeakCommand(PokedexServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "weak".intern();
-		orderedArgumentCategories = new ArrayList<ArgumentCategory>();
-		orderedArgumentCategories.add(ArgumentCategory.POKE_TYPE_LIST);
-		expectedArgRange = new ArgumentRange(1,2);
 		
 		aliases.put("weakness", Language.ENGLISH);
 		aliases.put("debilidad", Language.SPANISH);
@@ -58,10 +55,9 @@ public class WeakCommand extends PokedexCommand
 		aliases.put("弱", Language.CHINESE_SIMPMLIFIED);
 		aliases.put("약점", Language.KOREAN);
 		
-		extraMessages.add("You may also like the %coverage command");
+		extraMessages.add("You may also like the %coverage command!");
 		
-		createHelpMessage("Ghost, Normal", "Scizor", "Swampert", "Fairy",
-				"https://i.imgur.com/E79RCZO.gif");
+		createHelpMessage("Ghost, Normal", "Scizor", "Swampert", "Fairy");
 	}
 	
 	@Override
@@ -70,7 +66,7 @@ public class WeakCommand extends PokedexCommand
 	public String getArguments() { return "<pokemon> or <type> or <type>, <type>"; }
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.TYPE);
@@ -79,14 +75,14 @@ public class WeakCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{ 
-		if(!input.isValid())
+		if(!input.allArgumentValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		Mono<MultiMap<IFlexObject>> result = Mono.just(new MultiMap<IFlexObject>());
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		
-		if(input.getArgument(0).getCategory() == ArgumentCategory.POKEMON)
+		if(input.getArgument(0) instanceof PokemonArgument)
 		{	
 			String pokemonName = input.getArgument(0).getFlexForm();
 			Request pokemonRequest = new Request(Endpoint.POKEMON, pokemonName);
@@ -104,13 +100,20 @@ public class WeakCommand extends PokedexCommand
 		}
 		else
 		{
-			result = result.doOnNext(dataMap -> dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapperFromArguments(input.getArguments())));
+			result = result.doOnNext(dataMap -> dataMap.put(TypeEfficacyWrapper.class.getName(), createWrapperFromArguments(input.getNonEmptyArguments())));
 		}
 		
 		this.addRandomExtraMessage(builder);
 		return result
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, PokemonArgument.class, TypeArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(true, TypeArgument.class));
 	}
 	
 	private TypeEfficacyWrapper createWrapper(List<Type> types)
@@ -127,7 +130,6 @@ public class WeakCommand extends PokedexCommand
 	{
 		TypeService typeService = (TypeService)services.getService(ServiceType.TYPE);
 		List<String> typeNames = types.stream()
-				.filter(argument -> argument instanceof TypeArgument)
 				.map(argument -> argument.getFlexForm())
 				.collect(Collectors.toList());
 		

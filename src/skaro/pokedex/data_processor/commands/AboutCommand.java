@@ -9,10 +9,9 @@ import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.ConfigurationService;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 
@@ -20,7 +19,7 @@ public class AboutCommand extends PokedexCommand
 {
 	private Response staticDiscordReply;
 	
-	public AboutCommand(IServiceManager services) throws ServiceConsumerException
+	public AboutCommand(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		super(services);
 		if(!hasExpectedServices(this.services))
@@ -36,9 +35,6 @@ public class AboutCommand extends PokedexCommand
 			version = configurator.get().getVersion();
 		
 		commandName = "about".intern();
-		orderedArgumentCategories.add(ArgumentCategory.NONE);
-		expectedArgRange = new ArgumentRange(0,0);
-		
 		staticDiscordReply = new Response();
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();	
@@ -48,11 +44,11 @@ public class AboutCommand extends PokedexCommand
 		
 		staticDiscordReply.setEmbed(builder);
 		
-		this.createHelpMessage("https://i.imgur.com/gC3tMJQ.gif");
+		this.createNonGifHelpMessage("https://i.imgur.com/VdcjsjK.png");
 	}
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{ 
 		return super.hasExpectedServices(services) &&
 					services.hasServices(ServiceType.COLOR, ServiceType.CONFIG); 
@@ -66,6 +62,12 @@ public class AboutCommand extends PokedexCommand
 	public Mono<Response> respondTo(Input input, User requester, Guild guild) 
 	{ return Mono.just(staticDiscordReply); }
 	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		
+	}
+	
 	private void setStaticReplyFields(EmbedCreateSpec builder)
 	{
 		builder.addField("Creator", "[Benjamin \"Sir Skaro\" Churchill](https://twitter.com/sirskaro)", true);
@@ -77,7 +79,7 @@ public class AboutCommand extends PokedexCommand
 		builder.addField("Pledge on Patron!", "[Support Pokedex and get perks!](https://www.patreon.com/sirskaro)", true);
 		builder.addField("Special Thanks", "PokeaimMD, Honko, the Pokemon Showdown Dev Team, "
 				+ "and the Bulbapedia Community", false);
-		builder.setFooter("Pokémon © 2002-2018 Pokémon. © 1995-2018 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. " + 
+		builder.setFooter("Pokémon © 2002-2019 Pokémon. © 1995-2019 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. " + 
 				"No copyright or trademark infringement is intended.", null);
 		
 		builder.setThumbnail("https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png");

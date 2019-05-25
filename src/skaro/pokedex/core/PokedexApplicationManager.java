@@ -3,16 +3,16 @@ package skaro.pokedex.core;
 import java.util.HashMap;
 import java.util.Map;
 
-import skaro.pokedex.services.IService;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexService;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceType;
 
-public class PokedexApplicationManager implements IServiceManager
+public class PokedexApplicationManager implements PokedexServiceManager
 {
-	private Map<ServiceType, IService> services;	
+	private Map<ServiceType, PokedexService> services;	
 	
 	@Override
-	public IService getService(ServiceType service) 
+	public PokedexService getService(ServiceType service) 
 	{
 		return services.get(service);
 	}
@@ -33,7 +33,7 @@ public class PokedexApplicationManager implements IServiceManager
 	
 	public static class PokedexConfigurator 
 	{
-		private Map<ServiceType, IService> services;
+		private Map<ServiceType, PokedexService> services;
 		
 		public static PokedexConfigurator newInstance() 
 		{ 
@@ -48,7 +48,7 @@ public class PokedexApplicationManager implements IServiceManager
 			return new PokedexApplicationManager(this);
 		}
 		
-		public PokedexConfigurator withService(IService service)
+		public PokedexConfigurator withService(PokedexService service)
 		{
 			services.put(service.getServiceType(), service);
 			return this;

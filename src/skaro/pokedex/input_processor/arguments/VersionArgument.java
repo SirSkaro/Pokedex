@@ -7,8 +7,6 @@ public class VersionArgument extends CommandArgument
 {
 	public VersionArgument()
 	{
-		super();
-		this.category = ArgumentCategory.VERSION;
-		this.sqlResource = SQLResource.VERSION;
+		super("Version", SQLResource.VERSION);
 	}
 }

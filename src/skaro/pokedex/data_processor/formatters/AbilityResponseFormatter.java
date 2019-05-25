@@ -9,15 +9,15 @@ import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
 import skaro.pokedex.data_processor.AbilityList;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.AbilityArgument;
 import skaro.pokedex.services.ColorService;
-import skaro.pokedex.services.IServiceConsumer;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceConsumer;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.api.IFlexObject;
@@ -25,11 +25,11 @@ import skaro.pokeflex.objects.ability.Ability;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
-public class AbilityResponseFormatter implements ResponseFormatter, IServiceConsumer
+public class AbilityResponseFormatter implements ResponseFormatter, PokedexServiceConsumer
 {
-	private IServiceManager services;
+	private PokedexServiceManager services;
 	
-	public AbilityResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	public AbilityResponseFormatter(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		if(!hasExpectedServices(services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
@@ -38,29 +38,9 @@ public class AbilityResponseFormatter implements ResponseFormatter, IServiceCons
 	}
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return services.hasServices(ServiceType.COLOR);
-	}
-	
-	@Override
-	public Response invalidInputResponse(Input input)
-	{
-		Response response = new Response();
-		
-		switch(input.getError())
-		{
-			case ARGUMENT_NUMBER:
-				response.addToReply("You must specify exactly one Pokemon or Ability as input for this command.".intern());
-			break;
-			case INVALID_ARGUMENT:
-				response.addToReply("\""+input.getArgument(0).getRawInput() +"\" is not a recognized Pokemon or Ability in " + input.getLanguage().getName());
-			break;
-			default:
-				response.addToReply("A technical error occured (code 103)");
-		}
-		
-		return response;
 	}
 	
 	@Override
@@ -68,7 +48,7 @@ public class AbilityResponseFormatter implements ResponseFormatter, IServiceCons
 	{
 		Language lang = input.getLanguage();
 		
-		if(input.getArgument(0).getCategory() == ArgumentCategory.ABILITY)
+		if(input.getArgument(0) instanceof AbilityArgument)
 			return formatFromAbilityArgument(data, lang, builder);
 		return formatFromPokemonArgument(data, lang, builder);
 	}

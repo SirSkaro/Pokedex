@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>Pokedex</groupId>
 	<artifactId>Pokedex</artifactId>
-	<version>6.0.2</version>
+	<version>6.1.0</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>
@@ -64,7 +64,7 @@
 			<!-- <groupId>com.github.austinv11</groupId> -->
 			<groupId>com.discord4j.discord4j</groupId>
 			<artifactId>discord4j-core</artifactId>
-			<version>3.0.0</version>
+			<version>3.0.5</version>
 		</dependency>
 		<!-- Logback Classic: SLF4J Binding -->
 		<dependency>

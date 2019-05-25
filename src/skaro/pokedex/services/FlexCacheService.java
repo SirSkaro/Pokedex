@@ -6,7 +6,7 @@ import java.util.Map;
 import skaro.pokedex.core.ICachedData;
 import skaro.pokeflex.api.IFlexObject;
 
-public class FlexCacheService implements IService
+public class FlexCacheService implements PokedexService
 {
 	private Map<CachedResource, ICachedData> cache;
 	

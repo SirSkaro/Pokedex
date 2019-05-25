@@ -8,12 +8,14 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.input_processor.arguments.AbilityArgument;
+import skaro.pokedex.input_processor.arguments.PokemonArgument;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
@@ -27,15 +29,13 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 
 public class AbilityCommand extends PokedexCommand 
 {	
-	public AbilityCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
+	public AbilityCommand(PokedexServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 
 		commandName = "ability".intern();
-		orderedArgumentCategories.add(ArgumentCategory.POKE_ABIL);
-		expectedArgRange = new ArgumentRange(1,1);
 
 		aliases.put("ab", Language.ENGLISH);
 		aliases.put("abil", Language.ENGLISH);
@@ -57,8 +57,7 @@ public class AbilityCommand extends PokedexCommand
 		aliases.put("특성", Language.KOREAN);
 		aliases.put("特技", Language.CHINESE_SIMPMLIFIED);
 
-		createHelpMessage("Starmie", "Flash Fire", "celebi", "natural cure",
-				"https://i.imgur.com/biWBKIL.gif");
+		createHelpMessage("Starmie", "Flash Fire", "celebi", "natural cure");
 	}
 
 	@Override
@@ -67,7 +66,7 @@ public class AbilityCommand extends PokedexCommand
 	public String getArguments() { return "<pokemon> or <ability>"; }
 
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
@@ -76,16 +75,15 @@ public class AbilityCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{
-		if(!input.isValid())
+		if(!input.allArgumentValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		Mono<MultiMap<IFlexObject>> result;
 		String userInput = input.getArgument(0).getFlexForm();
-
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 
-		if(input.getArgument(0).getCategory() == ArgumentCategory.ABILITY)
+		if(input.getArgument(0) instanceof AbilityArgument)
 		{
 			Request request = new Request(Endpoint.ABILITY, userInput);
 			result = Mono.just(new MultiMap<IFlexObject>())
@@ -117,6 +115,12 @@ public class AbilityCommand extends PokedexCommand
 		return result
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, PokemonArgument.class, AbilityArgument.class));
 	}
 
 }

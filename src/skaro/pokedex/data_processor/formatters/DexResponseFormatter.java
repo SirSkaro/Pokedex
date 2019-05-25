@@ -9,15 +9,14 @@ import javax.sound.sampled.AudioInputStream;
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TextUtility;
-import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
-import skaro.pokedex.services.IServiceConsumer;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceConsumer;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 import skaro.pokedex.services.TextToSpeechService;
@@ -26,11 +25,11 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 import skaro.pokeflex.objects.version.Version;
 
-public class DexResponseFormatter implements ResponseFormatter, IServiceConsumer
+public class DexResponseFormatter implements ResponseFormatter, PokedexServiceConsumer
 {
-	private IServiceManager services;
+	private PokedexServiceManager services;
 
-	public DexResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	public DexResponseFormatter(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		if(!hasExpectedServices(services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
@@ -39,33 +38,9 @@ public class DexResponseFormatter implements ResponseFormatter, IServiceConsumer
 	}
 
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return services.hasServices(ServiceType.COLOR, ServiceType.TTS);
-	}
-
-	@Override
-	public Response invalidInputResponse(Input input) 
-	{
-		Response response = new Response();
-
-		switch(input.getError())
-		{
-			case ARGUMENT_NUMBER:
-				response.addToReply("You must specify a Pokemon and a Version as input for this command "
-						+ "(seperated by commas).");
-				break;
-			case INVALID_ARGUMENT:
-				response.addToReply("Could not process your request due to the following problem(s):".intern());
-				for(CommandArgument arg : input.getArguments())
-					if(!arg.isValid())
-						response.addToReply("\t\""+arg.getRawInput()+"\" is not a recognized "+ arg.getCategory());
-				break;
-			default:
-				response.addToReply("A technical error occured (code 110)");
-		}
-
-		return response;
 	}
 
 	@Override

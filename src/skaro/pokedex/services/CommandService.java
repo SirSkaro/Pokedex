@@ -8,7 +8,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 import skaro.pokedex.data_processor.PokedexCommand;
 
-public class CommandService implements IService
+public class CommandService implements PokedexService
 {
 	private Cache<String, PokedexCommand> cache;
 	private List<PokedexCommand> commands;
@@ -40,7 +40,7 @@ public class CommandService implements IService
 		return cache.asMap().containsKey(cmd);
 	}
 	
-	public PokedexCommand getCommandByAnyAlias(String key)
+	public PokedexCommand getByAnyAlias(String key)
 	{
 		return cache.getIfPresent(key);
 	}

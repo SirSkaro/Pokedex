@@ -15,8 +15,8 @@ import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
-import skaro.pokedex.services.IServiceConsumer;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceConsumer;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.api.IFlexObject;
@@ -24,11 +24,11 @@ import skaro.pokeflex.objects.move_learn_method.MoveLearnMethod;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
 
-public class LearnResponseFormatter implements ResponseFormatter, IServiceConsumer
+public class LearnResponseFormatter implements ResponseFormatter, PokedexServiceConsumer
 {
-	private IServiceManager services;
+	private PokedexServiceManager services;
 	
-	public LearnResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	public LearnResponseFormatter(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		if(!hasExpectedServices(services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
@@ -37,38 +37,11 @@ public class LearnResponseFormatter implements ResponseFormatter, IServiceConsum
 	}
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return services.hasServices(ServiceType.COLOR);
 	}
 	
-	@Override
-	public Response invalidInputResponse(Input input) 
-	{
-		Response response = new Response();
-		
-		switch(input.getError())
-		{
-			case ARGUMENT_NUMBER:
-				response.addToReply("You must specify 1 Pokemon and 1 to 4 Moves as input for this command "
-						+ "(seperated by commas).");
-				return response;	
-			default:
-				break;
-		}
-		
-		//Because inputs that are not valid (case 2) are allowed this far, it is necessary to check if
-		//the Pokemon is valid but allow other arguments to go unchecked
-		if(!input.getArgument(0).isValid())
-		{
-			response.addToReply("\""+input.getArgument(0).getRawInput()+"\" is not a recognized Pokemon in "+input.getLanguage().getName());
-			return response;
-		}
-		
-		response.addToReply("A technical error occured (code 107)");
-		return response;
-	}
-
 	@SuppressWarnings("unchecked")
 	@Override
 	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder) 

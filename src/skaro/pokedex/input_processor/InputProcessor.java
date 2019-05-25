@@ -1,18 +1,15 @@
 package skaro.pokedex.input_processor;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.input_processor.Input.InputBuilder;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
-import skaro.pokedex.input_processor.arguments.NoneArgument;
 import skaro.pokedex.input_processor.arguments.ParsedText;
 import skaro.pokedex.services.CommandService;
 
@@ -73,10 +70,10 @@ public class InputProcessor
 	
 	private Input createInputFromParsedText(ParsedText parsedText)
 	{
-		PokedexCommand command = commandService.getCommandByAnyAlias(parsedText.getFunction());
+		PokedexCommand command = commandService.getByAnyAlias(parsedText.getFunction());
 		Language lang = command.getLanguageOfAlias(parsedText.getFunction());
 		InputBuilder builder = Input.newBuilder();
-		List<CommandArgument> parsedArguments = parseArguments(parsedText, command.getArgumentCategories(), lang);
+		List<CommandArgument> parsedArguments = parseArguments(parsedText, command.getArgumentSpecifications(), lang);
 		
 		builder.setLanguage(lang);
 		builder.setCommand(command);
@@ -86,20 +83,20 @@ public class InputProcessor
 		return builder.build();
 	}
 	
-	private List<CommandArgument> parseArguments(ParsedText parsedText, List<ArgumentCategory> categories, Language lang)
+	private List<CommandArgument> parseArguments(ParsedText parsedText, List<ArgumentSpec> argumentSpecs, Language lang)
 	{
 		Iterator<String> argItr = parsedText.getArgumentIterator();
+		List<CommandArgument> result = new ArrayList<>();
 		
-		return categories.stream()
-				.map(category -> category.parse(argItr, lang))
-				.flatMap(Collection::stream)
-				.filter(argument -> !argumentIsNull(argument))
-				.collect(Collectors.toList());
-	}
-	
-	private boolean argumentIsNull(CommandArgument argument)
-	{
-		return (argument instanceof NoneArgument) && !(argument.isValid());
+		for(ArgumentSpec spec : argumentSpecs)
+		{
+			if(argItr.hasNext())
+				result.add(spec.createArgumentFromText(argItr.next(), lang));
+			else
+				result.add(spec.createArgumentFromNoText());
+		}
+		
+		return result;
 	}
 	
     private Optional<ParsedText> parsePrefix(String msg)

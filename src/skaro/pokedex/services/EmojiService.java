@@ -3,7 +3,7 @@ package skaro.pokedex.services;
 import java.util.HashMap;
 import java.util.Map;
 
-public class EmojiService implements IService
+public class EmojiService implements PokedexService
 {
 	private final Map<String, String> typeEmojiMap;
 	private final Map<String, String> crystalEmojiMap;

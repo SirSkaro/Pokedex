@@ -9,14 +9,15 @@ import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
+import skaro.pokedex.input_processor.arguments.PokemonArgument;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.ConfigurationService;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PerkService;
 import skaro.pokedex.services.PerkTier;
 import skaro.pokedex.services.PokeFlexService;
@@ -33,15 +34,13 @@ public class ShinyCommand extends PokedexCommand
 	private final String baseModelPath;
 	private final String defaultPokemon;
 	
-	public ShinyCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
+	public ShinyCommand(PokedexServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "shiny".intern();
-		orderedArgumentCategories.add(ArgumentCategory.POKEMON);
-		expectedArgRange = new ArgumentRange(1,1);
 		baseModelPath = ConfigurationService.getInstance().get().getModelBasePath();
 		defaultPokemon = "jirachi";
 		
@@ -60,15 +59,14 @@ public class ShinyCommand extends PokedexCommand
 		aliases.put("色違い", Language.JAPANESE_HIR_KAT);
 		aliases.put("发光", Language.CHINESE_SIMPMLIFIED);
 
-		createHelpMessage("Ponyta", "Solgaleo", "Keldeo resolute", "eevee",
-				"https://i.imgur.com/FLBOsD5.gif");
+		createHelpMessage("Ponyta", "Solgaleo", "Keldeo resolute", "eevee");
 	}
 
 	public boolean makesWebRequest() { return true; }
 	public String getArguments() { return "<pokemon>"; }
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK, ServiceType.COLOR);
@@ -77,7 +75,7 @@ public class ShinyCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{
-		if(!input.isValid())
+		if(!input.allArgumentValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 
 		if(!perkAffordedToUser(requester, guild))
@@ -106,6 +104,12 @@ public class ShinyCommand extends PokedexCommand
 		return result
 				.map(dataMap -> formatter.format(input, dataMap, builder))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, PokemonArgument.class));
 	}
 	
 	private boolean perkAffordedToUser(User user, Guild guild)

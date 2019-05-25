@@ -8,7 +8,7 @@ public class MetaArgument extends CommandArgument
 {
 	public MetaArgument()
 	{
-		this.category = ArgumentCategory.META;
+		super("Meta", null);
 	}
 
 	public void setUp(String argument, Language lang) 

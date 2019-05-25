@@ -7,8 +7,6 @@ public class ItemArgument extends CommandArgument
 {
 	public ItemArgument()
 	{
-		super();
-		this.category = ArgumentCategory.ITEM;
-		this.sqlResource = SQLResource.ITEM;
+		super("Item", SQLResource.ITEM);
 	}
 }

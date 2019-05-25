@@ -7,8 +7,6 @@ public class AbilityArgument extends CommandArgument
 {
 	public AbilityArgument()
 	{
-		super();
-		this.category = ArgumentCategory.ABILITY;
-		this.sqlResource = SQLResource.ABILITY;
+		super("Ability", SQLResource.ABILITY);
 	}
 }

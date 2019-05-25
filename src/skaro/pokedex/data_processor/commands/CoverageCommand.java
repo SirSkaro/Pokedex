@@ -10,14 +10,16 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
+import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.input_processor.arguments.MoveArgument;
+import skaro.pokedex.input_processor.arguments.TypeArgument;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
@@ -30,15 +32,13 @@ import skaro.pokeflex.objects.move.Move;
 
 public class CoverageCommand extends PokedexCommand 
 {
-	public CoverageCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
+	public CoverageCommand(PokedexServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "coverage".intern();
-		orderedArgumentCategories.add(ArgumentCategory.MOVE_TYPE_LIST);
-		expectedArgRange = new ArgumentRange(1,4);
 		aliases.put("strong", Language.ENGLISH);
 		aliases.put("cov", Language.ENGLISH);
 		aliases.put("effective", Language.ENGLISH);
@@ -57,8 +57,7 @@ public class CoverageCommand extends PokedexCommand
 		
 		extraMessages.add("You may also like the %weak command!");
 		
-		createHelpMessage("ice, electric", "blizzard, thunder", "Ghost, Fire, Vine Whip, Hyper Beam", "Water",
-				"https://i.imgur.com/MLIpXYN.gif");
+		createHelpMessage("ice, electric", "blizzard, thunder", "Ghost, Fire, Vine Whip, Hyper Beam", "Water");
 	}
 	
 	@Override
@@ -67,7 +66,7 @@ public class CoverageCommand extends PokedexCommand
 	public String getArguments() { return "<type/move>,...,<type/move>"; }
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.TYPE);
@@ -76,7 +75,7 @@ public class CoverageCommand extends PokedexCommand
 	@Override
 	public Mono<Response> respondTo(Input input, User requester, Guild guild)
 	{ 
-		if(!input.isValid())
+		if(!input.allArgumentValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();
@@ -84,7 +83,7 @@ public class CoverageCommand extends PokedexCommand
 		PokeFlexService factory = (PokeFlexService)services.getService(ServiceType.POKE_FLEX);
 		
 		result = result
-				.flatMap(dataMap -> Flux.fromIterable(input.getArguments())
+				.flatMap(dataMap -> Flux.fromIterable(input.getNonEmptyArguments())
 				.parallel()
 				.runOn(factory.getScheduler())
 				.flatMap(userArgument -> getTypeFromArgument(userArgument))
@@ -100,11 +99,20 @@ public class CoverageCommand extends PokedexCommand
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		argumentSpecifications.add(new ArgumentSpec(false, TypeArgument.class, MoveArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(true, TypeArgument.class, MoveArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(true, TypeArgument.class, MoveArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(true, TypeArgument.class, MoveArgument.class));
+	}
+	
 	private Mono<String> getTypeFromArgument(CommandArgument argument)
 	{
 		Mono<String> result;
 		
-		if(argument.getCategory() == ArgumentCategory.MOVE)
+		if(argument instanceof MoveArgument)
 		{
 			PokeFlexFactory factory = (PokeFlexFactory)services.getService(ServiceType.POKE_FLEX);
 			

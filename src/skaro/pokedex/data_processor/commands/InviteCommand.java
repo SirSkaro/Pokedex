@@ -8,9 +8,8 @@ import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.services.ColorService;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 
@@ -18,15 +17,13 @@ public class InviteCommand extends PokedexCommand
 {
 	private Response staticDiscordReply;
 	
-	public InviteCommand(IServiceManager services) throws ServiceConsumerException
+	public InviteCommand(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		super(services);
 		if(!hasExpectedServices(this.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "invite".intern();
-		orderedArgumentCategories.add(ArgumentCategory.NONE);
-		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
 		aliases.put("inv", Language.ENGLISH);
 		
@@ -38,7 +35,7 @@ public class InviteCommand extends PokedexCommand
 		builder.addField("Join Pokedex's home server!", "[Click to join Pokedex's server](https://discord.gg/D5CfFkN)", false);
 		
 		staticDiscordReply.setEmbed(builder);
-		this.createHelpMessage("https://i.imgur.com/WoeK9qZ.gif");
+		this.createNonGifHelpMessage("https://i.imgur.com/IJZfjxe.png");
 	}
 	
 	@Override
@@ -49,10 +46,16 @@ public class InviteCommand extends PokedexCommand
 	public Mono<Response> respondTo(Input input, User requester, Guild guild) {  return Mono.just(staticDiscordReply); }
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.COLOR);
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+
 	}
 	
 }

@@ -7,12 +7,11 @@ public class NoneArgument extends CommandArgument
 {
 	public NoneArgument()
 	{
-		
+		super("None", null);
+		this.valid = true;
 	}
 	
 	@Override
 	public void setUp(String argument, Language lang) 
-	{
-		this.valid = true;
-	}
+	{ }
 }

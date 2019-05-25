@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;			//in Discord4J's dependenc
 
 import skaro.pokedex.core.ResourceManager;
 
-public class ConfigurationService implements IService
+public class ConfigurationService implements PokedexService
 {
 	private static String dataKey = "production".intern();
 	private static ConfigurationService instance;
@@ -140,6 +140,15 @@ public class ConfigurationService implements IService
 	public String getModelBasePath()
 	{
 		JsonNode dataNode = rootNode.get("model_path");
+		if(dataNode == null)
+			throw new IllegalStateException("No database congifuration data could be found.");
+		
+		return dataNode.get(dataKey).asText();
+	}
+	
+	public String getHelpGifPath()
+	{
+		JsonNode dataNode = rootNode.get("help_gif_path");
 		if(dataNode == null)
 			throw new IllegalStateException("No database congifuration data could be found.");
 		

@@ -8,7 +8,7 @@ public class AnyArgument extends CommandArgument
 {
 	public AnyArgument()
 	{
-		this.category = ArgumentCategory.ANY_NONE;
+		super("Anything", null);
 	}
 	
 	@Override

@@ -1,6 +1,6 @@
 package skaro.pokedex.services;
 
-public interface IService 
+public interface PokedexService 
 {
 	ServiceType getServiceType();
 }

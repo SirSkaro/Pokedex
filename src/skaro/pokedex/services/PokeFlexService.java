@@ -3,7 +3,7 @@ package skaro.pokedex.services;
 import reactor.core.scheduler.Scheduler;
 import skaro.pokeflex.api.PokeFlexFactory;
 
-public class PokeFlexService extends PokeFlexFactory implements IService 
+public class PokeFlexService extends PokeFlexFactory implements PokedexService 
 {
 	private Scheduler threadPool;
 	

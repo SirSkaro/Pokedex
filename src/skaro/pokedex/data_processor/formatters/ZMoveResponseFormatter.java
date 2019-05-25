@@ -15,8 +15,8 @@ import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.ConfigurationService;
 import skaro.pokedex.services.EmojiService;
-import skaro.pokedex.services.IServiceConsumer;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceConsumer;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.api.IFlexObject;
@@ -24,12 +24,12 @@ import skaro.pokeflex.objects.item.Item;
 import skaro.pokeflex.objects.move.Move;
 import skaro.pokeflex.objects.type.Type;
 
-public class ZMoveResponseFormatter implements ResponseFormatter, IServiceConsumer
+public class ZMoveResponseFormatter implements ResponseFormatter, PokedexServiceConsumer
 {
-	private IServiceManager services;
+	private PokedexServiceManager services;
 	private final String zMoveClipPath;
 	
-	public ZMoveResponseFormatter(IServiceManager services) throws ServiceConsumerException
+	public ZMoveResponseFormatter(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		if(!hasExpectedServices(services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
@@ -39,29 +39,9 @@ public class ZMoveResponseFormatter implements ResponseFormatter, IServiceConsum
 	}
 	
 	@Override
-	public boolean hasExpectedServices(IServiceManager services)
+	public boolean hasExpectedServices(PokedexServiceManager services)
 	{
 		return services.hasServices(ServiceType.COLOR, ServiceType.EMOJI);
-	}
-
-	@Override
-	public Response invalidInputResponse(Input input)
-	{
-		Response response = new Response();
-		
-		switch(input.getError())
-		{
-			case ARGUMENT_NUMBER:
-				response.addToReply("You must specify exactly one Type or Z-Move as input for this command.".intern());
-			break;
-			case INVALID_ARGUMENT:
-				response.addToReply("\""+input.getArgument(0).getRawInput() +"\" is not a recognized Type or Z-Move in "+input.getLanguage().getName());
-			break;
-			default:
-				response.addToReply("A technical error occured");
-		}
-		
-		return response;
 	}
 
 	@Override

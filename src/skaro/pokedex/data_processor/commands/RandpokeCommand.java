@@ -12,12 +12,11 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
-import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.Response;
+import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PokeFlexService;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
@@ -29,15 +28,13 @@ import skaro.pokeflex.objects.pokemon.Pokemon;
 
 public class RandpokeCommand extends PokedexCommand 
 {
-	public RandpokeCommand(IServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
+	public RandpokeCommand(PokedexServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException
 	{
 		super(services, formatter);
 		if(!hasExpectedServices(this.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "randpoke".intern();
-		orderedArgumentCategories.add(ArgumentCategory.NONE);
-		expectedArgRange = new ArgumentRange(0,0);
 		aliases.put("rand", Language.ENGLISH);
 		aliases.put("randompoke", Language.ENGLISH);
 		aliases.put("randompokemon", Language.ENGLISH);
@@ -57,7 +54,7 @@ public class RandpokeCommand extends PokedexCommand
 		aliases.put("무작위의", Language.KOREAN);
 		
 		extraMessages.add("See the shiny with the %shiny command! (Patrons only)");
-		this.createHelpMessage("https://i.imgur.com/cOEo8jW.gif");
+		this.createHelpMessage();
 	}
 	
 	@Override
@@ -66,7 +63,7 @@ public class RandpokeCommand extends PokedexCommand
 	public String getArguments() { return "none"; }
 
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
@@ -95,6 +92,12 @@ public class RandpokeCommand extends PokedexCommand
 				.flatMap(pokemon -> this.addAdopter(pokemon, builder))
 				.map(pokemon -> formatter.format(input, dataMap, builder)))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+		
 	}
 	
 	private List<PokeFlexRequest> createRequests(int pokedexNumber)

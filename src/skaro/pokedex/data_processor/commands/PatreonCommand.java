@@ -8,9 +8,8 @@ import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
-import skaro.pokedex.input_processor.arguments.ArgumentCategory;
 import skaro.pokedex.services.ColorService;
-import skaro.pokedex.services.IServiceManager;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 
@@ -18,15 +17,13 @@ public class PatreonCommand extends PokedexCommand
 {
 	private Response staticDiscordReply;
 	
-	public PatreonCommand(IServiceManager services) throws ServiceConsumerException
+	public PatreonCommand(PokedexServiceManager services) throws ServiceConsumerException
 	{
 		super(services);
 		if(!hasExpectedServices(this.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "patreon".intern();
-		orderedArgumentCategories.add(ArgumentCategory.NONE);
-		expectedArgRange = new ArgumentRange(0,0);
 		staticDiscordReply = new Response();
 		aliases.put("donate", Language.ENGLISH);
 		
@@ -38,7 +35,7 @@ public class PatreonCommand extends PokedexCommand
 		builder.addField("Patreon Link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);
 		
 		staticDiscordReply.setEmbed(builder);
-		this.createHelpMessage("https://i.imgur.com/Z7U2qkt.gif");
+		this.createNonGifHelpMessage("https://i.imgur.com/gabpDrl.png");
 	}
 	
 	@Override
@@ -49,10 +46,16 @@ public class PatreonCommand extends PokedexCommand
 	public Mono<Response> respondTo(Input input, User requester, Guild guild){ return Mono.just(staticDiscordReply); }
 
 	@Override
-	public boolean hasExpectedServices(IServiceManager services) 
+	public boolean hasExpectedServices(PokedexServiceManager services) 
 	{
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.COLOR);
+	}
+	
+	@Override
+	protected void createArgumentSpecifications()
+	{
+
 	}
 	
 }
