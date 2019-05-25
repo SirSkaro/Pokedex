@@ -35,7 +35,7 @@ public class InviteCommand extends PokedexCommand
 		builder.addField("Join Pokedex's home server!", "[Click to join Pokedex's server](https://discord.gg/D5CfFkN)", false);
 		
 		staticDiscordReply.setEmbed(builder);
-		this.createHelpMessage("https://i.imgur.com/WoeK9qZ.gif");
+		this.createNonGifHelpMessage("https://i.imgur.com/IJZfjxe.png");
 	}
 	
 	@Override

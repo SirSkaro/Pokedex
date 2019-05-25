@@ -16,15 +16,14 @@ import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.TypeArgument;
-import skaro.pokedex.input_processor.arguments.ZMoveArgument;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.ConfigurationService;
 import skaro.pokedex.services.FlexCacheService;
 import skaro.pokedex.services.FlexCacheService.CachedResource;
-import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.PerkService;
 import skaro.pokedex.services.PerkTier;
 import skaro.pokedex.services.PokeFlexService;
+import skaro.pokedex.services.PokedexServiceManager;
 import skaro.pokedex.services.ServiceConsumerException;
 import skaro.pokedex.services.ServiceType;
 import skaro.pokeflex.api.Endpoint;
@@ -47,7 +46,7 @@ public class ZMoveCommand extends PokedexCommand
 		
 		commandName = "zmove".intern();
 		zMoveClipPath = ConfigurationService.getInstance().get().getZMoveClipPath();
-		defaultZMove = "extreme-evoboost-3";
+		defaultZMove = "breakneck-blitz";
 		
 		aliases.put("z", Language.ENGLISH);
 		aliases.put("capacitez", Language.FRENCH);
@@ -67,8 +66,7 @@ public class ZMoveCommand extends PokedexCommand
 		aliases.put("Ｚ招式", Language.CHINESE_SIMPMLIFIED);
 		aliases.put("z招式", Language.CHINESE_SIMPMLIFIED);
 		
-		createHelpMessage("Bloom Doom", "Fire", "10000000 volt thunderbolt", "Guardian of Alola",
-				"https://cdn.discordapp.com/attachments/377981091287400448/561425563554676738/unknown.png");
+		createHelpMessage("Grass", "fire", "Ghost", "psychic");
 	}
 
 	@Override
@@ -127,7 +125,7 @@ public class ZMoveCommand extends PokedexCommand
 	@Override
 	protected void createArgumentSpecifications()
 	{
-		argumentSpecifications.add(new ArgumentSpec(false, ZMoveArgument.class, TypeArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(false, TypeArgument.class));
 	}
 	
 	private boolean perkAffordedToUser(User user, Guild guild)

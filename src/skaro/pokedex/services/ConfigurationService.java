@@ -146,6 +146,15 @@ public class ConfigurationService implements PokedexService
 		return dataNode.get(dataKey).asText();
 	}
 	
+	public String getHelpGifPath()
+	{
+		JsonNode dataNode = rootNode.get("help_gif_path");
+		if(dataNode == null)
+			throw new IllegalStateException("No database congifuration data could be found.");
+		
+		return dataNode.get(dataKey).asText();
+	}
+	
 	public String getZMoveClipPath()
 	{
 		JsonNode dataNode = rootNode.get("zmove_clip_path");

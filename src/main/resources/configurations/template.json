@@ -74,6 +74,11 @@
 		"production": ""
 	},
 	
+	"help_gif_path": {
+		"debug": "/",
+		"production": ""
+	},
+	
 	"zmove_clip_path": {
 		"debug": "",
 		"production": ""

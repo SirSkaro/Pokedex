@@ -53,8 +53,7 @@ public class ItemCommand extends PokedexCommand
 		aliases.put("도구", Language.KOREAN);
 		aliases.put("物品", Language.CHINESE_SIMPMLIFIED);
 		
-		createHelpMessage("Life Orb", "leftovers", "Choice Band", "eviolite",
-				"https://i.imgur.com/B1NlcYh.gif");
+		createHelpMessage("Life Orb", "leftovers", "Choice Band", "eviolite");
 	}
 	
 	@Override

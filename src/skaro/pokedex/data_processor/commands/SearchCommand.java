@@ -54,8 +54,7 @@ public class SearchCommand extends PokedexCommand
 		maxResultCap = cap;
 		createArgumentSpecifications();
 		
-		createHelpMessage("", "", "", "",
-				"");
+		createHelpMessage("", "", "", "");
 	}
 	
 	@Override

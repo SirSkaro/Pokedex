@@ -59,8 +59,7 @@ public class MoveCommand extends PokedexCommand
 		aliases.put("招式", Language.CHINESE_SIMPMLIFIED);
 		aliases.put("기술", Language.KOREAN);
 		
-		createHelpMessage("Ember", "dragon ascent", "aeroblast", "Blast Burn",
-				"https://i.imgur.com/B3VtWyg.gif");
+		createHelpMessage("Ember", "dragon ascent", "aeroblast", "Blast Burn");
 	}
 	
 	@Override

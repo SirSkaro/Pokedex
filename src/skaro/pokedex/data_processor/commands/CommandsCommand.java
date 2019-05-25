@@ -27,7 +27,7 @@ public class CommandsCommand extends PokedexCommand
 		aliases.put("useage", Language.ENGLISH);
 		aliases.put("command", Language.ENGLISH);
 		
-		this.createHelpMessage("https://i.imgur.com/QAMZRcf.gif");
+		this.createNonGifHelpMessage("https://i.imgur.com/xuR40h5.png");
 	}
 	
 	@Override

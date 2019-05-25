@@ -55,10 +55,9 @@ public class WeakCommand extends PokedexCommand
 		aliases.put("弱", Language.CHINESE_SIMPMLIFIED);
 		aliases.put("약점", Language.KOREAN);
 		
-		extraMessages.add("You may also like the %coverage command");
+		extraMessages.add("You may also like the %coverage command!");
 		
-		createHelpMessage("Ghost, Normal", "Scizor", "Swampert", "Fairy",
-				"https://i.imgur.com/E79RCZO.gif");
+		createHelpMessage("Ghost, Normal", "Scizor", "Swampert", "Fairy");
 	}
 	
 	@Override

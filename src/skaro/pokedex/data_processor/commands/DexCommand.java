@@ -52,8 +52,7 @@ public class DexCommand extends PokedexCommand
 		
 		extraMessages.add("Connect to a voice channel to hear entries spoken! (English, German, Italian, and French only)");
 		
-		createHelpMessage("Mew, Red", "kadabra, fire red", "Phantump, y", "Darumaka, white",
-				"https://i.imgur.com/AvJMBpR.gif");
+		createHelpMessage("Mew, Red", "kadabra, fire red", "Phantump, y", "Darumaka, white");
 		
 	}
 	

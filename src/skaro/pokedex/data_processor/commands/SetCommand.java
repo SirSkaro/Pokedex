@@ -37,8 +37,7 @@ public class SetCommand extends PokedexCommand
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
 		commandName = "set".intern();
-		createHelpMessage("Gengar, OU, 4", "Pikachu, NU, 5", "Groudon, Uber, 6", "tapu lele, ou, 7",
-				"https://i.imgur.com/SWCCW3H.gif");
+		createHelpMessage("Gengar, OU, 4", "Pikachu, NU, 5", "Groudon, Uber, 6", "tapu lele, ou, 7");
 	}
 	
 	public boolean makesWebRequest() { return true; }

@@ -57,8 +57,7 @@ public class CoverageCommand extends PokedexCommand
 		
 		extraMessages.add("You may also like the %weak command!");
 		
-		createHelpMessage("ice, electric", "blizzard, thunder", "Ghost, Fire, Vine Whip, Hyper Beam", "Water",
-				"https://i.imgur.com/MLIpXYN.gif");
+		createHelpMessage("ice, electric", "blizzard, thunder", "Ghost, Fire, Vine Whip, Hyper Beam", "Water");
 	}
 	
 	@Override

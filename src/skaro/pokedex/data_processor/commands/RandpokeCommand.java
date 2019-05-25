@@ -54,7 +54,7 @@ public class RandpokeCommand extends PokedexCommand
 		aliases.put("무작위의", Language.KOREAN);
 		
 		extraMessages.add("See the shiny with the %shiny command! (Patrons only)");
-		this.createHelpMessage("https://i.imgur.com/cOEo8jW.gif");
+		this.createHelpMessage();
 	}
 	
 	@Override

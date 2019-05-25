@@ -63,8 +63,7 @@ public class DataCommand extends PokedexCommand
 		
 		extraMessages.add("HD Shiny Pokemon are here! See the shiny with %shiny (Patreons only)");
 		
-		createHelpMessage("mew", "mega charizard x", "primal-kyogre", "Alolan Raichu",
-				"https://i.imgur.com/DZsD3Je.gif");
+		createHelpMessage("mew", "mega charizard x", "primal-kyogre", "Alolan Raichu");
 	}
 
 	@Override

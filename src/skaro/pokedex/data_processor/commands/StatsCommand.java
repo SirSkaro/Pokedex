@@ -49,8 +49,7 @@ public class StatsCommand extends PokedexCommand
 		aliases.put("통계량", Language.KOREAN);
 		aliases.put("统计", Language.CHINESE_SIMPMLIFIED);
 		
-		createHelpMessage("Darmanitan", "Alolan Sandshrew", "Ninetales Alola", "Mega Venusaur",
-				"https://i.imgur.com/svFfe9Q.gif");
+		createHelpMessage("Darmanitan", "Alolan Sandshrew", "Ninetales Alola", "Mega Venusaur");
 	}
 	
 	@Override

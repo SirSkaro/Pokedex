@@ -35,7 +35,7 @@ public class PatreonCommand extends PokedexCommand
 		builder.addField("Patreon Link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);
 		
 		staticDiscordReply.setEmbed(builder);
-		this.createHelpMessage("https://i.imgur.com/Z7U2qkt.gif");
+		this.createNonGifHelpMessage("https://i.imgur.com/gabpDrl.png");
 	}
 	
 	@Override

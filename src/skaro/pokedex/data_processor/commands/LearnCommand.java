@@ -65,8 +65,10 @@ public class LearnCommand extends PokedexCommand
 		aliases.put("学习", Language.CHINESE_SIMPMLIFIED);
 		aliases.put("배우다", Language.KOREAN);
 		
-		createHelpMessage("primal groudon, roar, attract", "Mew, Thunder, Iron tail, Ice Beam, Stealth Rock", "Golurk, Fly", "gible, earthquake, dual chop",
-				"https://i.imgur.com/EkXAXCP.gif");
+		createHelpMessage("primal groudon, roar, attract", 
+				"Mew, Thunder, Iron tail, Ice Beam, Stealth Rock", 
+				"Golurk, Fly", 
+				"gible, earthquake, dual chop");
 	}
 	
 	@Override

@@ -6,7 +6,6 @@ import discord4j.core.spec.EmbedCreateSpec;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
-import skaro.pokedex.data_processor.TextUtility;
 import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.arguments.AnyArgument;
@@ -38,7 +37,7 @@ public class HelpCommand extends PokedexCommand
 				+ "(https://discordbots.org/bot/pokedex)", false);
 		
 		defaultResponse.setEmbed(builder);
-		this.createHelpMessage("https://cdn.bulbagarden.net/upload/c/ce/Helping_Hand_IV.png");
+		this.createNonGifHelpMessage("https://cdn.bulbagarden.net/upload/c/ce/Helping_Hand_IV.png");
 	}
 	
 	@Override
@@ -60,24 +59,17 @@ public class HelpCommand extends PokedexCommand
 			return Mono.just(defaultResponse);
 		
 		String arg = input.getArgument(0).getDbForm();
-		Response reply = new Response();
-		CommandService commands;
-		PokedexCommand command;
 		
 		try
 		{
-			commands = (CommandService)services.getService(ServiceType.COMMAND);
+			CommandService commands = (CommandService)services.getService(ServiceType.COMMAND);
 			
 			if(!commands.commandOrAliasExists(arg))
-			{
-				//reply.addToReply("\""+arg +"\" is not a supported command!");
 				return Mono.empty();
-			}
 
-			command = commands.getByAnyAlias(arg);
-			reply.addToReply("__**"+TextUtility.flexFormToProper(command.getCommandName())+" Command**__");
-			reply.setEmbed(command.getHelpMessage());
-			return Mono.just(reply);
+			PokedexCommand command = commands.getByAnyAlias(arg);
+			Response response = command.getHelpMessage();
+			return Mono.just(response);
 		}
 		catch(Exception e)
 		{

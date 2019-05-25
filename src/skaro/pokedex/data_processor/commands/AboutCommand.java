@@ -44,7 +44,7 @@ public class AboutCommand extends PokedexCommand
 		
 		staticDiscordReply.setEmbed(builder);
 		
-		this.createHelpMessage("https://i.imgur.com/gC3tMJQ.gif");
+		this.createNonGifHelpMessage("https://i.imgur.com/VdcjsjK.png");
 	}
 	
 	@Override
@@ -79,7 +79,7 @@ public class AboutCommand extends PokedexCommand
 		builder.addField("Pledge on Patron!", "[Support Pokedex and get perks!](https://www.patreon.com/sirskaro)", true);
 		builder.addField("Special Thanks", "PokeaimMD, Honko, the Pokemon Showdown Dev Team, "
 				+ "and the Bulbapedia Community", false);
-		builder.setFooter("Pokémon © 2002-2018 Pokémon. © 1995-2018 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. " + 
+		builder.setFooter("Pokémon © 2002-2019 Pokémon. © 1995-2019 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. " + 
 				"No copyright or trademark infringement is intended.", null);
 		
 		builder.setThumbnail("https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png");

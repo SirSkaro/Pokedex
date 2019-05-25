@@ -57,8 +57,7 @@ public class AbilityCommand extends PokedexCommand
 		aliases.put("특성", Language.KOREAN);
 		aliases.put("特技", Language.CHINESE_SIMPMLIFIED);
 
-		createHelpMessage("Starmie", "Flash Fire", "celebi", "natural cure",
-				"https://i.imgur.com/biWBKIL.gif");
+		createHelpMessage("Starmie", "Flash Fire", "celebi", "natural cure");
 	}
 
 	@Override

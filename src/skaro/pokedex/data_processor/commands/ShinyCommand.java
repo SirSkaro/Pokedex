@@ -59,8 +59,7 @@ public class ShinyCommand extends PokedexCommand
 		aliases.put("色違い", Language.JAPANESE_HIR_KAT);
 		aliases.put("发光", Language.CHINESE_SIMPMLIFIED);
 
-		createHelpMessage("Ponyta", "Solgaleo", "Keldeo resolute", "eevee",
-				"https://i.imgur.com/FLBOsD5.gif");
+		createHelpMessage("Ponyta", "Solgaleo", "Keldeo resolute", "eevee");
 	}
 
 	public boolean makesWebRequest() { return true; }
