@@ -21,6 +21,7 @@ import skaro.pokedex.data_processor.SearchCriteriaFilter.SearchCriteriaBuilder;
 import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.CommandArgument;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.AbilityArgument;
 import skaro.pokedex.input_processor.arguments.MoveArgument;
 import skaro.pokedex.input_processor.arguments.TypeArgument;
@@ -53,6 +54,20 @@ public class SearchCommand extends PokedexCommand
 		commandName = "search".intern();
 		maxResultCap = cap;
 		createArgumentSpecifications();
+		
+		aliases.put("filter", Language.ENGLISH);
+		aliases.put("chercher", Language.FRENCH);
+		aliases.put("suchen", Language.GERMAN);
+		aliases.put("cercare", Language.ITALIAN);
+		aliases.put("chajda", Language.KOREAN);
+		aliases.put("buscar", Language.SPANISH);
+		aliases.put("motomeru", Language.JAPANESE_HIR_KAT);
+		aliases.put("sōusuǒ", Language.CHINESE_SIMPMLIFIED);
+		aliases.put("sousuo", Language.CHINESE_SIMPMLIFIED);
+		
+		aliases.put("求める", Language.JAPANESE_HIR_KAT);
+		aliases.put("찾다", Language.KOREAN); 
+		aliases.put("搜索", Language.CHINESE_SIMPMLIFIED);
 		
 		createHelpMessage("Magic Guard, unaware, moonblast, Fairy",
 				"fire, drought",
