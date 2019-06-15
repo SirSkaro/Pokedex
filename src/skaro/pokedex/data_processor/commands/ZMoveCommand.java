@@ -16,6 +16,7 @@ import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.TypeArgument;
+import skaro.pokedex.input_processor.arguments.ZMoveArgument;
 import skaro.pokedex.services.ColorService;
 import skaro.pokedex.services.ConfigurationService;
 import skaro.pokedex.services.FlexCacheService;
@@ -46,7 +47,7 @@ public class ZMoveCommand extends PokedexCommand
 		
 		commandName = "zmove".intern();
 		zMoveClipPath = ConfigurationService.getInstance().get().getZMoveClipPath();
-		defaultZMove = "breakneck-blitz";
+		defaultZMove = "extreme-evoboost-2";
 		
 		aliases.put("z", Language.ENGLISH);
 		aliases.put("capacitez", Language.FRENCH);
@@ -125,7 +126,7 @@ public class ZMoveCommand extends PokedexCommand
 	@Override
 	protected void createArgumentSpecifications()
 	{
-		argumentSpecifications.add(new ArgumentSpec(false, TypeArgument.class));
+		argumentSpecifications.add(new ArgumentSpec(false, TypeArgument.class, ZMoveArgument.class));
 	}
 	
 	private boolean perkAffordedToUser(User user, Guild guild)

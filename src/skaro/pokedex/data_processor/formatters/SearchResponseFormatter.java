@@ -46,6 +46,7 @@ public class SearchResponseFormatter implements ResponseFormatter, PokedexServic
 		return services.hasServices(ServiceType.COLOR, ServiceType.EMOJI);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder)
 	{

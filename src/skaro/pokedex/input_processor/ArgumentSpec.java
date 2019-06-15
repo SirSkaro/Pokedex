@@ -31,7 +31,7 @@ public class ArgumentSpec
 			
 			for(Class<? extends CommandArgument> argumentClass : argumentCategories)
 			{
-				CommandArgument possibleArgument = argumentClass.newInstance();
+				CommandArgument possibleArgument = argumentClass.getDeclaredConstructor().newInstance();
 				possibleArgument.setUp(rawArgument, lang);
 				parsedArguments.add(possibleArgument);
 			}
