@@ -76,13 +76,14 @@ Builds are described by the three sections in the version number X.Y.Z. Upon inc
 * Z - Minor version number. Any changes.
 
 ### Build History
-* 5.0.0 - Aeroblast
-* 5.1.0 - Blast Burn
-* 5.2.0 - Core Enforcer
-* 5.3.0 - Dragon Ascent
-* 5.4.0 - Extreme Evoboost
-* 5.5.0 - Fire Blast
-* 6.0.0 - Giga Impact
+* 5.0.Z - Aeroblast
+* 5.1.Z - Blast Burn
+* 5.2.Z - Core Enforcer
+* 5.3.Z - Dragon Ascent
+* 5.4.Z - Extreme Evoboost
+* 5.5.Z - Fire Blast
+* 6.0.Z - Giga Impact
+* 6.1.Z - Hyperspace Fury
 
 ## Authors
 
