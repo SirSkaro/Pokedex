@@ -72,6 +72,7 @@ public class DiscordMessageEventHandler
 	private Mono<ReplyStructure> prepareReply(Message receivedMessage, String messageContent)
 	{
 		return Mono.just(new ReplyStructure())
+				.filter(struct -> !receivedMessage.mentionsEveryone())
 				.flatMap(struct -> parseAndAddInputToStructure(struct, messageContent))
 				.flatMap(struct -> addAuthorAndVoiceStateToStructure(struct, receivedMessage))
 				.filter(struct -> !struct.author.isBot())

@@ -134,7 +134,7 @@ public class AbilityResponseFormatter implements ResponseFormatter, PokedexServi
 		private Map<Language, String> titleMap;
 		
 		AbilityField() {}
-		AbilityField(String english, String spanish, String french, String italian, String german, String japanese, String chinese, String korean)
+		private AbilityField(String english, String spanish, String french, String italian, String german, String japanese, String chinese, String korean)
 		{
 			titleMap = new HashMap<Language, String>();
 			titleMap.put(Language.ENGLISH, english);

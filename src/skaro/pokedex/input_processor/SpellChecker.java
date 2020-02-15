@@ -31,6 +31,7 @@ public class SpellChecker
 		dictionaryMap.put(SQLResource.TYPE, new ResourceDictionary("types.txt", supportedLanguages));
 		dictionaryMap.put(SQLResource.VERSION, new ResourceDictionary("versions.txt", supportedLanguages));
 		dictionaryMap.put(SQLResource.ZMOVE, new ResourceDictionary("zmoves.txt", supportedLanguages));
+		dictionaryMap.put(SQLResource.NATURE, new ResourceDictionary("natures.txt", supportedLanguages));
 	}
 	
 	public static SpellChecker getInstance()

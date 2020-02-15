@@ -2,6 +2,7 @@ package skaro.pokedex.data_processor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import skaro.pokedex.input_processor.Language;
 
@@ -48,5 +49,12 @@ public enum Statistic
 	public String getAPIKey()
 	{
 		return apiKey;
+	}
+	
+	public static Statistic getByAPIKey(String key) {
+		return Stream.of(Statistic.values())
+			.filter(stat -> stat.apiKey.equals(key))
+			.findFirst()
+			.orElse(null);
 	}
 }

@@ -8,7 +8,8 @@ public enum SQLResource
 	MOVE("Move"),
 	ITEM("Item"),
 	VERSION("Version"),
-	ZMOVE("ZMove"),
+	ZMOVE("ZMove"), 
+	NATURE("Nature"),
 	;
 
 	private String tableName;

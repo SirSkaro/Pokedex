@@ -75,11 +75,11 @@ public class AboutCommand extends PokedexCommand
 		builder.addField("License","[Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/)",true);
 		builder.addField("Recognitions", "Data provided by PokeAPI and Pokemon Showdown", true);
 		builder.addField("Github", "[Pokedex is open source!](https://github.com/SirSkaro/Pokedex)", true);
-		builder.addField("Libraries/Services", "Discord4J, MaryTTS, MySQL, Caffine, Bucket4J, Jazzy, PokeAPI", false);
+		builder.addField("Libraries/Services", "Discord4J, MaryTTS, MySQL, Caffine, Bucket4J, Jazzy, PokeAPI, Flask", false);
 		builder.addField("Pledge on Patron!", "[Support Pokedex and get perks!](https://www.patreon.com/sirskaro)", true);
 		builder.addField("Special Thanks", "PokeaimMD, Honko, the Pokemon Showdown Dev Team, "
 				+ "and the Bulbapedia Community", false);
-		builder.setFooter("Pokémon © 2002-2019 Pokémon. © 1995-2019 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. " + 
+		builder.setFooter("Pokémon © 2002-2020 Pokémon. © 1995-2020 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. " + 
 				"No copyright or trademark infringement is intended.", null);
 		
 		builder.setThumbnail("https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png");

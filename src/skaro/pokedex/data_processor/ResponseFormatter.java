@@ -29,6 +29,10 @@ public interface ResponseFormatter
 			}
 		}
 		
+		if(input.getArguments().size() > 1) {
+			response.addToReply(":question:*hint*: did you add __commas__ between arguments?");
+		}
+		
 		return response;
 	}
 	
