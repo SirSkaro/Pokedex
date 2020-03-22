@@ -2,6 +2,7 @@ package skaro.pokedex.services;
 
 import java.awt.Color;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import skaro.pokedex.data_processor.TypeEfficacyWrapper;
@@ -11,11 +12,13 @@ public class ColorService implements PokedexService
 {
 	private final Map<String, Color> typeColorMap;
 	private final Map<String, Color> versionColorMap;
+	private final Map<String, Color> cardTypeColorMap;
 	
 	public ColorService()
 	{
 		typeColorMap = new HashMap<>();
 		versionColorMap = new HashMap<>();
+		cardTypeColorMap = new HashMap<>();
 		initialize();
 	}
 	
@@ -36,6 +39,11 @@ public class ColorService implements PokedexService
 		return new Color(0xD60B01);
 	}
 	
+	public Color getCardColor() 
+	{
+		return new Color(0xFFE068);
+	}
+	
 	public Color getColorForWrapper(TypeEfficacyWrapper wrapper)
 	{
 		Color result = null;
@@ -50,6 +58,16 @@ public class ColorService implements PokedexService
 	{
 		ver = ver.toLowerCase();
 		return versionColorMap.get(ver);
+	}
+	
+	public Color getColorForCardType(List<String> types)
+	{
+		if(types.size() == 1) 
+			return cardTypeColorMap.get(types.get(0).toLowerCase());
+		
+		Color color1 = cardTypeColorMap.get(types.get(0).toLowerCase());
+		Color color2 = cardTypeColorMap.get(types.get(1).toLowerCase());
+		return this.blend(color1, color2);
 	}
 	
 	public Color getColorForAbility()
@@ -134,5 +152,17 @@ public class ColorService implements PokedexService
 		versionColorMap.put("moon".intern(), new Color(0x5599CA));
 		versionColorMap.put("ultrasun".intern(), new Color(0xFAA71B));
 		versionColorMap.put("ultramoon".intern(), new Color(0x179CD7));
+		
+		cardTypeColorMap.put("grass", new Color(0x7db808));
+		cardTypeColorMap.put("fire", new Color(0xe24242));
+		cardTypeColorMap.put("water", new Color(0x5bc7e5));
+		cardTypeColorMap.put("lightning", new Color(0xfab536));
+		cardTypeColorMap.put("fighting", new Color(0xff501f));
+		cardTypeColorMap.put("psychic", new Color(0xa65e9a));
+		cardTypeColorMap.put("colorless", new Color(0xe5d6d0));
+		cardTypeColorMap.put("darkness", new Color(0xe5d6d0));
+		cardTypeColorMap.put("metal", new Color(0x8a776e));
+		cardTypeColorMap.put("dragon", new Color(0xc6a114));
+		cardTypeColorMap.put("fairy", new Color(0xe03a83));
 	}
 }

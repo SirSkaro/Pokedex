@@ -12,7 +12,7 @@ public enum Language
 	JAPANESE("日本語", "ja", "ja"),
 	JAPANESE_HIR_KAT("日本語","ja-Hrkt", "ja_hrkt"),
 	JAPANESE_ROMAJI("Nihongo","roomaji", "roomaji"),
-	KOREAN("조선말","ko", "ko"),
+	KOREAN("한국말","ko", "ko"),
 	;
 	
 	private String pokeFlexKey, sqlAttribute, languageName;

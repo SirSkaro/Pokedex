@@ -19,24 +19,24 @@ public class TextToSpeechService implements PokedexService
     
     public TextToSpeechService()
     {	
-    	System.out.println("[TTSService] Initializing English MaryTTS server...");
-        try
-        {
-    		textToSpeechEngine = new LocalMaryInterface();
-    		voiceMap = new HashMap<Language,String>();
-    		
-    		voiceMap.put(Language.ENGLISH, "dfki-spike-hsmm");
-    		voiceMap.put(Language.FRENCH, "enst-dennys-hsmm");
-    		voiceMap.put(Language.GERMAN, "dfki-pavoque-neutral-hsmm");
-    		voiceMap.put(Language.ITALIAN, "istc-lucia-hsmm");
-        	
-        	System.out.println("[TTSService] MaryTTS server successfully initialized");
-        }
-        catch (MaryConfigurationException ex)
-        {
-        	System.out.println("[TTSService] Could not initialize MaryTTS servers. Exiting...");
-            System.exit(1);
-        }
+//    	System.out.println("[TTSService] Initializing English MaryTTS server...");
+//        try
+//        {
+//    		textToSpeechEngine = new LocalMaryInterface();
+//    		voiceMap = new HashMap<Language,String>();
+//    		
+//    		voiceMap.put(Language.ENGLISH, "dfki-spike-hsmm");
+//    		voiceMap.put(Language.FRENCH, "enst-dennys-hsmm");
+//    		voiceMap.put(Language.GERMAN, "dfki-pavoque-neutral-hsmm");
+//    		voiceMap.put(Language.ITALIAN, "istc-lucia-hsmm");
+//        	
+//        	System.out.println("[TTSService] MaryTTS server successfully initialized");
+//        }
+//        catch (MaryConfigurationException ex)
+//        {
+//        	System.out.println("[TTSService] Could not initialize MaryTTS servers. Exiting...");
+//            System.exit(1);
+//        }
     }
     
 	@Override
