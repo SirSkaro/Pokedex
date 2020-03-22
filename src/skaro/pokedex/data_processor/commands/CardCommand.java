@@ -42,6 +42,8 @@ public class CardCommand extends PokedexCommand
 		
 		aliases.put("cards", Language.ENGLISH);
 		aliases.put("tcg", Language.ENGLISH);
+		
+		createHelpMessage("charizard", "det1-10", "Double Energy", "xy5-148");
 	}
 	
 	@Override

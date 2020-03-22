@@ -8,6 +8,7 @@ import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
+import skaro.pokedex.input_processor.Language;
 import skaro.pokedex.input_processor.arguments.AnyArgument;
 import skaro.pokedex.input_processor.arguments.NoneArgument;
 import skaro.pokedex.services.ColorService;
@@ -28,6 +29,8 @@ public class HelpCommand extends PokedexCommand
 		
 		commandName = "help".intern();
 		defaultResponse = new Response();
+		
+		aliases.put("hint", Language.ENGLISH);
 		
 		EmbedCreateSpec builder = new EmbedCreateSpec();	
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
