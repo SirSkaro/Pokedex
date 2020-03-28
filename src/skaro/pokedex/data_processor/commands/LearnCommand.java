@@ -95,7 +95,6 @@ public class LearnCommand extends PokedexCommand
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		Mono<MultiMap<IFlexObject>> result;
 		List<PokeFlexRequest> initialRequests = new ArrayList<>();
-		MultiMap<IFlexObject> dataToFormat = new MultiMap<>();
 		
 		//Get data of Pokemon
 		initialRequests.add(new Request(Endpoint.POKEMON, input.getArgument(0).getFlexForm()));
@@ -107,13 +106,12 @@ public class LearnCommand extends PokedexCommand
 				initialRequests.add(new Request(Endpoint.MOVE, arg.getFlexForm()));
 		}
 		
-		result = Mono.just(dataToFormat)
+		result = Mono.just(new MultiMap<>())
 				.flatMap(dataMap -> Flux.fromIterable(initialRequests)
-					.parallel()
-					.runOn(factory.getScheduler())
+					.parallel().runOn(factory.getScheduler())
 					.flatMap(request -> request.makeRequest(factory))
-					.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
 					.sequential()
+					.doOnNext(flexObject -> dataMap.add(flexObject.getClass().getName(), flexObject))
 					.ofType(Pokemon.class)
 					.flatMap(pokemon -> this.addAdopter(pokemon, builder))
 					.flatMap(pokemon -> Mono.just(dataMap.get(skaro.pokeflex.objects.move.Move.class.getName()))
@@ -126,8 +124,7 @@ public class LearnCommand extends PokedexCommand
 											.flatMap(request -> request.makeRequest(factory))
 											.ofType(EvolutionChain.class)
 											.flatMap(evolutionChain -> Flux.fromIterable(getAllPreEvolutions(evolutionChain, species))
-												.parallel()
-												.runOn(factory.getScheduler())
+												.parallel().runOn(factory.getScheduler())
 												.flatMap(request -> request.makeRequest(factory))
 												.sequential()
 												.ofType(PokemonSpecies.class)

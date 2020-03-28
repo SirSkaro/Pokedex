@@ -36,7 +36,7 @@ public class CardCommand extends PokedexCommand
 		if(!hasExpectedServices(this.services))
 			throw new ServiceConsumerException("Did not receive all necessary services");
 		
-		cardSetPattern = Pattern.compile("[a-zA-Z]+[0-9]+-[0-9]+");
+		cardSetPattern = Pattern.compile("[a-zA-Z]+[0-9]+-[0-9A-Za-z]+");
 		
 		commandName = "card";
 		

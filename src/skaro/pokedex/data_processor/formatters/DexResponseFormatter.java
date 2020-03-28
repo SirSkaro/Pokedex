@@ -81,10 +81,10 @@ public class DexResponseFormatter implements ResponseFormatter, PokedexServiceCo
 		builder.setThumbnail(pokemon.getSprites().getFrontDefault());
 
 		//Add audio reply
-		TextToSpeechService tts = (TextToSpeechService)services.getService(ServiceType.TTS);
-		Optional<AudioInputStream> audioCheck = tts.convertToAudio(lang, replyContent);
-		if(audioCheck.isPresent())
-			response.setPlayBack(audioCheck.get());
+//		TextToSpeechService tts = (TextToSpeechService)services.getService(ServiceType.TTS);
+//		Optional<AudioInputStream> audioCheck = tts.convertToAudio(lang, replyContent);
+//		if(audioCheck.isPresent())
+//			response.setPlayBack(audioCheck.get());
 
 		response.setEmbed(builder);
 		return response;

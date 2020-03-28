@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>Pokedex</groupId>
 	<artifactId>Pokedex</artifactId>
-	<version>6.1.4</version>
+	<version>6.1.5</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>
@@ -133,7 +133,7 @@
 		<dependency>
 			<groupId>PokeFlex-API</groupId>
 			<artifactId>PokeFlex-API</artifactId>
-			<version>1.2.3</version>
+			<version>1.2.4</version>
 		</dependency>
 		<!-- Patreon-Java -->
 		<dependency>
