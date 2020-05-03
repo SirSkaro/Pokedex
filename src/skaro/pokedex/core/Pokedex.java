@@ -11,7 +11,16 @@ import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.event.domain.message.MessageUpdateEvent;
+import discord4j.core.object.data.stored.GuildBean;
+import discord4j.core.object.data.stored.GuildEmojiBean;
+import discord4j.core.object.data.stored.PresenceBean;
+import discord4j.core.object.data.stored.RoleBean;
+import discord4j.core.object.data.stored.VoiceStateBean;
 import discord4j.core.object.presence.Presence;
+import discord4j.store.api.mapping.MappingStoreService;
+import discord4j.store.api.noop.NoOpStoreService;
+import discord4j.store.api.service.StoreService;
+import discord4j.store.jdk.JdkStoreService;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import skaro.pokedex.communicator.Publisher;
@@ -163,12 +172,18 @@ public class Pokedex
 	private static DiscordService createDiscordService(ConfigurationService configService, Scheduler scheduler, int shardID, int shardCount)
 	{
 		Optional<String> discordToken = configService.getAuthToken("discord");
-		DiscordClient discordClient = new DiscordClientBuilder(discordToken.get())
+		StoreService storeService = MappingStoreService.create()
+				.setMappings(new NoOpStoreService(), RoleBean.class, GuildEmojiBean.class, PresenceBean.class, VoiceStateBean.class, GuildBean.class)
+				.setFallback(new JdkStoreService());
+		
+		DiscordClient discordClient = DiscordClientBuilder.create(discordToken.get())
 				.setEventScheduler(scheduler)
 				.setShardCount(shardCount)
 				.setShardIndex(shardID)
 				.setInitialPresence(Presence.online())
+				.setStoreService(storeService)
 				.build();
+		
 		return new DiscordService(discordClient);
 	}
 	
