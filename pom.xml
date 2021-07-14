@@ -6,7 +6,6 @@
 	<artifactId>Pokedex</artifactId>
 	<version>6.1.6</version>
 	<build>
-		<sourceDirectory>src</sourceDirectory>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -57,14 +56,14 @@
 		<dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-core</artifactId>
-			<version>3.2.5.RELEASE</version>
+			<version>3.4.8</version>
 		</dependency>
 		<!-- Discord4j -->
 		<dependency>
 			<!-- <groupId>com.github.austinv11</groupId> -->
 			<groupId>com.discord4j.discord4j</groupId>
 			<artifactId>discord4j-core</artifactId>
-			<version>3.0.14</version>
+			<version>3.1.7</version>
 		</dependency>
 		<!-- Logback Classic: SLF4J Binding -->
 		<dependency>
@@ -77,40 +76,6 @@
 			<artifactId>google-collections</artifactId>
 			<version>1.0-rc2</version>
 		</dependency>
-		<!-- MaryTTS English -->
-		<dependency>
-			<groupId>de.dfki.mary</groupId>
-			<artifactId>voice-dfki-spike-hsmm</artifactId>
-			<version>5.2</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.httpcomponents</groupId>
-					<artifactId>httpcore</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-log4j12</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<!-- MaryTTS French -->
-		<dependency>
-			<groupId>de.dfki.mary</groupId>
-			<artifactId>voice-enst-dennys-hsmm</artifactId>
-			<version>5.2</version>
-		</dependency>
-		<!-- MaryTTS German -->
-		<dependency>
-			<groupId>de.dfki.mary</groupId>
-			<artifactId>voice-dfki-pavoque-neutral-hsmm</artifactId>
-			<version>5.2</version>
-		</dependency>
-		<!-- MaryTTS Italian -->
-		<dependency>
-			<groupId>de.dfki.mary</groupId>
-			<artifactId>voice-istc-lucia-hsmm</artifactId>
-			<version>5.2</version>
-		</dependency>
 		<!-- Caffine Cache -->
 		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>
@@ -121,19 +86,13 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.39</version>
+			<version>8.0.25</version>
 		</dependency>
 		<!-- Jazzy Spellchecker -->
 		<dependency>
 			<groupId>net.sf.jazzy</groupId>
 			<artifactId>jazzy</artifactId>
 			<version>0.5.2-rtext-1.4.1-2</version>
-		</dependency>
-		<!-- PokeFlex Java API -->
-		<dependency>
-			<groupId>PokeFlex-API</groupId>
-			<artifactId>PokeFlex-API</artifactId>
-			<version>1.2.4</version>
 		</dependency>
 		<!-- Patreon-Java -->
 		<dependency>
