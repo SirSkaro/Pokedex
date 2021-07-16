@@ -103,7 +103,7 @@ public class Pokedex
 		
 		System.out.println("[Pokedex main] Loading configurations...");
 		
-		Scheduler scheduler = Schedulers.newParallel("pokedex_pool", Runtime.getRuntime().availableProcessors() * 6);
+		Scheduler scheduler = Schedulers.newParallel("pokedex_pool", Runtime.getRuntime().availableProcessors() * 2);
 		CommandService commandMap = new CommandService();
 		PerkService perkService = createPatreonService(configurationService);
 		PokeFlexService pokeFlexService = createPokeFlexService(configurationService, scheduler);

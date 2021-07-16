@@ -11,7 +11,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
@@ -36,8 +35,8 @@ public class PokeFlexFactory
 
 	public Mono<IFlexObject> createFlexObject(Endpoint endpoint, List<String> params) 
 	{
-		return Mono.justOrEmpty(constructURL(endpoint.getEnpoint(), params))
-			.map(url -> makeRequest(endpoint, url));
+		URL url = constructURL(endpoint.getEnpoint(), params);
+		return Mono.fromCallable(() -> makeRequest(endpoint, url));
 	}
 	
 	public Mono<IFlexObject> createFlexObject(String url, Endpoint endpoint) 
@@ -47,8 +46,8 @@ public class PokeFlexFactory
 	}
 	
 	public Mono<IFlexObject> createFlexObject(Endpoint endpoint, Map<String, String> params) {
-		return Mono.just(constructUrlWithQuery(endpoint.getEnpoint(), params))
-				.map(url -> makeRequest(endpoint, url));
+		URL url = constructUrlWithQuery(endpoint.getEnpoint(), params);
+		return Mono.fromCallable(() -> makeRequest(endpoint, url));
 	}
 	
 	public Mono<IFlexObject> createFlexObject(Request request) 
@@ -64,7 +63,7 @@ public class PokeFlexFactory
 	public Flux<IFlexObject> createFlexObjects(List<PokeFlexRequest> requests) 
 	{
 		return Flux.fromIterable(requests)
-				.flatMap(request -> request.makeRequest(PokeFlexFactory.this));
+				.flatMap(request -> request.makeRequest(this));
 	}
 	
 	public Flux<IFlexObject> createFlexObjects(List<PokeFlexRequest> requests, Scheduler scheduler) 
@@ -72,7 +71,7 @@ public class PokeFlexFactory
 		return Flux.fromIterable(requests)
 				.parallel()
 				.runOn(scheduler)
-				.flatMap(request -> request.makeRequest(PokeFlexFactory.this))
+				.flatMap(request -> request.makeRequest(this))
 				.sequential();
 	}
 	
@@ -90,10 +89,8 @@ public class PokeFlexFactory
 		}
 	}
 	
-	private Optional<URL> constructURL(String endpoint, List<String> args)
+	private URL constructURL(String endpoint, List<String> args)
 	{
-		Optional<URL> result;
-		URL url;
 		StringBuilder builder = new StringBuilder(baseURI);
 		String builtURL;
 
@@ -111,16 +108,13 @@ public class PokeFlexFactory
 		builtURL = builder.substring(0, builder.lastIndexOf("/"));
 		try 
 		{
-			url = new URL(builtURL);
-			result = Optional.of(url);
+			return new URL(builtURL);
 		} 
 		catch(MalformedURLException e) 
 		{
 			System.err.println(e.getMessage());
-			result = Optional.empty();
+			throw Exceptions.propagate(e);
 		}
-
-		return result;
 	}
 	
 	private URL constructUrlWithQuery(String endpoint, Map<String, String> params) 
@@ -162,35 +156,25 @@ public class PokeFlexFactory
 		return filteredContent.substring(jsonStartBracketIndex, jsonEndBracketIndex + 1); 
 	}
 
-	private String readContentFromUrl(URL url) throws IOException 
-	{
-		InputStream is = url.openStream();
-		try 
-		{
+	private String readContentFromUrl(URL url) throws IOException {
+		try (InputStream inputStream = url.openStream()) {
 			BufferedReader rd = new BufferedReader
-					(new InputStreamReader(is, Charset.forName("UTF-8")));
+					(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
 			String jsonText = readBufferToString(rd);
 			return jsonText;
 		} 
-		finally 
-		{
-			is.close();
-		}
 	}
 
-	private String readBufferToString(Reader rd) throws IOException
-	{
+	private String readBufferToString(Reader reader) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		int cp;
-		while((cp = rd.read()) != -1) 
-		{
+		while((cp = reader.read()) != -1) {
 			sb.append((char) cp);
 		}
 		return sb.toString();
 	}
 	
-	private List<String> getURLParams(String url, Endpoint endpoint)
-	{
+	private List<String> getURLParams(String url, Endpoint endpoint) {
 		List<String> result = new ArrayList<String>();
 		String[] elements = url.split("/");
 		int itr;

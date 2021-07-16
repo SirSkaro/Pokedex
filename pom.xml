@@ -52,20 +52,16 @@
 		</repository>
 	</repositories>
 	<dependencies>
-		<!-- Reactor 3 -->
 		<dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-core</artifactId>
 			<version>3.4.8</version>
 		</dependency>
-		<!-- Discord4j -->
 		<dependency>
-			<!-- <groupId>com.github.austinv11</groupId> -->
 			<groupId>com.discord4j.discord4j</groupId>
 			<artifactId>discord4j-core</artifactId>
 			<version>3.1.7</version>
 		</dependency>
-		<!-- Logback Classic: SLF4J Binding -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
@@ -76,25 +72,21 @@
 			<artifactId>google-collections</artifactId>
 			<version>1.0-rc2</version>
 		</dependency>
-		<!-- Caffine Cache -->
 		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>caffeine</artifactId>
 			<version>2.6.2</version>
 		</dependency>
-		<!-- MySQL -->
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>8.0.25</version>
 		</dependency>
-		<!-- Jazzy Spellchecker -->
 		<dependency>
 			<groupId>net.sf.jazzy</groupId>
 			<artifactId>jazzy</artifactId>
 			<version>0.5.2-rtext-1.4.1-2</version>
 		</dependency>
-		<!-- Patreon-Java -->
 		<dependency>
 			<groupId>com.patreon</groupId>
 			<artifactId>patreon</artifactId>
@@ -106,35 +98,30 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!-- DiscordBotList -->
 		<dependency>
 			<groupId>com.github.DiscordBotList</groupId>
 			<artifactId>DBL-Java-Library</artifactId>
 			<version>a7f791f</version>
 		</dependency>
-		<!-- Bucket4J -->
 		<dependency>
 			<groupId>com.github.vladimir-bukhtoyarov</groupId>
 			<artifactId>bucket4j-core</artifactId>
 			<version>4.1.1</version>
 		</dependency>
-		<!-- Jetty Utility -->
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-util</artifactId>
 			<version>9.4.14.v20181114</version>
 		</dependency>
-		<!-- Apache Language Commons -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.8.1</version>
 		</dependency>
-		<!-- HttpClient -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.5.7</version>
+			<version>4.5.13</version>
 		</dependency>
 	</dependencies>
 	<properties>
