@@ -1,12 +1,14 @@
 package skaro.pokedex.data_processor.formatters;
 
-import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.Exceptions;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TextUtility;
@@ -59,17 +61,24 @@ public class ZMoveResponseFormatter implements ResponseFormatter, PokedexService
 		builder.addField(ZMoveField.Z_CRYSTAL.getFieldTitle(lang), formatCrystal(crystal, lang), true);
 		builder.setThumbnail(move.getImages().get(0).getUrl());
 		
-		String path = zMoveClipPath + "/" + move.getName().replace("--physical", "") + ".mp4";
-		File image = new File(path);
-		response.addImage(image);
+		addZmoveClip(response, move, builder);
 		
 		builder.setColor(colorService.getColorForType(move.getType().getName()));
 		response.setEmbed(builder);
 		return response;
 	}
 	
-	private String formatCrystal(Item crystal, Language lang)
-	{
+	private void addZmoveClip(Response response, Move move, EmbedCreateSpec builder) {
+		try {
+			String fileName = move.getName().replace("--physical", "") + ".mp4";
+			URL url = new URL(zMoveClipPath + "/" + fileName);
+			response.addImage(fileName, url.openStream());
+		} catch(IOException e) {
+			throw Exceptions.propagate(e);
+		}
+	}
+	
+	private String formatCrystal(Item crystal, Language lang) {
 		return TextUtility.flexFormToProper(crystal.getNameInLanguage(lang.getFlexKey()));
 	}
 	

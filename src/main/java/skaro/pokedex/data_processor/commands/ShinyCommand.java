@@ -1,5 +1,6 @@
 package skaro.pokedex.data_processor.commands;
 
+import java.io.IOException;
 import java.net.URL;
 
 import org.eclipse.jetty.util.MultiMap;
@@ -128,11 +129,12 @@ public class ShinyCommand extends PokedexCommand
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 
 		//Easter egg: if the user specifies the default non-privilaged Pokemon, use the Patreon logo instead
+		builder.setColor(colorService.getColorForPatreon());
+		builder.setFooter("Pledge $1 to receive this perk!", this.getPatreonLogo());
 		if(!input.getArgument(0).getDbForm().equals(defaultPokemon)) {
 			addDefaultImageToResponse(response, builder);
 		}
 		else {
-			builder.setColor(colorService.getColorForPatreon());
 			builder.setImage(this.getPatreonLogo());
 		}
 		
@@ -146,15 +148,12 @@ public class ShinyCommand extends PokedexCommand
 	}
 	
 	private void addDefaultImageToResponse(Response response, EmbedCreateSpec builder) {
-		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		String fileName = defaultPokemon +".gif";
 		try {
 			builder.setImage("attachment://" + fileName);
-			builder.setColor(colorService.getColorForPatreon());
 			URL url =  new URL(baseModelPath + "/"+ fileName);
 			response.addImage(fileName, url.openStream());
-			builder.setFooter("Pledge $1 to receive this perk!", this.getPatreonLogo());
-		} catch(Exception e) {
+		} catch(IOException e) {
 			throw Exceptions.propagate(e);
 		}
 	}

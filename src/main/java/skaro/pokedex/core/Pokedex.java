@@ -132,7 +132,6 @@ public class Pokedex
 		publisher.schedulePublicationFrequency(1, TimeUnit.HOURS);
 		System.out.println("[Pokedex main] Done");
 		
-		System.out.println("[Pokedex main] Logging into Discord...");
 		DiscordService service = (DiscordService)manager.getService(ServiceType.DISCORD);
 		GatewayDiscordClient gatewayClient = service.getV3Client();
 		InputProcessor inputProcessor = new InputProcessor(commandMap, 206147275775279104L);

@@ -1,12 +1,14 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
@@ -143,17 +145,27 @@ public class ZMoveCommand extends PokedexCommand
 		Response response = new Response();
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 
-		builder.setColor(colorService.getColorForPatreon());
-		String path = zMoveClipPath + "/"+ defaultZMove +".mp4";
-		response.addImage(new File(path));
+		
+		addDefaultImageToResponse(response, builder);
+		
 		builder.setFooter("Pledge $1 to receive this perk!", this.getPatreonLogo());
-
+		builder.setColor(colorService.getColorForPatreon());
 		builder.setDescription("Pledge $1/month on Patreon to gain access to all Z Move clips!");
 		builder.addField("Patreon link", "[Pokedex's Patreon](https://www.patreon.com/sirskaro)", false);
 		builder.setThumbnail(this.getPatreonBanner());
 		
 		response.setEmbed(builder);
 		return response;
+	}
+	
+	private void addDefaultImageToResponse(Response response, EmbedCreateSpec builder) {
+		try {
+			String fileName = defaultZMove +".mp4";
+			URL url = new URL(zMoveClipPath + "/" + fileName);
+			response.addImage(fileName, url.openStream());
+		} catch(IOException e) {
+			throw Exceptions.propagate(e);
+		}
 	}
 
 }

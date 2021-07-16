@@ -137,7 +137,8 @@ public class PerkService implements PokedexService, PokedexServiceConsumer
 		}
 		catch(Exception e)
 		{
-			System.out.println("[PrivilegeChecker] Could not fetch Patreon data.");
+			System.out.println("[PerkService] Could not fetch Patreon data.");
+			e.printStackTrace();
 			return Collections.emptyList();
 		}
 	}
@@ -158,7 +159,7 @@ public class PerkService implements PokedexService, PokedexServiceConsumer
 		}
 		catch(Exception e)
 		{
-			System.out.println("[PrivilegeChecker] Unable to get Discord data for patron "+ user.getFullName());
+			System.out.println("[PerkService] Unable to get Discord data for patron "+ user.getFullName());
 			return Optional.empty();
 		}
 	}
