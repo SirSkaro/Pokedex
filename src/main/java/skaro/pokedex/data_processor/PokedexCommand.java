@@ -1,6 +1,7 @@
 package skaro.pokedex.data_processor;
 
-import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.input_processor.ArgumentSpec;
 import skaro.pokedex.input_processor.Input;
@@ -141,12 +143,9 @@ public abstract class PokedexCommand implements PokedexServiceConsumer
 		this.addAliasFields(builder);
 		builder.addField("Examples", exampleBuilder.toString(), true);
 		builder.setThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
-
 		builder.setColor(colorService.getPokedexColor());
 		
-		String gifPath = helpGifPath+ "/" + commandName + "-command.gif";
-		helpMessage.addImage(new File(gifPath));
-		helpMessage.setEmbed(builder);
+		addHelpImage(helpMessage, builder);
 	}
 	
 	protected void createHelpMessage()
@@ -158,12 +157,20 @@ public abstract class PokedexCommand implements PokedexServiceConsumer
 		builder.addField("Input", this.getArguments(), true);
 		this.addAliasFields(builder);
 		builder.setThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
-		
 		builder.setColor(colorService.getPokedexColor());
 		
-		String gifPath = helpGifPath+ "/" + commandName + "-command.gif";
-		helpMessage.addImage(new File(gifPath));
-		helpMessage.setEmbed(builder);
+		addHelpImage(helpMessage, builder);
+	}
+	
+	private void addHelpImage(Response response, EmbedCreateSpec builder) {
+		try {
+			String fileName = commandName + "-command.gif";
+			URL url = new URL( helpGifPath+ "/" + fileName);
+			response.addImage(fileName, url.openStream());
+			builder.setImage("attachment://"+fileName);
+		} catch(IOException e) {
+			throw Exceptions.propagate(e);
+		}
 	}
 	
 	protected void createNonGifHelpMessage(String imageURL)

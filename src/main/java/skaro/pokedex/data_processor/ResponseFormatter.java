@@ -12,7 +12,7 @@ import skaro.pokeflex.api.IFlexObject;
 
 public interface ResponseFormatter 
 {
-	public Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder);
+	Response format(Input input, MultiMap<IFlexObject> data, EmbedCreateSpec builder);
 	
 	default Response invalidInputResponse(Input input)
 	{

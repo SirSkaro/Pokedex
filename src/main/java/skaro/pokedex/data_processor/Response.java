@@ -1,7 +1,6 @@
 package skaro.pokedex.data_processor;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
@@ -15,7 +14,8 @@ import reactor.core.publisher.Mono;
 public class Response
 {
 	private StringBuilder text;
-	private Optional<File> image;				
+	private Optional<InputStream> image;
+	private Optional<String> imageName;
 	private Optional<EmbedCreateSpec> embed;	
 	private boolean privateMessage;
 	
@@ -34,8 +34,9 @@ public class Response
 		privateMessage = b;
 	}
 	
-	public void addImage(File file) {
-		image = Optional.of(file);
+	public void addImage(String imageName, InputStream file) {
+		this.image = Optional.of(file);
+		this.imageName = Optional.of(imageName);
 	}
 	
 	public void addToReply(String s) {
@@ -59,7 +60,7 @@ public class Response
             return result;
         
         return result.map(spec -> spec.andThen(s -> {
-					try { s.addFile(image.get().getName(), new FileInputStream(image.get())); } 
+					try { s.addFile(imageName.get(), image.get()); } 
 					catch (Exception e) { throw Exceptions.propagate(e); }
 				}));
     }

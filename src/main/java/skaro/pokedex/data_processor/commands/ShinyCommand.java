@@ -1,12 +1,13 @@
 package skaro.pokedex.data_processor.commands;
 
-import java.io.File;
+import java.net.URL;
 
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
 import skaro.pokedex.data_processor.PokedexCommand;
 import skaro.pokedex.data_processor.Response;
@@ -80,7 +81,7 @@ public class ShinyCommand extends PokedexCommand
 
 		if(!perkAffordedToUser(requester, guild))
 		{
-			return Mono.just(createNonPrivilegedReply(input))
+			return Mono.fromCallable(() -> createNonPrivilegedReply(input))
 					.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 		}
 		
@@ -127,16 +128,10 @@ public class ShinyCommand extends PokedexCommand
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 
 		//Easter egg: if the user specifies the default non-privilaged Pokemon, use the Patreon logo instead
-		if(!input.getArgument(0).getDbForm().equals(defaultPokemon))
-		{
-			builder.setImage("attachment://jirachi.gif");
-			builder.setColor(colorService.getColorForPatreon());
-			String path = baseModelPath + "/"+ defaultPokemon +".gif";
-			response.addImage(new File(path));
-			builder.setFooter("Pledge $1 to receive this perk!", this.getPatreonLogo());
+		if(!input.getArgument(0).getDbForm().equals(defaultPokemon)) {
+			addDefaultImageToResponse(response, builder);
 		}
-		else
-		{
+		else {
 			builder.setColor(colorService.getColorForPatreon());
 			builder.setImage(this.getPatreonLogo());
 		}
@@ -148,6 +143,20 @@ public class ShinyCommand extends PokedexCommand
 		
 		response.setEmbed(builder);
 		return response;
+	}
+	
+	private void addDefaultImageToResponse(Response response, EmbedCreateSpec builder) {
+		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
+		String fileName = defaultPokemon +".gif";
+		try {
+			builder.setImage("attachment://" + fileName);
+			builder.setColor(colorService.getColorForPatreon());
+			URL url =  new URL(baseModelPath + "/"+ fileName);
+			response.addImage(fileName, url.openStream());
+			builder.setFooter("Pledge $1 to receive this perk!", this.getPatreonLogo());
+		} catch(Exception e) {
+			throw Exceptions.propagate(e);
+		}
 	}
 
 }

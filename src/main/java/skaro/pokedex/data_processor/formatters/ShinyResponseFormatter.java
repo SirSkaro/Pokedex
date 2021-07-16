@@ -1,10 +1,12 @@
 package skaro.pokedex.data_processor.formatters;
 
-import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 
 import org.eclipse.jetty.util.MultiMap;
 
 import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.Exceptions;
 import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.data_processor.ResponseFormatter;
 import skaro.pokedex.data_processor.TextUtility;
@@ -53,13 +55,8 @@ public class ShinyResponseFormatter implements ResponseFormatter, PokedexService
 		response.addToReply("**__"+TextUtility.pokemonFlexFormToProper(species.getNameInLanguage(lang.getFlexKey()))+" | #" + Integer.toString(species.getId()) 
 			+ " | " + TextUtility.formatGeneration(species.getGeneration().getName(), lang) + "__**");
 		
-		//Upload local file
-		String path = baseModelPath + "/" + pokemon.getName() + ".gif";
-		File image = new File(path);
-		response.addImage(image);
-		
-		//Add images
-		builder.setImage("attachment://"+image.getName());
+		//set image file
+		addImageToResponse(response, pokemon, builder);
 		
 		//Set embed color
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
@@ -67,6 +64,17 @@ public class ShinyResponseFormatter implements ResponseFormatter, PokedexService
 		
 		response.setEmbed(builder);
 		return response;
+	}
+	
+	private void addImageToResponse(Response response, Pokemon pokemon, EmbedCreateSpec builder) {
+		String fileName = pokemon.getName() + ".gif";
+		try {
+			URL url =  new URL(baseModelPath + "/"+ fileName);
+			response.addImage(fileName, url.openStream());
+			builder.setImage("attachment://"+fileName);
+		} catch(IOException e) {
+			throw Exceptions.propagate(e);
+		}
 	}
 	
 }
