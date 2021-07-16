@@ -149,7 +149,7 @@ public class Pokedex
 			public org.reactivestreams.Publisher<?> onMessageUpdate(MessageUpdateEvent event) {
 				return messageHandler.onMessageEditEvent(event);
 			}
-		}).subscribe(inputOfServedRequest -> System.out.println(inputOfServedRequest), error -> error.printStackTrace());
+		}).subscribe(inputOfServedRequest -> {}, error -> error.printStackTrace());
 	}
 	
 	private static FlexCacheService createCacheService(PokeFlexService factory)
