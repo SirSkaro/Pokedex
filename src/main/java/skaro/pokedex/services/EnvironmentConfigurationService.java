@@ -1,7 +1,9 @@
 package skaro.pokedex.services;
 
-import skaro.pokedex.communicator.publish_recipients.Recipients;
+import java.util.stream.IntStream;
+
 import skaro.pokedex.communicator.publish_recipients.RecipientConfig;
+import skaro.pokedex.communicator.publish_recipients.Recipients;
 import skaro.pokedex.core.PokedexEnvironment;
 import skaro.pokedex.input_processor.DatabaseConfiguration;
 
@@ -13,8 +15,12 @@ public class EnvironmentConfigurationService implements ConfigurationService {
 	}
 
 	@Override
-	public Integer getShardIndex() {
-		return Integer.parseInt(System.getenv(PokedexEnvironment.POKEDEX_SHARD_INDEX.name()));
+	public int[] getShardIndexes() {
+		int startIndex = Integer.parseInt(System.getenv(PokedexEnvironment.POKEDEX_SHARD_INDEX_START.name()));
+		int endIndex = Integer.parseInt(System.getenv(PokedexEnvironment.POKEDEX_SHARD_INDEX_END.name()));
+		
+		return IntStream.rangeClosed(startIndex, endIndex)
+				.toArray();
 	}
 
 	@Override
@@ -35,7 +41,7 @@ public class EnvironmentConfigurationService implements ConfigurationService {
 	@Override
 	public RecipientConfig getPublishRecipientConfig(Recipients recipient) {
 		RecipientConfig config = new RecipientConfig();
-		config.designatedShard = Integer.parseInt(System.getenv(PokedexEnvironment.POKEDEX_SHARD_INDEX.name()));
+		config.designatedShards = getShardIndexes();
 		switch(recipient) {
 		case BOTS_DISCORD:
 			config.token = System.getenv(PokedexEnvironment.POKEDEX_PUBLISH_BOTS_DISCORD_AUTH_TOKEN.name());

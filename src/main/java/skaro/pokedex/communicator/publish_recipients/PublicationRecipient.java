@@ -9,7 +9,7 @@ public abstract class PublicationRecipient {
 		this.config = config;
 	}
 	
-	public abstract boolean sendPublication(int connectedGuilds, long botId);
+	public abstract boolean sendPublication(int connectedGuilds, long botId, int shardIndex);
 		
 	public RecipientConfig getConfig() {
 		return config;

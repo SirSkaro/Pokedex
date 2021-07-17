@@ -11,10 +11,10 @@ public class DiscordBotsRecipient extends PublicationRecipient
 	}
 	
 	@Override
-	public boolean sendPublication(int connectedGuilds, long botId) {
+	public boolean sendPublication(int connectedGuilds, long botId, int shardIndex) {
 		DiscordBotListAPI dblClient = createDiscordBotListClient(botId);
 		
-		dblClient.setStats(config.designatedShard, config.totalShards, connectedGuilds);
+		dblClient.setStats(shardIndex, config.totalShards, connectedGuilds);
 		return true;
 	}
 	

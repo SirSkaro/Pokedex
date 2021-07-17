@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import discord4j.common.util.Snowflake;
 import skaro.pokedex.communicator.publish_recipients.PublicationRecipient;
+import skaro.pokedex.services.ConfigurationService;
 import skaro.pokedex.services.DiscordService;
 import skaro.pokedex.services.PokedexServiceConsumer;
 import skaro.pokedex.services.PokedexServiceManager;
@@ -29,21 +30,23 @@ public class Publisher implements PokedexServiceConsumer {
 	
 	@Override
 	public boolean hasExpectedServices(PokedexServiceManager services) {
-		return services.hasServices(ServiceType.DISCORD);
+		return services.hasServices(ServiceType.DISCORD, ServiceType.CONFIG);
 	}
 	
 	public void schedulePublicationFrequency(int period, TimeUnit timeUnit) {
+		int[] shards = ((ConfigurationService)services.getService(ServiceType.CONFIG)).getShardIndexes();
 		executor.scheduleAtFixedRate(new Runnable() 
 		{
 			@Override
 			public void run() { 
 				Snowflake botId = getBotId();
-				
 				for(PublicationRecipient recipient : recipients) {
-					try {
-						recipient.sendPublication(getNumberOfConnectedGuilds(), botId.asLong());
-					} catch(Exception e) { 
-						System.out.println("[Publisher] failed to send publication for "+recipient.getClass().getSimpleName());
+					for(int i = 0; i < shards.length; i++) {
+						try {
+							recipient.sendPublication(getNumberOfConnectedGuilds(), botId.asLong(), shards[i]);
+						} catch(Exception e) { 
+							System.out.println("[Publisher] failed to send publication for "+recipient.getClass().getSimpleName());
+						}
 					}
 				}
 		}}

@@ -15,7 +15,7 @@ public class BotsDiscordRecipient extends PublicationRecipient
 	}
 	
 	@Override
-	public boolean sendPublication(int connectedGuilds, long botId) 
+	public boolean sendPublication(int connectedGuilds, long botId, int shardIndex) 
 	{
 		String endpoint = "https://bots.discord.pw/api/"+botId+"/stats";
 		HttpClient hClient = HttpClients.createDefault();
@@ -24,7 +24,7 @@ public class BotsDiscordRecipient extends PublicationRecipient
 		
 		try 
 		{
-			object.put("shard_id", config.designatedShard);
+			object.put("shard_id", shardIndex);
 			object.put("shard_count", config.totalShards);
 			object.put("server_count", connectedGuilds);
 			

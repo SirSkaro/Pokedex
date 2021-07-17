@@ -5,7 +5,7 @@ import skaro.pokedex.communicator.publish_recipients.Recipients;
 
 public interface ConfigurationService extends PokedexService {
 
-	Integer getShardIndex();
+	int[] getShardIndexes();
 	Integer getShardTotal();
 	String getVersion();
 	String getDiscordAuthToken();

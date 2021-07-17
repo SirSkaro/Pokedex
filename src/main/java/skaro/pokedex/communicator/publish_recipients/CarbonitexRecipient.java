@@ -18,7 +18,7 @@ public class CarbonitexRecipient extends PublicationRecipient
 	}
 	
 	@Override
-	public boolean sendPublication(int connectedGuilds, long botId) 
+	public boolean sendPublication(int connectedGuilds, long botId, int shardIndex) 
 	{
     	HttpClient httpclient = HttpClients.createDefault();
 		HttpPost httppost = new HttpPost("https://www.carbonitex.net/discord/data/botdata.php/");
@@ -26,7 +26,7 @@ public class CarbonitexRecipient extends PublicationRecipient
 		
     	try  {
     		params.add(new BasicNameValuePair("key", config.token));
-    		params.add(new BasicNameValuePair("servercount", Integer.toString(config.totalShards * connectedGuilds)));
+    		params.add(new BasicNameValuePair("servercount", Integer.toString(config.totalShards * (connectedGuilds/config.designatedShards.length))));
     		httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
     		httpclient.execute(httppost);
 					    

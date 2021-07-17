@@ -98,7 +98,7 @@ public class Pokedex
 	public static void main(String[] args) throws Exception
 	{
 		EnvironmentConfigurationService configurationService = new EnvironmentConfigurationService();		
-		int shardToManage = configurationService.getShardIndex();
+		int[] shardsToManage = configurationService.getShardIndexes();
 		int totalShards = configurationService.getShardTotal();
 		
 		System.out.println("[Pokedex main] Loading configurations...");
@@ -113,7 +113,7 @@ public class Pokedex
 		PokedexApplicationManager manager = PokedexApplicationManager.PokedexConfigurator.newInstance()
 								.withService(configurationService)
 								.withService(commandMap)
-								.withService(createDiscordService(configurationService, scheduler, shardToManage, totalShards))
+								.withService(createDiscordService(configurationService, scheduler, shardsToManage, totalShards))
 								.withService(perkService)
 								.withService(new ColorService())
 								.withService(new EmojiService())
@@ -128,7 +128,7 @@ public class Pokedex
 		
 		System.out.println("[Pokedex main] Done");
 		System.out.println("[Pokedex main] Setting up publisher...");
-		Publisher publisher = setUpPublisher(manager, shardToManage, totalShards);
+		Publisher publisher = setUpPublisher(manager, shardsToManage, totalShards);
 		publisher.schedulePublicationFrequency(1, TimeUnit.HOURS);
 		System.out.println("[Pokedex main] Done");
 		
@@ -160,7 +160,7 @@ public class Pokedex
 		return result;
 	}
 	
-	private static DiscordService createDiscordService(EnvironmentConfigurationService configService, Scheduler scheduler, int shardID, int shardCount)
+	private static DiscordService createDiscordService(EnvironmentConfigurationService configService, Scheduler scheduler, int[] shardsToManage, int shardCount)
 	{
 		String discordToken = configService.getDiscordAuthToken();
 		StoreService storeService = MappingStoreService.create()
@@ -168,7 +168,7 @@ public class Pokedex
 				.setFallback(new JdkStoreService());
 		ShardingStrategy strategy = ShardingStrategy.builder()
 				.count(shardCount)
-				.indices(shardID)
+				.indices(shardsToManage)
 				.build();
 		
 		GatewayDiscordClient discordClient = DiscordClient.create(discordToken)
@@ -247,10 +247,13 @@ public class Pokedex
 		commandService.addCommand(new DexCommand(commandServiceBuilder.build(), new DexResponseFormatter(serviceBuilderColor.build())));
 	}
 	
-	private static Publisher setUpPublisher(PokedexApplicationManager manager, int shardToManage, int totalShards) throws ServiceException, ServiceConsumerException
+	private static Publisher setUpPublisher(PokedexApplicationManager manager, int[] shardsToManage, int totalShards) throws ServiceException, ServiceConsumerException
 	{
 		ConfigurationService configService = (ConfigurationService)manager.getService(ServiceType.CONFIG);
-		ServiceManager serviceManager = ServiceManager.ServiceManagerBuilder.newInstance(manager).addService(ServiceType.DISCORD).build();
+		ServiceManager serviceManager = ServiceManager.ServiceManagerBuilder.newInstance(manager)
+				.addService(ServiceType.DISCORD)
+				.addService(ServiceType.CONFIG)
+				.build();
 		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		List<PublicationRecipient> recipients = new ArrayList<>();
 		
@@ -260,7 +263,7 @@ public class Pokedex
 		RecipientConfig discordBotConfig = configService.getPublishRecipientConfig(Recipients.DISCORD_BOTS);
 		recipients.add(new DiscordBotsRecipient(discordBotConfig));
 		
-		if(shardToManage == 3) { //arbitrary
+		if(shardsToManage[0] == 3) { //arbitrary
 			RecipientConfig carbonitexConfig = configService.getPublishRecipientConfig(Recipients.CARBONITEX);
 			recipients.add(new CarbonitexRecipient(carbonitexConfig));
 		}
