@@ -94,8 +94,7 @@ public class DexCommand extends PokedexCommand
 								.then(Mono.just(dataMap))));
 		
 		this.addRandomExtraMessage(builder);
-		return result
-				.map(dataMap -> formatter.format(input, dataMap, builder))
+		return result.flatMap(dataMap -> Mono.fromCallable(() -> formatter.format(input, dataMap, builder)))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	

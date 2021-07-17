@@ -16,16 +16,13 @@ public class ArgumentSpec {
 	private boolean isOptional;
 	
 	@SafeVarargs
-	public ArgumentSpec(boolean isOptional, Class<? extends CommandArgument>... argumentCategories)
-	{
+	public ArgumentSpec(boolean isOptional, Class<? extends CommandArgument>... argumentCategories) {
 		this.isOptional = isOptional;
 		this.argumentCategories = Arrays.asList(argumentCategories);
 	}
 
-	public CommandArgument createArgumentFromText(String rawArgument, Language lang)
-	{
-		try
-		{
+	public CommandArgument createArgumentFromText(String rawArgument, Language lang) {
+		try {
 			List<CommandArgument> parsedArguments = new ArrayList<>();
 			
 			for(Class<? extends CommandArgument> argumentClass : argumentCategories)
@@ -37,8 +34,7 @@ public class ArgumentSpec {
 
 			return chooseBestArgument(rawArgument, parsedArguments);
 		}
-		catch(Exception e)
-		{
+		catch(Exception e) {
 			return new InvalidArgument(rawArgument, Lists.newArrayList(argumentCategories));
 		}
 	}

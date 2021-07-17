@@ -13,14 +13,12 @@ import skaro.pokedex.input_processor.Input.InputBuilder;
 import skaro.pokedex.input_processor.arguments.ParsedText;
 import skaro.pokedex.services.CommandService;
 
-public class InputProcessor 
-{
+public class InputProcessor {
 	private CommandService commandService;
 	private Pattern prefixPattern, postfixPattern, mentionPattern;
 	private long botID;
 	
-	public InputProcessor(CommandService lib, Long id)
-	{
+	public InputProcessor(CommandService lib, Long id) {
 		commandService = lib;
 		botID = id;
 		
@@ -31,8 +29,7 @@ public class InputProcessor
 		mentionPattern = Pattern.compile("<@[0-9]+>[\\s]*["+multilingualWord+"]+[\\s]*.*");
 	}
 	
-	public Mono<Input> createInputFromRawString(String rawString)
-	{
+	public Mono<Input> createInputFromRawString(String rawString) {
 		Optional<ParsedText> parseTest = parseString(rawString);
 		
 		if(!parseTest.isPresent())
@@ -42,8 +39,7 @@ public class InputProcessor
 		if(!commandService.commandOrAliasExists(parsedText.getFunction()))
 			return Mono.empty();
 		
-		Input input = createInputFromParsedText(parsedText);
-		return Mono.just(input);
+		return Mono.fromCallable(() -> createInputFromParsedText(parsedText));
 	}
 	
     private Optional<ParsedText> parseString(String msg)
@@ -68,8 +64,7 @@ public class InputProcessor
 		return Optional.empty();
     }
 	
-	private Input createInputFromParsedText(ParsedText parsedText)
-	{
+	private Input createInputFromParsedText(ParsedText parsedText) {
 		PokedexCommand command = commandService.getByAnyAlias(parsedText.getFunction());
 		Language lang = command.getLanguageOfAlias(parsedText.getFunction());
 		InputBuilder builder = Input.newBuilder();
@@ -83,17 +78,17 @@ public class InputProcessor
 		return builder.build();
 	}
 	
-	private List<CommandArgument> parseArguments(ParsedText parsedText, List<ArgumentSpec> argumentSpecs, Language lang)
-	{
+	private List<CommandArgument> parseArguments(ParsedText parsedText, List<ArgumentSpec> argumentSpecs, Language lang) {
 		Iterator<String> argItr = parsedText.getArgumentIterator();
 		List<CommandArgument> result = new ArrayList<>();
 		
-		for(ArgumentSpec spec : argumentSpecs)
-		{
-			if(argItr.hasNext())
+		for(ArgumentSpec spec : argumentSpecs) {
+			if(argItr.hasNext()) {
 				result.add(spec.createArgumentFromText(argItr.next(), lang));
-			else
+			}
+			else {
 				result.add(spec.createArgumentFromNoText());
+			}
 		}
 		
 		return result;

@@ -75,8 +75,7 @@ public class SetCommand extends PokedexCommand
 					.map(pokemon -> dataMap));
 		
 		this.addRandomExtraMessage(builder);
-		return result
-				.map(dataMap -> formatter.format(input, dataMap, builder))
+		return result.flatMap(dataMap -> Mono.fromCallable(() -> formatter.format(input, dataMap, builder)))
 				.onErrorResume(error -> { error.printStackTrace(); return Mono.just(this.createErrorResponse(input, error)); });
 	}
 	

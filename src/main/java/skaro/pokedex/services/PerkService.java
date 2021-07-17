@@ -80,8 +80,7 @@ public class PerkService implements PokedexService, PokedexServiceConsumer
 				.switchIfEmpty(Mono.just(false));
 	}
 	
-	public Mono<User> getPokemonsAdopterIfPledged(String pokemon)
-	{
+	public Mono<User> getPokemonsAdopterIfPledged(String pokemon) {
 		Optional<Long> adoptionCheck = sqlManager.getPokemonsAdopter(pokemon);
 		if(!adoptionCheck.isPresent())
 			return Mono.empty();
@@ -127,16 +126,12 @@ public class PerkService implements PokedexService, PokedexServiceConsumer
 		return Mono.empty();
 	}
 	
-	private List<Pledge> getAllPledges()
-	{
-		try
-		{
+	private List<Pledge> getAllPledges() {
+		try {
 			JSONAPIDocument<List<Campaign>> apiResponse = patreonClient.fetchCampaigns();
 			Campaign campagin = apiResponse.get().get(0);
 			return patreonClient.fetchAllPledges(campagin.getId());
-		}
-		catch(Exception e)
-		{
+		} catch(Exception e) {
 			System.out.println("[PerkService] Could not fetch Patreon data.");
 			e.printStackTrace();
 			return Collections.emptyList();

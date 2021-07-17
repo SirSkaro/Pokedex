@@ -139,7 +139,7 @@ public class DiscordMessageEventHandler {
 	}
 	
 	private Mono<ReplyStructure> parseAndAddInputToStructure(ReplyStructure struct, String messageContent) {
-		return inputProcessor.createInputFromRawString(messageContent)
+		return Mono.defer(() -> inputProcessor.createInputFromRawString(messageContent))
 				.doOnNext(input -> struct.input = input)
 				.map(input -> struct);
 	}

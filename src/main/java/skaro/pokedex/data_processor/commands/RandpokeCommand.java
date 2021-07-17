@@ -90,7 +90,7 @@ public class RandpokeCommand extends PokedexCommand
 		return result.flatMap(dataMap -> Mono.just(dataMap.getValue(Pokemon.class.getName(), 0))
 				.ofType(Pokemon.class)
 				.flatMap(pokemon -> this.addAdopter(pokemon, builder))
-				.map(pokemon -> formatter.format(input, dataMap, builder)))
+				.flatMap(pokemon -> Mono.fromCallable(() -> formatter.format(input, dataMap, builder))))
 				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
 	}
 	

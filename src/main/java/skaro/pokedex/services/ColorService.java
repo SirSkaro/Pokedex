@@ -101,7 +101,7 @@ public class ColorService implements PokedexService
 		double g = weight0 * color1.getGreen() + weight1 * c2.getGreen();
 		double b = weight0 * color1.getBlue() + weight1 * c2.getBlue();
 		
-		return Color.of((float)r, (float)g, (float)b);
+		return Color.of((int)r, (int)g, (int)b);
 	}
 	
 	private void initialize()

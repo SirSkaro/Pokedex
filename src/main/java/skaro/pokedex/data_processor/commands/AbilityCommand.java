@@ -66,8 +66,7 @@ public class AbilityCommand extends PokedexCommand
 	public String getArguments() { return "<pokemon> or <ability>"; }
 
 	@Override
-	public boolean hasExpectedServices(PokedexServiceManager services) 
-	{
+	public boolean hasExpectedServices(PokedexServiceManager services) {
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX, ServiceType.PERK);
 	}

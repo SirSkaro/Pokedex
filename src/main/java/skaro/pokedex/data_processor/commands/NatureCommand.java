@@ -84,8 +84,7 @@ public class NatureCommand extends PokedexCommand {
 						.switchIfEmpty(Mono.just(dataMap)));
 		
 		this.addRandomExtraMessage(builder);
-		return result
-				.map(dataMap -> formatter.format(input, dataMap, builder))
+		return result.flatMap(dataMap -> Mono.fromCallable(() -> formatter.format(input, dataMap, builder)))
 				.onErrorResume(error -> { error.printStackTrace(); return Mono.just(this.createErrorResponse(input, error)); });
 	}
 	

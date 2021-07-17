@@ -78,8 +78,7 @@ public abstract class PokedexCommand implements PokedexServiceConsumer
 		return services.hasServices(ServiceType.COLOR, ServiceType.CONFIG);
 	}
 	
-	public Response createErrorResponse(Input input, Throwable error)
-	{
+	public Response createErrorResponse(Input input, Throwable error) {
 		Response response = new Response();
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		
@@ -105,29 +104,29 @@ public abstract class PokedexCommand implements PokedexServiceConsumer
 		
 		StringBuilder result = new StringBuilder();
 		int i;
-		for(i = 0; i < list.size() - 1; i++)
-			if(i %2 == 0)
+		for(i = 0; i < list.size() - 1; i++) {
+			if(i %2 == 0) {
 				result.append(list.get(i).toString() + "*/* ");
-			else
+			}
+			else {
 				result.append(list.get(i).toString() + "\n");
+			}
+		}
 
 		result.append(list.get(i).toString());
 		
 		return result.toString();
 	}
 	
-	protected void addRandomExtraMessage(EmbedCreateSpec builder)
-	{
+	protected void addRandomExtraMessage(EmbedCreateSpec builder) {
 		int randNum = ThreadLocalRandom.current().nextInt(1, 5); //1 in 4 chance
-		if(randNum == 1)
-		{
+		if(randNum == 1) {
 			randNum = ThreadLocalRandom.current().nextInt(0, extraMessages.size());
 			builder.setFooter(extraMessages.get(randNum), null);
 		}
 	}
 	
-	protected void createHelpMessage(String ex1, String ex2, String ex3, String ex4)
-	{
+	protected void createHelpMessage(String ex1, String ex2, String ex3, String ex4) {
 		helpMessage = new Response();
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
@@ -147,8 +146,7 @@ public abstract class PokedexCommand implements PokedexServiceConsumer
 		addHelpImage(helpMessage, builder);
 	}
 	
-	protected void createHelpMessage()
-	{
+	protected void createHelpMessage() {
 		helpMessage = new Response();
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		EmbedCreateSpec builder = new EmbedCreateSpec();
@@ -172,8 +170,7 @@ public abstract class PokedexCommand implements PokedexServiceConsumer
 		}
 	}
 	
-	protected void createNonGifHelpMessage(String imageURL)
-	{
+	protected void createNonGifHelpMessage(String imageURL) {
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 		EmbedCreateSpec builder = new EmbedCreateSpec();
 		
@@ -189,27 +186,22 @@ public abstract class PokedexCommand implements PokedexServiceConsumer
 		helpMessage.setEmbed(builder);
 	}
 	
-	protected Mono<Pokemon> addAdopter(Pokemon pokemon, EmbedCreateSpec builder)
-	{
+	protected Mono<Pokemon> addAdopter(Pokemon pokemon, EmbedCreateSpec builder) {
 		PerkService checker = (PerkService)services.getService(ServiceType.PERK);
-		Mono<User> result = checker.getPokemonsAdopterIfPledged(pokemon.getName())
-				.doOnNext(user -> builder.setAuthor(user.getUsername() + "'s "+ TextUtility.flexFormToProper(pokemon.getName()), null, getPatreonLogo()));
-
-		return result.then(Mono.just(pokemon));
+		return Mono.defer(() -> checker.getPokemonsAdopterIfPledged(pokemon.getName()))
+				.doOnNext(user -> builder.setAuthor(user.getUsername() + "'s "+ TextUtility.flexFormToProper(pokemon.getName()), null, getPatreonLogo()))
+				.then(Mono.just(pokemon));
 	}
 
-	protected String getPatreonLogo()
-	{
+	protected String getPatreonLogo() {
 		return "https://c5.patreon.com/external/logo/downloads_logomark_color_on_coral.png".intern();
 	}
 	
-	protected String getPatreonBanner()
-	{
+	protected String getPatreonBanner() {
 		return "https://c5.patreon.com/external/logo/become_a_patron_button.png".intern();
 	}
 	
-	private void populateDefaultExtraMessage()
-	{
+	private void populateDefaultExtraMessage() {
 		extraMessages = new ArrayList<>();
 		
 		extraMessages.add("If you like Pokedex, consider becoming a Patreon for perks! (%patreon for link)");
@@ -217,13 +209,10 @@ public abstract class PokedexCommand implements PokedexServiceConsumer
 		extraMessages.add("Want your name next to a Pokemon? Adopt a Pokemon with Patreon! (%patreon for link)");
 	}
 	
-	private void addAliasFields(EmbedCreateSpec builder)
-	{
-		for(Language lang : Language.values())
-		{
+	private void addAliasFields(EmbedCreateSpec builder) {
+		for(Language lang : Language.values()) {
 			StringBuilder sBuilder = new StringBuilder();
-			for(Entry<String, Language> alias : aliases.entrySet())
-			{
+			for(Entry<String, Language> alias : aliases.entrySet()) {
 				if(alias.getValue() == lang)
 					sBuilder.append(alias.getKey() + "\n");
 			}
