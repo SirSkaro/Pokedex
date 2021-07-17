@@ -15,5 +15,5 @@ public interface ConfigurationService extends PokedexService {
 	String getZMoveClipPath();
 	String getPokeFlexURL();
 	String getPatreonAuthToken();
-	
+	String getTcgApiKey();
 }

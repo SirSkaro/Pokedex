@@ -19,6 +19,7 @@ import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.set.Ev;
 import skaro.pokeflex.objects.set.Iv;
+import skaro.pokeflex.objects.set.Move;
 import skaro.pokeflex.objects.set.Set;
 import skaro.pokeflex.objects.set.Set_;
 
@@ -120,8 +121,8 @@ public class SetResponseFormatter implements ResponseFormatter, PokedexServiceCo
 			builder.append("\nIVs: "+ivs.get());
 		
 		if(set.getMoves() != null && !set.getMoves().isEmpty())
-			for(List<String> moves : set.getMoves())
-				builder.append("\n- "+moves.get(0));
+			for(List<Move> moves : set.getMoves())
+				builder.append("\n- "+moves.get(0).getMove());
 		
 		return builder.toString();
 	}

@@ -64,7 +64,7 @@ public class CardResponseFormatter implements ResponseFormatter, PokedexServiceC
 	{
 		ColorService colorService = (ColorService)services.getService(ServiceType.COLOR);
 
-		builder.setImage(card.getImageUrlHiRes());
+		builder.setImage(card.getImages().getLarge());
 		if(card.getTypes() != null)
 			builder.setColor(colorService.getColorForCardType(card.getTypes()));
 		else
@@ -129,7 +129,7 @@ public class CardResponseFormatter implements ResponseFormatter, PokedexServiceC
 	{
 		Map<String, Cards> result = new HashMap<>();
 		cards.getCards().forEach(card -> {
-			String series = card.getSeries();
+			String series = card.getSet().getSeries();
 			if(result.containsKey(series)) {
 				result.get(series).getCards().add(card);
 			} else {
@@ -152,7 +152,7 @@ public class CardResponseFormatter implements ResponseFormatter, PokedexServiceC
 		List<String> cardList = new ArrayList<>();
 		for(int i = 0; i < cardsToShow; i++) {
 			Card_ card = cards.getCards().get(i);
-			cardList.add(String.format("%s **%s**\n#%s from __%s__\n(`%s`)", emojiService.getCardSetEmoji(card.getSetCode()), card.getName(), card.getNumber(), card.getSet(), card.getId()));
+			cardList.add(String.format("%s **%s**\n#%s from __%s__\n(`%s`)", emojiService.getCardSetEmoji(card.getSet().getId()), card.getName(), card.getNumber(), card.getSet().getName(), card.getId()));
 		}
 
 		if(numberOfCards > cardsToShow)

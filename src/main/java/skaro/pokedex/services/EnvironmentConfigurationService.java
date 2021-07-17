@@ -88,4 +88,9 @@ public class EnvironmentConfigurationService implements ConfigurationService {
 		return System.getenv(PokedexEnvironment.POKEDEX_PATREON_AUTH_TOKEN.name());
 	}
 
+	@Override
+	public String getTcgApiKey() {
+		return System.getenv(PokedexEnvironment.POKEDEX_TCG_API_KEY.name());
+	}
+
 }

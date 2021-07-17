@@ -4,6 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.jetty.util.MultiMap;
+import org.eclipse.jetty.util.URIUtil;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
@@ -26,17 +27,16 @@ import skaro.pokeflex.api.PokeFlexRequest;
 import skaro.pokeflex.api.Request;
 import skaro.pokeflex.api.RequestQuery;
 
-public class CardCommand extends PokedexCommand 
-{
-	private Pattern cardSetPattern;
+public class CardCommand extends PokedexCommand {
+	private Pattern cardIdPattern;
 	
-	public CardCommand(PokedexServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException 
-	{
+	public CardCommand(PokedexServiceManager services, ResponseFormatter formatter) throws ServiceConsumerException {
 		super(services, formatter);
-		if(!hasExpectedServices(this.services))
+		if(!hasExpectedServices(this.services)) {
 			throw new ServiceConsumerException("Did not receive all necessary services");
+		}
 		
-		cardSetPattern = Pattern.compile("[a-zA-Z]+[0-9]+-[0-9A-Za-z]+");
+		cardIdPattern = Pattern.compile("[a-zA-Z]+[0-9]+-[0-9A-Za-z]+");
 		
 		commandName = "card";
 		
@@ -52,15 +52,13 @@ public class CardCommand extends PokedexCommand
 	public String getArguments() { return "<card name>"; }
 	
 	@Override
-	public boolean hasExpectedServices(PokedexServiceManager services) 
-	{
+	public boolean hasExpectedServices(PokedexServiceManager services) {
 		return super.hasExpectedServices(services) &&
 				services.hasServices(ServiceType.POKE_FLEX);
 	}
 
 	@Override
-	public Mono<Response> respondTo(Input input, User author, Guild guild) 
-	{
+	public Mono<Response> respondTo(Input input, User author, Guild guild) {
 		if(!input.allArgumentValid())
 			return Mono.just(formatter.invalidInputResponse(input));
 		
@@ -80,19 +78,17 @@ public class CardCommand extends PokedexCommand
 				.onErrorResume(error -> { error.printStackTrace(); return Mono.just(this.createErrorResponse(input, error));});
 	}
 
-	private PokeFlexRequest createFlexRequest(String rawArgument) 
-	{
-		Matcher matcher = cardSetPattern.matcher(rawArgument);
+	private PokeFlexRequest createFlexRequest(String rawArgument) {
+		Matcher matcher = cardIdPattern.matcher(rawArgument);
 		if(matcher.matches()) 
 			return new Request(Endpoint.CARD, rawArgument);
 		
-		String encodedArgument = rawArgument.replace(" ", "%20");
-		return new RequestQuery(Endpoint.CARDS, "name", encodedArgument);
+		String queryArguments = String.format("name:\"%s\"", rawArgument);
+		return new RequestQuery(Endpoint.CARDS, "q", URIUtil.encodePath(queryArguments));
 	}
 
 	@Override
-	protected void createArgumentSpecifications() 
-	{
+	protected void createArgumentSpecifications() {
 		argumentSpecifications.add(new ArgumentSpec(false, AnyArgument.class));
 	}
 

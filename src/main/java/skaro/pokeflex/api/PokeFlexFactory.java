@@ -27,20 +27,17 @@ public class PokeFlexFactory
 	private String baseURI;
 	private ObjectMapper mapper;
 
-	public PokeFlexFactory(String base)
-	{
+	public PokeFlexFactory(String base) {
 		baseURI = base;
 		mapper = new ObjectMapper();
 	}
 
-	public Mono<IFlexObject> createFlexObject(Endpoint endpoint, List<String> params) 
-	{
+	public Mono<IFlexObject> createFlexObject(Endpoint endpoint, List<String> params) {
 		URL url = constructURL(endpoint.getEnpoint(), params);
 		return Mono.fromCallable(() -> makeRequest(endpoint, url));
 	}
 	
-	public Mono<IFlexObject> createFlexObject(String url, Endpoint endpoint) 
-	{
+	public Mono<IFlexObject> createFlexObject(String url, Endpoint endpoint) {
 		List<String> params = getURLParams(url, endpoint);
 		return createFlexObject(endpoint, params);
 	}
@@ -50,24 +47,20 @@ public class PokeFlexFactory
 		return Mono.fromCallable(() -> makeRequest(endpoint, url));
 	}
 	
-	public Mono<IFlexObject> createFlexObject(Request request) 
-	{
+	public Mono<IFlexObject> createFlexObject(Request request) {
 		return createFlexObject(request.getEndpoint(), request.getUrlParams());
 	}
 	
-	public Mono<IFlexObject> createFlexObject(RequestURL request) 
-	{
+	public Mono<IFlexObject> createFlexObject(RequestURL request) {
 		return createFlexObject(request.getURL(), request.getEndpoint());
 	}
 
-	public Flux<IFlexObject> createFlexObjects(List<PokeFlexRequest> requests) 
-	{
+	public Flux<IFlexObject> createFlexObjects(List<PokeFlexRequest> requests) {
 		return Flux.fromIterable(requests)
 				.flatMap(request -> request.makeRequest(this));
 	}
 	
-	public Flux<IFlexObject> createFlexObjects(List<PokeFlexRequest> requests, Scheduler scheduler) 
-	{
+	public Flux<IFlexObject> createFlexObjects(List<PokeFlexRequest> requests, Scheduler scheduler) {
 		return Flux.fromIterable(requests)
 				.parallel()
 				.runOn(scheduler)
@@ -75,22 +68,16 @@ public class PokeFlexFactory
 				.sequential();
 	}
 	
-	private IFlexObject makeRequest(Endpoint endpoint, URL url) 
-	{
-		Class<?> wrapperClass = endpoint.getWrapperClass();
-		
-		try 
-		{
+	private IFlexObject makeRequest(Endpoint endpoint, URL url) {
+		try {
 			String json = getJSONFromURL(url);
-			return (IFlexObject)mapper.readValue(json, wrapperClass); 
-		} 
-		catch(IOException e) {
+			return (IFlexObject)mapper.readValue(json, endpoint.getWrapperClass()); 
+		} catch(IOException e) {
 			throw Exceptions.propagate(e);
 		}
 	}
 	
-	private URL constructURL(String endpoint, List<String> args)
-	{
+	private URL constructURL(String endpoint, List<String> args) {
 		StringBuilder builder = new StringBuilder(baseURI);
 		String builtURL;
 
@@ -98,27 +85,23 @@ public class PokeFlexFactory
 		builder.append("/");
 		builder.append(endpoint);
 		builder.append("/");
-		for(String arg: args)
-		{
+		for(String arg: args) {
 			builder.append(arg);
 			builder.append("/");
 		}
 
 		//Build the URL
 		builtURL = builder.substring(0, builder.lastIndexOf("/"));
-		try 
-		{
+		try {
 			return new URL(builtURL);
 		} 
-		catch(MalformedURLException e) 
-		{
+		catch(MalformedURLException e) {
 			System.err.println(e.getMessage());
 			throw Exceptions.propagate(e);
 		}
 	}
 	
-	private URL constructUrlWithQuery(String endpoint, Map<String, String> params) 
-	{
+	private URL constructUrlWithQuery(String endpoint, Map<String, String> params) {
 		String queries = params.entrySet().stream()
 			.map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
 			.collect(Collectors.joining("&"));
@@ -127,28 +110,23 @@ public class PokeFlexFactory
 		builder.append("/").append(endpoint);
 		builder.append("?").append(queries);
 		
-		try 
-		{
+		try {
 			return new URL(builder.toString());
 		} 
-		catch (MalformedURLException e) 
-		{
+		catch (MalformedURLException e) {
 			throw Exceptions.propagate(e);
 		}
 	}
 
-	private String getJSONFromURL(URL url) throws IOException
-	{
+	private String getJSONFromURL(URL url) throws IOException {
 		String htmlContent, jsonText;
-
 		htmlContent = readContentFromUrl(url);
 		jsonText = filterHTML(htmlContent);
 
 		return jsonText;
 	}
 
-	private String filterHTML(String htmlContent)
-	{
+	private String filterHTML(String htmlContent) {
 		String filteredContent = Jsoup.parse(htmlContent).text();
 		int jsonStartBracketIndex = filteredContent.indexOf("{");
 		int jsonEndBracketIndex = filteredContent.lastIndexOf("}");
@@ -179,14 +157,14 @@ public class PokeFlexFactory
 		String[] elements = url.split("/");
 		int itr;
 		
-		for(itr = 0; itr < elements.length; itr++)
-		{
+		for(itr = 0; itr < elements.length; itr++) {
 			if(elements[itr].equals(endpoint.getEnpoint()))
 				break;
 		}
 		
-		if(elements.length <= (itr+1))
+		if(elements.length <= (itr+1)) {
 			return result;			//no url parameters
+		}
 		
 		for(itr = itr + 1; itr < elements.length; itr++)
 			result.add(elements[itr]);

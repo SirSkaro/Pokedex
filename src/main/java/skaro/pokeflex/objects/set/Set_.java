@@ -7,6 +7,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "natures",
     "showdown"
 })
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Set_ {
 
     @JsonProperty("abilities")
@@ -39,7 +41,7 @@ public class Set_ {
     @JsonProperty("ivs")
     private List<Iv> ivs = null;
     @JsonProperty("moves")
-    private List<List<String>> moves = null;
+    private List<List<Move>> moves = null;
     @JsonProperty("name")
     private String name;
     @JsonProperty("natures")
@@ -110,12 +112,12 @@ public class Set_ {
     }
 
     @JsonProperty("moves")
-    public List<List<String>> getMoves() {
+    public List<List<Move>> getMoves() {
         return moves;
     }
 
     @JsonProperty("moves")
-    public void setMoves(List<List<String>> moves) {
+    public void setMoves(List<List<Move>> moves) {
         this.moves = moves;
     }
 

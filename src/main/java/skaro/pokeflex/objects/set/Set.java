@@ -2,6 +2,8 @@
 package skaro.pokeflex.objects.set;
 
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -13,6 +15,7 @@ import skaro.pokeflex.api.IFlexObject;
     "sets",
     "url"
 })
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Set implements IFlexObject {
 
     @JsonProperty("sets")
