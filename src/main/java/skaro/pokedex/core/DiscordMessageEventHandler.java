@@ -20,19 +20,16 @@ import skaro.pokedex.data_processor.Response;
 import skaro.pokedex.input_processor.Input;
 import skaro.pokedex.input_processor.InputProcessor;
 
-public class DiscordMessageEventHandler
-{
+public class DiscordMessageEventHandler {
 	private InputProcessor inputProcessor;
 	private ChannelRateLimiter rateLimiter;
 	
-	public DiscordMessageEventHandler(InputProcessor inputProcessor, ChannelRateLimiter rateLimiter)
-	{
+	public DiscordMessageEventHandler(InputProcessor inputProcessor, ChannelRateLimiter rateLimiter) {
 		this.inputProcessor = inputProcessor;
 		this.rateLimiter = rateLimiter;
 	}
 
-	public Mono<Input> onMessageCreateEvent(MessageCreateEvent event)
-	{
+	public Mono<Input> onMessageCreateEvent(MessageCreateEvent event) {
 		Message newlyReceivedMessage = event.getMessage();
 		Optional<String> possibleContent = Optional.ofNullable(newlyReceivedMessage.getContent());
 
@@ -44,8 +41,7 @@ public class DiscordMessageEventHandler
 				.onErrorResume(error -> {error.printStackTrace(); return Mono.empty();});
 	}
 
-	public Mono<Input> onMessageEditEvent(MessageUpdateEvent event)
-	{
+	public Mono<Input> onMessageEditEvent(MessageUpdateEvent event) {
 		Mono<Message> newlyReceivedMessage = event.getMessage();
 		Optional<String> possibleContent = event.getCurrentContent();
 
@@ -58,8 +54,7 @@ public class DiscordMessageEventHandler
 				.onErrorResume(error -> Mono.empty());
 	}
 	
-	private Mono<ReplyStructure> processMessageEvent(Message messageReceived, String messageContent)
-	{
+	private Mono<ReplyStructure> processMessageEvent(Message messageReceived, String messageContent) {
 		return prepareReply(messageReceived, messageContent)
 				.flatMap(reply -> sendAckMessageIfNeeded(reply))
 				.flatMap(reply -> executeCommandAndAddResponseToStructure(reply))
@@ -67,8 +62,7 @@ public class DiscordMessageEventHandler
 				.flatMap(reply -> sendReply(reply));
 	}
 	
-	private Mono<ReplyStructure> prepareReply(Message receivedMessage, String messageContent)
-	{
+	private Mono<ReplyStructure> prepareReply(Message receivedMessage, String messageContent) {
 		return Mono.just(new ReplyStructure())
 				.filter(struct -> !receivedMessage.mentionsEveryone())
 				.flatMap(struct -> parseAndAddInputToStructure(struct, messageContent))
@@ -81,15 +75,13 @@ public class DiscordMessageEventHandler
 				.flatMap(struct -> addGuildToStructure(struct, receivedMessage));
 	}
 	
-	private Mono<Boolean> botHasPermissionsForThisChannel(ReplyStructure struct, PermissionSet neededPermissions)
-	{
+	private Mono<Boolean> botHasPermissionsForThisChannel(ReplyStructure struct, PermissionSet neededPermissions) {
 		Snowflake botId = struct.channel.getClient().getSelfId();
 		
 		if(botId.asLong() == 0)
 			return Mono.just(false);
 		
-		if(struct.channel instanceof GuildChannel)
-		{
+		if(struct.channel instanceof GuildChannel) {
 			GuildChannel channel = (GuildChannel)struct.channel;
 			
 			return channel.getEffectivePermissions(botId)
@@ -99,8 +91,7 @@ public class DiscordMessageEventHandler
 		return Mono.just(true);
 	}
 	
-	private Mono<ReplyStructure> sendAckMessageIfNeeded(ReplyStructure struct)
-	{
+	private Mono<ReplyStructure> sendAckMessageIfNeeded(ReplyStructure struct) {
 		if(!shouldHaveAckMessage(struct.input))
 			return Mono.just(struct);
 		
@@ -110,15 +101,13 @@ public class DiscordMessageEventHandler
 				.map(ackMessage -> struct);
 	}
 	
-	private Mono<ReplyStructure> executeCommandAndAddResponseToStructure(ReplyStructure struct)
-	{
+	private Mono<ReplyStructure> executeCommandAndAddResponseToStructure(ReplyStructure struct) {
 		return getResponseFromCommand(struct)
 				.doOnNext(response -> struct.response = response)
 				.map(user -> struct);
 	}
 	
-	private Mono<ReplyStructure> deleteAckMessageIfNeeded(ReplyStructure struct)
-	{
+	private Mono<ReplyStructure> deleteAckMessageIfNeeded(ReplyStructure struct) {
 		if(struct.ackMessage == null)
 			return Mono.just(struct);
 		
@@ -126,8 +115,7 @@ public class DiscordMessageEventHandler
 				.thenReturn(struct);
 	}
 	
-	private Mono<ReplyStructure> sendReply(ReplyStructure struct)
-	{
+	private Mono<ReplyStructure> sendReply(ReplyStructure struct) {
 		Response response = struct.response;
 
 		if(response.isPrivateMessage())
@@ -143,30 +131,26 @@ public class DiscordMessageEventHandler
 				.map(sentMessage -> struct);
 	}
 	
-	private Mono<ReplyStructure> addAuthorToStructure(ReplyStructure struct, Message message)
-	{
+	private Mono<ReplyStructure> addAuthorToStructure(ReplyStructure struct, Message message) {
 		User author = message.getAuthor().get();
 		struct.author = author;
 		
 		return Mono.just(struct);
 	}
 	
-	private Mono<ReplyStructure> parseAndAddInputToStructure(ReplyStructure struct, String messageContent)
-	{
+	private Mono<ReplyStructure> parseAndAddInputToStructure(ReplyStructure struct, String messageContent) {
 		return inputProcessor.createInputFromRawString(messageContent)
 				.doOnNext(input -> struct.input = input)
 				.map(input -> struct);
 	}
 	
-	private Mono<ReplyStructure> addChannelOfMessageToStructure(ReplyStructure struct, Message message)
-	{
+	private Mono<ReplyStructure> addChannelOfMessageToStructure(ReplyStructure struct, Message message) {
 		return message.getChannel()
 				.doOnNext(channel -> struct.channel = channel)
 				.map(channel -> struct);
 	}
 	
-	private Mono<ReplyStructure> addPrivateChannelToStructure(ReplyStructure struct, User author)
-	{
+	private Mono<ReplyStructure> addPrivateChannelToStructure(ReplyStructure struct, User author) {
 		return author.getPrivateChannel()
 				.doOnNext(channel -> struct.privateChannel = channel)
 				.map(channel -> struct);
@@ -180,30 +164,21 @@ public class DiscordMessageEventHandler
 				.switchIfEmpty(Mono.just(struct));
 	}
 
-	private Mono<Response> getResponseFromCommand(ReplyStructure struct)
-	{
+	private Mono<Response> getResponseFromCommand(ReplyStructure struct) {
 		Input input = struct.input;
 		PokedexCommand command = input.getCommand();
-
-		try
-		{
-			User author = struct.author;
-			Guild guild = struct.guild;
-			return command.respondTo(input, author, guild);
-		}
-		catch(Exception e)
-		{
+		try {
+			return Mono.defer(() -> command.respondTo(input, struct.author, struct.guild));
+		} catch(Exception e) {
 			return Mono.just(command.createErrorResponse(input, e));
 		}
 	}
 	
-	private boolean shouldHaveAckMessage(Input input)
-	{
+	private boolean shouldHaveAckMessage(Input input) {
 		return input.getCommand().makesWebRequest() && input.allArgumentValid();
 	}
 	
-	private class ReplyStructure
-	{
+	private class ReplyStructure {
 		Guild guild;
 		Message ackMessage;
 		MessageChannel channel;

@@ -28,13 +28,13 @@ public class ChannelRateLimiter
 				.build();
 	}
 	
-    public boolean channelIsRateLimited(Snowflake channelSnowflake)
-    {
+    public boolean channelIsRateLimited(Snowflake channelSnowflake) {
     	Long channelID = channelSnowflake.asLong();
     	Bucket bucketForChannel = bucketCache.getIfPresent(channelID);
     	
-    	if(bucketForChannel == null)
+    	if(bucketForChannel == null) {
     		bucketForChannel = registerNewBucket(channelID);
+    	}
     	
     	return !bucketForChannel.tryConsume(1);
     }

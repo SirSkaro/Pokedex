@@ -99,8 +99,7 @@ public abstract class PokedexCommand implements PokedexServiceConsumer
 	abstract public Mono<Response> respondTo(Input input, User author, Guild guild);
 	abstract protected void createArgumentSpecifications();
 	
-	protected String listToItemizedString(List<?> list)
-	{
+	protected String listToItemizedString(List<?> list) {
 		if(list.isEmpty())
 			return "None".intern();
 		

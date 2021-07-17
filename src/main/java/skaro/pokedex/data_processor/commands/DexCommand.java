@@ -50,10 +50,7 @@ public class DexCommand extends PokedexCommand
 		aliases.put("エントリ", Language.JAPANESE_HIR_KAT);
 		aliases.put("기입", Language.KOREAN);
 		
-		extraMessages.add("Connect to a voice channel to hear entries spoken! (English, German, Italian, and French only)");
-		
 		createHelpMessage("Mew, Red", "kadabra, fire red", "Phantump, y", "Darumaka, white");
-		
 	}
 	
 	@Override

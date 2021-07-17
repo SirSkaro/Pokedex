@@ -34,7 +34,7 @@ Postfix: command()
 * ability - displays detailed information about the specified Ability or displays the Abilities that the secified Pokemon may have
 * learn - specifies if a Pokemon can learn a list of given Move and how it can learn those Moves
 * weak - displays the types that a specified Pokemon or Typing is weak to
-* dex - displays the Pokedex entry of the specified Pokemon from a specified Version. If the user is connected to a voice chat, it will speak the Pokedex entry in that voice chat
+* dex - displays the Pokedex entry of the specified Pokemon from a specified Version.
 * location - displays the in-game locations of the specified Pokemon in the specified Version 
 * set - displays the Smogon-standard set of the specified Pokemon for the specified Meta in the specified Generation
 
@@ -98,4 +98,4 @@ Builds are described by the three sections in the version number X.Y.Z. Upon inc
 * My [Patreon](https://www.patreon.com/sirskaro) supporters
 * The [Discord4J](https://github.com/Discord4J/Discord4J) team
 
-Pokémon © 2002-2019 Pokémon. © 1995-2019 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. No copyright or trademark infringement is intended.
+Pokémon © 2002-2021 Pokémon. © 1995-2021 Nintendo/Creatures Inc./GAME FREAK inc. TM, ® and Pokémon character names are trademarks of Nintendo. No copyright or trademark infringement is intended.
