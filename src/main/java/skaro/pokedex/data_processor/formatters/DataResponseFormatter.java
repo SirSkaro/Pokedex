@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.MultiMap;
@@ -29,6 +30,7 @@ import skaro.pokeflex.objects.evolution_chain.EvolutionChain;
 import skaro.pokeflex.objects.evolution_chain.EvolutionDetail;
 import skaro.pokeflex.objects.evolution_chain.EvolvesTo;
 import skaro.pokeflex.objects.growth_rate.GrowthRate;
+import skaro.pokeflex.objects.pokemon.Model;
 import skaro.pokeflex.objects.pokemon.Pokemon;
 import skaro.pokeflex.objects.pokemon_form.PokemonForm;
 import skaro.pokeflex.objects.pokemon_species.PokemonSpecies;
@@ -88,12 +90,19 @@ public class DataResponseFormatter implements ResponseFormatter, PokedexServiceC
 				builder.addField(DataField.EVO_REQ.getFieldTitle(lang), evolutionRequirements, true);
 		}
 		
-		builder.setImage(pokemon.getModel().getUrl());
+		addImage(pokemon, builder);
 		String type = pokemon.getTypes().get(pokemon.getTypes().size() - 1).getType().getName(); //Last type in the list
 		builder.setColor(colorService.getColorForType(type));
 		
 		response.setEmbed(builder);
 		return response;
+	}
+	
+	private void addImage(Pokemon pokemon, EmbedCreateSpec builder) {
+		Optional.of(pokemon)
+			.map(Pokemon::getModel)
+			.map(Model::getUrl)
+			.ifPresent(builder::setImage);
 	}
 	
 	private void addEggGroups(EmbedCreateSpec builder, List<IFlexObject> groups, Language lang) {
