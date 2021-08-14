@@ -106,7 +106,7 @@ public class MoveCommand extends PokedexCommand
 		
 		this.addRandomExtraMessage(builder);
 		return result.flatMap(dataMap -> Mono.fromCallable(() -> formatter.format(input, dataMap, builder)))
-				.onErrorResume(error -> Mono.just(this.createErrorResponse(input, error)));
+				.onErrorResume(error -> { error.printStackTrace(); return Mono.just(this.createErrorResponse(input, error)); });
 	}
 	
 	@Override

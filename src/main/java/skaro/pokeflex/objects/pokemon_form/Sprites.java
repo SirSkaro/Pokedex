@@ -1,6 +1,7 @@
 
 package skaro.pokeflex.objects.pokemon_form;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "front_shiny",
     "back_shiny"
 })
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Sprites {
 
     @JsonProperty("front_default")

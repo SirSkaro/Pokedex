@@ -74,7 +74,7 @@ public class DataResponseFormatter implements ResponseFormatter, PokedexServiceC
 		builder.addField(DataField.EV_YIELD.getFieldTitle(lang), formatEvYield(pokemon, lang), true);
 		builder.addField(DataField.GROWTH_CATCH.getFieldTitle(lang), formatGrowthAndCatchRates((GrowthRate)data.getValue(GrowthRate.class.getName(), 0), species.getCaptureRate(), lang), true);
 		builder.addField(DataField.GENDER.getFieldTitle(lang), formatGenderRatio(species), true);
-		builder.addField(DataField.EGG_GROUP.getFieldTitle(lang), formatEggGroups(data.get(EggGroup.class.getName()),lang), true);
+		addEggGroups(builder, data.get(EggGroup.class.getName()), lang);
 		builder.addField(DataField.HATCH_TIME.getFieldTitle(lang), calcHatchTime(species, lang), true);
 		
 		if(hasMultipleForms(data.get(PokemonForm.class.getName())))
@@ -94,6 +94,13 @@ public class DataResponseFormatter implements ResponseFormatter, PokedexServiceC
 		
 		response.setEmbed(builder);
 		return response;
+	}
+	
+	private void addEggGroups(EmbedCreateSpec builder, List<IFlexObject> groups, Language lang) {
+		if(groups == null) {
+			return;
+		}
+		builder.addField(DataField.EGG_GROUP.getFieldTitle(lang), formatEggGroups(groups, lang), true);
 	}
 	
 	private String formatEggGroups(List<IFlexObject> groups, Language lang)

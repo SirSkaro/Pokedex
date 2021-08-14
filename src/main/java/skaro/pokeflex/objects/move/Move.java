@@ -479,7 +479,8 @@ public class Move implements IFlexObject {
     	if(secondBest != null)
     		return Optional.of(secondBest);
     	
-    	return Optional.ofNullable(backup);
+    	return Optional.ofNullable(backup)
+    			.or(() -> Optional.ofNullable(sdesc));
     }
     
 	public String getNameInLanguage(String lang)

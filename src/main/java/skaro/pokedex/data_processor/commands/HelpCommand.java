@@ -19,7 +19,7 @@ import skaro.pokedex.services.ServiceType;
 
 public class HelpCommand extends PokedexCommand 
 {
-	Response defaultResponse;
+	private Response defaultResponse;
 	
 	public HelpCommand(PokedexServiceManager services) throws ServiceConsumerException
 	{
@@ -72,6 +72,7 @@ public class HelpCommand extends PokedexCommand
 
 			PokedexCommand command = commands.getByAnyAlias(arg);
 			Response response = command.getHelpMessage();
+			command.addHelpImage(response, response.embed.get());
 			return Mono.just(response);
 		}
 		catch(Exception e)
@@ -85,5 +86,5 @@ public class HelpCommand extends PokedexCommand
 	{
 		argumentSpecifications.add(new ArgumentSpec(true, AnyArgument.class));
 	}
-	
+
 }

@@ -40,10 +40,11 @@ public class Publisher implements PokedexServiceConsumer {
 			@Override
 			public void run() { 
 				Snowflake botId = getBotId();
+				long numberOfGuildsToReport = getNumberOfConnectedGuilds() / shards.length;
 				for(PublicationRecipient recipient : recipients) {
 					for(int i = 0; i < shards.length; i++) {
 						try {
-							recipient.sendPublication(getNumberOfConnectedGuilds(), botId.asLong(), shards[i]);
+							recipient.sendPublication((int)numberOfGuildsToReport, botId.asLong(), shards[i]);
 						} catch(Exception e) { 
 							System.out.println("[Publisher] failed to send publication for "+recipient.getClass().getSimpleName());
 						}
@@ -53,12 +54,11 @@ public class Publisher implements PokedexServiceConsumer {
 		, period, period, timeUnit);
 	}
 	
-	private int getNumberOfConnectedGuilds() {
+	private long getNumberOfConnectedGuilds() {
 		DiscordService discordService = (DiscordService)services.getService(ServiceType.DISCORD);
 		return discordService.getV3Client().getGuilds()
-				.collectList()
-				.block()
-				.size();
+				.count()
+				.block();
 	}
 	
 	private Snowflake getBotId() {

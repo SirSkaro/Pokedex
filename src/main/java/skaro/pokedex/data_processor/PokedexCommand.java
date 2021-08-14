@@ -34,7 +34,7 @@ public abstract class PokedexCommand implements PokedexServiceConsumer
 	protected Map<String, Language> aliases;
 	protected ResponseFormatter formatter;
 	protected PokedexServiceManager services;
-	private final String helpGifPath;
+	protected final String helpGifPath;
 	
 	public PokedexCommand(PokedexServiceManager serviceManager) {
 		services = serviceManager;
@@ -143,7 +143,7 @@ public abstract class PokedexCommand implements PokedexServiceConsumer
 		builder.setThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 		builder.setColor(colorService.getPokedexColor());
 		
-		addHelpImage(helpMessage, builder);
+		helpMessage.setEmbed(builder);
 	}
 	
 	protected void createHelpMessage() {
@@ -156,10 +156,10 @@ public abstract class PokedexCommand implements PokedexServiceConsumer
 		builder.setThumbnail("https://images.discordapp.net/avatars/206147275775279104/e535e65cef619085c66736d8433ade73.png?size=512");
 		builder.setColor(colorService.getPokedexColor());
 		
-		addHelpImage(helpMessage, builder);
+		helpMessage.setEmbed(builder);
 	}
 	
-	private void addHelpImage(Response response, EmbedCreateSpec builder) {
+	public void addHelpImage(Response response, EmbedCreateSpec builder) {
 		try {
 			String fileName = commandName + "-command.gif";
 			URL url = new URL( helpGifPath+ "/" + fileName);

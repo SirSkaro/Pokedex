@@ -13,11 +13,11 @@ import reactor.core.publisher.Mono;
 
 public class Response
 {
-	private StringBuilder text;
-	private Optional<InputStream> image;
-	private Optional<String> imageName;
-	private Optional<EmbedCreateSpec> embed;	
-	private boolean privateMessage;
+	public StringBuilder text;
+	public Optional<InputStream> image;
+	public Optional<String> imageName;
+	public Optional<EmbedCreateSpec> embed;	
+	public boolean privateMessage;
 	
 	public Response() {
 		text = new StringBuilder();

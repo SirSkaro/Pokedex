@@ -9,6 +9,7 @@ import java.util.Optional;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -20,6 +21,7 @@ import skaro.pokeflex.api.IFlexObject;
 		"base_happiness", "generation", "flavor_text_entries", "growth_rate", "hatch_counter", "genera",
 		"evolves_from_species", "form_descriptions", "varieties", "name", "evolution_chain", "has_gender_differences",
 		"is_baby", "gender_rate", "pal_park_encounters", "order", "pokedex_numbers" })
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PokemonSpecies implements IFlexObject {
 
 	@JsonProperty("capture_rate")
