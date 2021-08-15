@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import skaro.pokeflex.api.IFlexObject;
 import skaro.pokeflex.objects.ability.Ability;
+import skaro.pokeflex.objects.move.LearnedByPokemon;
 import skaro.pokeflex.objects.move.Move;
 import skaro.pokeflex.objects.type.Type;
 
@@ -119,8 +120,7 @@ public class SearchCriteriaFilter implements IFlexObject
 		return result;
 	}
 	
-	private List<String> getPokemon(Type type)
-	{
+	private List<String> getPokemon(Type type) {
 		return type.getPokemon()
 				.stream()
 				.map(pokemon -> pokemon.getPokemon().getName())
@@ -135,9 +135,10 @@ public class SearchCriteriaFilter implements IFlexObject
 				.collect(Collectors.toList());
 	}
 	
-	private List<String> getPokemon(Move move)
-	{
-		return move.getPokemon();
+	private List<String> getPokemon(Move move) {
+		return move.getLearnedByPokemon().stream()
+				.map(LearnedByPokemon::getName)
+				.collect(Collectors.toList());
 	}
 	
 	public static class SearchCriteriaBuilder

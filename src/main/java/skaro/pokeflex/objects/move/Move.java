@@ -9,6 +9,7 @@ import java.util.Optional;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -48,8 +49,9 @@ import skaro.pokeflex.api.IFlexObject;
     "crystal",
     "flags",
     "images",
-    "pokemon"
+    "learned_by_pokemon"
 })
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Move implements IFlexObject {
 
     @JsonProperty("effect_chance")
@@ -116,19 +118,19 @@ public class Move implements IFlexObject {
     private List<String> flags = null;
     @JsonProperty("images")
     private List<Image> images = null;
-    @JsonProperty("pokemon")
-    private List<String> pokemon = null;
+    @JsonProperty("learned_by_pokemon")
+    private List<LearnedByPokemon> learnedByPokemon = null;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-    @JsonProperty("pokemon")
-    public List<String> getPokemon() {
-        return pokemon;
+    @JsonProperty("learned_by_pokemon")
+    public List<LearnedByPokemon> getLearnedByPokemon() {
+        return learnedByPokemon;
     }
     
-    @JsonProperty("pokemon")
-    public void setPokemon(List<String> pokemon) {
-        this.pokemon = pokemon;
+    @JsonProperty("learned_by_pokemon")
+    public void setLearnedByPokemon(List<LearnedByPokemon> learnedByPokemon) {
+        this.learnedByPokemon = learnedByPokemon;
     }
     
     @JsonProperty("images")
